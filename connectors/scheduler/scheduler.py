@@ -259,15 +259,27 @@ def register_jobs(scheduler: BlockingScheduler) -> None:
         coalesce=True,
     )
 
-    # ── Amazon SP-API sales & traffic — yesterday's ASIN sales/traffic data
+    # ── Amazon SP-API sales & traffic — D-2 ASIN sales/traffic data
     #    (daily 04:30 Europe/London, after google-analytics-sync at 04:00) ──────
     # Iterates all 9 ACTIVE_MARKETPLACES at ~1 report/minute plus 429 backoff,
     # so a single run takes 20-30 minutes — hence the slot after GA4 rather than
     # on the 30-minute stagger with the others.
-    # Pulls YESTERDAY ONLY. Amazon's sales/traffic data for a given day isn't
-    # final until that marketplace's day has closed, so filling anything earlier
-    # is the backfill orchestrator's job (connectors/scheduler/backfill_sales_traffic.py),
-    # not this nightly job's.
+    #
+    # Pulls D-2, NOT yesterday (changed 2026-09-22 — same D-2 window the Amazon
+    # Ads job below already uses, see 3db862c). The previous comment here said
+    # Amazon's data "isn't final until that marketplace's day has closed" and
+    # concluded yesterday was therefore safe. The premise was right and the
+    # conclusion was wrong: at 04:30 Europe/London the US marketplace day (PDT)
+    # has not closed at all, and even for EU the ASIN/traffic halves of the
+    # report are not populated that soon. The result was three weeks of silent
+    # data loss across ALL 9 marketplaces (2026-08-31..09-21, rows/day 99 -> 29,
+    # traffic gone entirely) that nothing flagged, because the job recorded the
+    # empty responses as successful. Full write-up in the
+    # _SALES_TRAFFIC_LAG_DAYS comment in jobs/amazon_sp_api.py.
+    #
+    # The job also now re-sweeps any day in the trailing 10 that is not yet
+    # 'ok', and raises SalesTrafficHealthCheckFailed if what lands doesn't look
+    # healthy — which on_job_error turns into a PM incident task.
     scheduler.add_job(
         func=amazon_sp_api.run_sales_traffic_nightly,
         trigger="cron",
@@ -275,7 +287,7 @@ def register_jobs(scheduler: BlockingScheduler) -> None:
         minute=30,
         timezone="Europe/London",
         id="amazon-sales-traffic-nightly",
-        name="Amazon SP-API ASIN sales + traffic nightly (yesterday only)",
+        name="Amazon SP-API ASIN sales + traffic nightly (D-2, with retry sweep)",
         replace_existing=True,
         misfire_grace_time=7200,
         coalesce=True,

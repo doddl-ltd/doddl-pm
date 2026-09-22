@@ -917,6 +917,58 @@ _SALES_TRAFFIC_RETENTION_DAYS = 730 # CONFIRMED 2026-08-25 — see header commen
                                      # _fetch_sales_traffic_day) rather than wasting a createReport call
                                      # on a request that cannot succeed.
 
+# ---------------------------------------------------------------------------
+# Sales & traffic finalisation lag — added 2026-09-22 after a three-week silent
+# data loss. ROOT CAUSE, for anyone tempted to tighten these back up:
+#
+# run_sales_traffic_nightly originally pulled YESTERDAY (lag 1 day). Amazon has
+# not finalised salesAndTrafficByAsin or the traffic metrics that soon: the
+# report comes back processingStatus=DONE with salesAndTrafficByAsin == [] and
+# trafficByDate.sessions == 0, while salesByDate still carries partial,
+# later-revised sales. _fetch_sales_traffic_day's empty-list branch then called
+# _mark_fetched -> status 'ok', and _resume_skip_info skips 'ok' days forever,
+# so the day was never re-fetched. A job reporting success wrote a permanent
+# hole.
+#
+# Measured over 2026-08-31..2026-09-21, all 9 ACTIVE_MARKETPLACES: rows/day
+# fell 99 -> 29 (-70%) and traffic vanished platform-wide (688 of 693 rows
+# carried sessions before, 10 of 648 after). US/CA hit EXACTLY zero ASIN
+# entries because the job fires at 03:30 UTC, which is 20:30 PDT the previous
+# day — the US marketplace day had not even ended when we asked for it. EU
+# marketplaces had just closed their day, so they kept partial rows, which is
+# why nothing looked broken there.
+#
+# Re-requesting those same days later returned full data every time (e.g.
+# 2026-09-20 US: 0 ASINs / 0 sessions as stored, 15 ASINs / 263 sessions on
+# re-request), so nothing was ever lost on Amazon's side — we simply asked too
+# early and then recorded the empty answer as final.
+_SALES_TRAFFIC_LAG_DAYS = 2
+# How far back the nightly job's newest target sits. D-2, matching what the
+# Amazon Ads connector already does (commit 3db862c, "end its window at D-2").
+# Lag 2 is CONFIRMED sufficient, not assumed: 2026-08-30 was fetched at lag 2
+# by the 2026-09-01 backfill and came back complete (19 ASINs, 370 sessions),
+# and a live re-request of 2026-09-20 at lag 2 returned 15 ASINs / 263
+# sessions. Lag 1 is confirmed INSUFFICIENT by the whole incident above.
+
+_SALES_TRAFFIC_FINALISATION_DAYS = 7
+# Within this many days of today, an empty salesAndTrafficByAsin means "Amazon
+# has not finalised this day yet", NOT "no sales" — see _fetch_sales_traffic_day,
+# which marks it a retryable 'gap' instead of 'ok'. 7 rather than the
+# confirmed-sufficient 2 deliberately: the cost of being wrong in one direction
+# (a genuine zero-sales day gets re-requested a few times, ~1 report/day at the
+# 1/60s createReport budget) is trivial next to the cost in the other direction
+# (a permanent silent hole, which is what just cost three weeks of data). Small
+# marketplaces like IE and NL do have genuine zero-sales days, so this is not a
+# purely theoretical trade — it is just a cheap one.
+
+_SALES_TRAFFIC_RETRY_WINDOW_DAYS = 10
+# How far back run_sales_traffic_nightly sweeps for days that are not yet 'ok'.
+# MUST stay strictly greater than _SALES_TRAFFIC_FINALISATION_DAYS, otherwise a
+# day that went 'gap' on the finalisation rule above would age out of the sweep
+# while still 'gap' and stay unresolved forever. The gap between the two (days
+# 8-10) is where a still-empty day finally gets accepted as a genuine zero and
+# marked 'ok'.
+
 _MAX_ATTEMPTS = 3
 # Sales & traffic backfill: a day marked 'parse_failed', or 'gap' for a REAL
 # rejection (http_400), this many times stops being retried on resume and is
@@ -1969,13 +2021,43 @@ def _fetch_sales_traffic_day(
         return 0, 0
 
     if not by_asin_raw:
-        # Genuinely empty list -> a real "no ASIN entries" result, not a parse
-        # failure. status='ok'. Never a retention-boundary artefact here — any
-        # date past the retention wall was already skipped above without
-        # calling Amazon at all, so by this point d >= cutoff is guaranteed.
+        # An empty list means one of two very different things, and conflating
+        # them is exactly what caused the 2026-08-31..09-21 data loss (see the
+        # _SALES_TRAFFIC_LAG_DAYS header comment):
+        #
+        #   - recent date  -> Amazon has not finalised the ASIN breakdown yet.
+        #                     Retryable 'gap', NOT 'ok' — otherwise
+        #                     _resume_skip_info skips it forever and the day is
+        #                     lost permanently despite the data existing.
+        #   - older date   -> a real "no ASIN entries" day. 'ok'.
+        #
+        # count_toward_attempts=False for the recent case: an unfinalised day is
+        # not a defect in that day's data, same reasoning as
+        # 'rate_limited_exhausted' (see _mark_gap). It must stay retryable for
+        # as long as it sits inside the finalisation window rather than burning
+        # through _MAX_ATTEMPTS on days that were always going to be empty at
+        # this point.
+        #
+        # Never a retention-boundary artefact here — any date past the retention
+        # wall was already skipped above without calling Amazon at all, so by
+        # this point d >= cutoff is guaranteed.
+        # >= not >: a day exactly _SALES_TRAFFIC_FINALISATION_DAYS old is still
+        # "within 7 days" and stays retryable. Only day 8 onward is accepted as
+        # a genuine zero.
+        finalisation_cutoff = date.today() - timedelta(days=_SALES_TRAFFIC_FINALISATION_DAYS)
+        if d >= finalisation_cutoff:
+            logger.warning(
+                "amazon_sp: sales_traffic marketplace=%s (%s) date=%s: empty salesAndTrafficByAsin "
+                "within the %d-day finalisation window (cutoff %s) — treating as NOT YET FINALISED "
+                "and leaving it retryable, not recording it as a genuine zero",
+                marketplace_id, marketplace_name, d, _SALES_TRAFFIC_FINALISATION_DAYS, finalisation_cutoff,
+            )
+            _mark_gap(marketplace_id, d, reason="empty_not_yet_finalised", count_toward_attempts=False)
+            return 0, 0
         logger.info(
-            "amazon_sp: sales_traffic marketplace=%s (%s) date=%s: empty (no sales that day)",
-            marketplace_id, marketplace_name, d,
+            "amazon_sp: sales_traffic marketplace=%s (%s) date=%s: empty (no sales that day) — "
+            "older than the %d-day finalisation window, accepting as a genuine zero",
+            marketplace_id, marketplace_name, d, _SALES_TRAFFIC_FINALISATION_DAYS,
         )
         _mark_fetched(marketplace_id, d)
         return 0, 0
@@ -2024,14 +2106,175 @@ def _fetch_sales_traffic_day(
     return len(rows), skipped
 
 
+class SalesTrafficHealthCheckFailed(Exception):
+    """The nightly run completed without raising, but what it stored does not
+    look like a healthy day. Raised at the very END of run_sales_traffic_nightly
+    (never mid-run, so it can't abort fetching) purely to surface the problem:
+    scheduler.py's on_job_error listener turns any exception out of a job into a
+    high-priority PM incident task via alerting.create_incident_task, which is
+    the only channel that actually reaches a human. Logging alone is what let
+    the 2026-08-31 regression run for three weeks unnoticed.
+    """
+
+
+# Health-guard tuning. These describe "obviously broken", not "slightly off" —
+# a nightly job that cries wolf gets muted, and a muted guard is the same as no
+# guard. Every threshold below is set so the ACTUAL 2026-08-31 regression trips
+# it several times over (rows/day 99 -> 29, US and CA to exactly 0, traffic
+# gone everywhere) while ordinary day-to-day variation does not.
+_HEALTH_BASELINE_DAYS = 14        # trailing window the target day is compared against
+_HEALTH_MIN_BASELINE_DAYS = 5     # below this many usable baseline days, skip the check entirely
+_HEALTH_ROW_RATIO = 0.5           # total rows < 50% of the baseline daily average -> fail
+_HEALTH_MKT_MIN_BASELINE = 3.0    # only flag a silent marketplace if it averaged >= 3 rows/day
+_HEALTH_SESSION_BASELINE = 0.5    # baseline must be >=50% sessions-bearing before absence is damning
+_HEALTH_PAGE = 1000               # PostgREST page size — Supabase caps a response at 1000 rows
+
+
+def _sales_traffic_health_check(target_date: date) -> None:
+    """Compare what target_date actually stored against the trailing baseline,
+    and raise SalesTrafficHealthCheckFailed if it looks like a silent loss.
+
+    Reads amazon_asin_daily rather than trusting this run's in-memory row
+    counts, because the counts include retry-sweep days and, more importantly,
+    the thing being guarded against is precisely a run that believes it
+    succeeded. Three independent signals, any one of which fails the check:
+
+      1. Total rows collapsed vs the trailing daily average.
+      2. A marketplace that reliably produces rows produced none at all.
+         (This is the one that would have caught US/CA on 2026-08-31.)
+      3. Rows exist but NONE carry sessions, where the baseline normally does.
+         (This is the one that would have caught the traffic loss across
+         UK/DE/FR, which kept producing rows and so looked fine.)
+    """
+    baseline_start = target_date - timedelta(days=_HEALTH_BASELINE_DAYS)
+    baseline_end = target_date - timedelta(days=1)
+    # Paged deliberately: select_rows() has no offset parameter and Supabase
+    # caps a PostgREST response at 1000 rows, while this window is 15 days at
+    # ~100 rows/day across 9 marketplaces. A single select_rows call would be
+    # silently truncated at 1000 and the truncation would land on whichever
+    # rows PostgREST happened to order last — skewing the per-marketplace and
+    # per-day counts this check is entirely built on, and turning the guard
+    # into a source of false alarms. Same reason and same mechanism as
+    # _catalog_select_page further down this file.
+    rows: list[dict] = []
+    page = 0
+    while True:
+        headers = dict(_db_headers(_db_key()))
+        headers["Range-Unit"] = "items"
+        headers["Range"] = f"{page * _HEALTH_PAGE}-{(page + 1) * _HEALTH_PAGE - 1}"
+        resp = httpx.get(
+            f"{_DB_URL}/amazon_asin_daily",
+            headers=headers,
+            params={
+                "select": "marketplace_id,report_date,sessions",
+                "report_date": [f"gte.{baseline_start.isoformat()}", f"lte.{target_date.isoformat()}"],
+            },
+            timeout=60.0,
+        )
+        resp.raise_for_status()
+        batch = resp.json()
+        rows.extend(batch)
+        if len(batch) < _HEALTH_PAGE:
+            break
+        page += 1
+
+    target_rows = [r for r in rows if r["report_date"] == target_date.isoformat()]
+    baseline_rows = [r for r in rows if r["report_date"] != target_date.isoformat()]
+    baseline_days = {r["report_date"] for r in baseline_rows}
+    if len(baseline_days) < _HEALTH_MIN_BASELINE_DAYS:
+        logger.info(
+            "amazon_sp: sales_traffic_nightly health check skipped — only %d baseline day(s) "
+            "between %s and %s, need %d",
+            len(baseline_days), baseline_start, baseline_end, _HEALTH_MIN_BASELINE_DAYS,
+        )
+        return
+
+    problems: list[str] = []
+
+    baseline_per_day = len(baseline_rows) / len(baseline_days)
+    if len(target_rows) < baseline_per_day * _HEALTH_ROW_RATIO:
+        problems.append(
+            f"row count collapsed: {len(target_rows)} row(s) for {target_date} vs a trailing "
+            f"average of {baseline_per_day:.0f}/day over {len(baseline_days)} day(s) "
+            f"(threshold {_HEALTH_ROW_RATIO:.0%})"
+        )
+
+    target_by_mkt: dict[str, int] = {}
+    for r in target_rows:
+        target_by_mkt[r["marketplace_id"]] = target_by_mkt.get(r["marketplace_id"], 0) + 1
+    baseline_by_mkt: dict[str, int] = {}
+    for r in baseline_rows:
+        baseline_by_mkt[r["marketplace_id"]] = baseline_by_mkt.get(r["marketplace_id"], 0) + 1
+    silent = sorted(
+        mkt for mkt, n in baseline_by_mkt.items()
+        if (n / len(baseline_days)) >= _HEALTH_MKT_MIN_BASELINE and target_by_mkt.get(mkt, 0) == 0
+    )
+    if silent:
+        problems.append(
+            f"marketplace(s) produced no rows at all for {target_date} despite averaging "
+            f">= {_HEALTH_MKT_MIN_BASELINE:.0f} rows/day in the baseline: "
+            + ", ".join(f"{m} ({baseline_by_mkt[m] / len(baseline_days):.1f}/day)" for m in silent)
+        )
+
+    def _with_sessions(rs: list[dict]) -> int:
+        return sum(1 for r in rs if (r.get("sessions") or 0) > 0)
+
+    baseline_session_share = _with_sessions(baseline_rows) / len(baseline_rows) if baseline_rows else 0.0
+    if (
+        target_rows
+        and baseline_session_share >= _HEALTH_SESSION_BASELINE
+        and _with_sessions(target_rows) == 0
+    ):
+        problems.append(
+            f"traffic metrics absent: 0 of {len(target_rows)} row(s) for {target_date} carry "
+            f"sessions > 0, while {baseline_session_share:.0%} of baseline rows do — sales may "
+            f"still be landing while the traffic half of the report is silently empty"
+        )
+
+    if problems:
+        raise SalesTrafficHealthCheckFailed(
+            f"amazon-sales-traffic-nightly stored data for {target_date} that does not look "
+            f"healthy ({len(problems)} signal(s)): " + " | ".join(problems)
+            + " — the data very likely EXISTS on Amazon's side and can be recovered with "
+              "connectors/scheduler/backfill_sales_traffic.py over the affected range; see the "
+              "_SALES_TRAFFIC_LAG_DAYS comment for the 2026-08-31 precedent."
+        )
+
+    logger.info(
+        "amazon_sp: sales_traffic_nightly health check PASSED for %s — %d row(s) vs %.0f/day "
+        "baseline, %d marketplace(s), %d row(s) with sessions",
+        target_date, len(target_rows), baseline_per_day, len(target_by_mkt), _with_sessions(target_rows),
+    )
+
+
 def run_sales_traffic_nightly() -> None:
-    """Pull yesterday only, for every marketplace in ACTIVE_MARKETPLACES.
-    Cheap enough to run every night — this is NOT a backfill. Use
+    """Pull the D-_SALES_TRAFFIC_LAG_DAYS day, plus any day in the trailing
+    _SALES_TRAFFIC_RETRY_WINDOW_DAYS that is not yet 'ok', for every marketplace
+    in ACTIVE_MARKETPLACES. Still NOT a backfill — use
     run_sales_traffic_backfill for historical ranges.
+
+    Changed 2026-09-22 (was: yesterday only). Two things had to change together,
+    and neither alone is sufficient:
+
+      - The newest target moved from D-1 to D-2, because Amazon has not
+        finalised the ASIN/traffic halves of the report at lag 1.
+      - The job now SWEEPS unfinished recent days rather than fetching exactly
+        one. Without the sweep, _fetch_sales_traffic_day's new
+        'empty_not_yet_finalised' gap would be written and then never
+        revisited, which is the same permanent hole in a different costume.
+
+    On a healthy night the sweep costs nothing extra: every day behind D-2 is
+    already 'ok' and _resume_skip_info filters it out, leaving exactly one
+    report per marketplace. It only expands after something has gone wrong,
+    which is when the extra requests are worth spending.
 
     Refuses to run if ACTIVE_MARKETPLACES is empty (see its definition near
     the top of the Reports API section) rather than silently doing nothing or
     falling back to all 19 configured marketplaces.
+
+    Raises SalesTrafficHealthCheckFailed at the end if what landed does not look
+    like a healthy day — see _sales_traffic_health_check. The fetching is all
+    done by then; the exception exists to reach a human, not to abort work.
 
     Registered in scheduler.py as the "amazon-sales-traffic-nightly" cron job
     (daily 04:30 Europe/London). Can also be called directly, e.g. from a
@@ -2046,23 +2289,47 @@ def run_sales_traffic_nightly() -> None:
         return
 
     pull_id = str(uuid.uuid4())
-    yesterday = date.today() - timedelta(days=1)
+    target_date = date.today() - timedelta(days=_SALES_TRAFFIC_LAG_DAYS)
+    window_start = date.today() - timedelta(days=_SALES_TRAFFIC_RETRY_WINDOW_DAYS)
     logger.info(
-        "amazon_sp.run_sales_traffic_nightly start date=%s marketplaces=%d pull_id=%s",
-        yesterday, len(ACTIVE_MARKETPLACES), pull_id,
+        "amazon_sp.run_sales_traffic_nightly start target=%s (D-%d) retry_window=%s..%s "
+        "marketplaces=%d pull_id=%s",
+        target_date, _SALES_TRAFFIC_LAG_DAYS, window_start, target_date,
+        len(ACTIVE_MARKETPLACES), pull_id,
     )
 
     skip_lock = threading.Lock()
     skip_total = [0]   # mutable cell, closed over by _one_marketplace across threads
 
     def _one_marketplace(client, base_url, rl, marketplace_id, marketplace_name, account_name, token_holder) -> int:
-        row_count, skipped = _fetch_sales_traffic_day(
-            client, base_url, rl, token_holder, marketplace_id, marketplace_name, yesterday, pull_id,
-        )
-        if skipped:
-            with skip_lock:
-                skip_total[0] += skipped
-        return row_count
+        # Same resume semantics as the backfill: skip days already 'ok', and
+        # days that have burned _MAX_ATTEMPTS without succeeding (those need a
+        # human, not another automatic retry every single night forever).
+        ok_days, failed_days = _resume_skip_info(marketplace_id, window_start, target_date)
+        days = [d for d in _daterange(window_start, target_date) if d not in ok_days and d not in failed_days]
+        if failed_days:
+            logger.warning(
+                "amazon_sp: sales_traffic_nightly marketplace=%s (%s): %d day(s) in the retry window "
+                "have hit %d attempts without succeeding and need manual investigation: %s",
+                marketplace_id, marketplace_name, len(failed_days), _MAX_ATTEMPTS, sorted(failed_days),
+            )
+        if len(days) > 1:
+            logger.info(
+                "amazon_sp: sales_traffic_nightly marketplace=%s (%s): %d day(s) to fetch "
+                "(%s) — more than the usual 1, so an earlier night left days unfinished",
+                marketplace_id, marketplace_name, len(days), sorted(days),
+            )
+
+        count = 0
+        for d in days:
+            row_count, skipped = _fetch_sales_traffic_day(
+                client, base_url, rl, token_holder, marketplace_id, marketplace_name, d, pull_id,
+            )
+            count += row_count
+            if skipped:
+                with skip_lock:
+                    skip_total[0] += skipped
+        return count
 
     total = _run_reports_for_all_accounts(
         pull_id, "sales_traffic_nightly", _one_marketplace, marketplace_filter=ACTIVE_MARKETPLACES,
@@ -2074,6 +2341,8 @@ def run_sales_traffic_nightly() -> None:
             "— the CHILD granularity assumption may be wrong, investigate",
             skip_total[0],
         )
+
+    _sales_traffic_health_check(target_date)
 
 
 def run_sales_traffic_backfill(
