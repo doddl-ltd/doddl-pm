@@ -1,4 +1,7 @@
 // scripts/regression-test.js
+// SUPERSEDED once 17-pm-lockdown is applied: anon then has no access at all, so
+// the POS anon checks below are expected to fail. Use scripts/lockdown-check.js.
+//
 // Task 4 RLS regression checks — runs entirely via HTTP against staging.
 //
 // Covers:
@@ -133,7 +136,7 @@ async function main() {
       agent_id: 'regression-test', method: 'GET', path: '/_test', status_code: 200,
     }]).select().single()
     report('POS service_role INSERT agent_audit_log succeeds', !error, error?.message)
-    if (data?.id) await srv.from('agent_audit_log').delete().eq('id', data.id)
+    // agent_audit_log is append-only since 16-pm-hardening: the row stays.
   }
 
   console.log(failed === 0 ? '\nALL OK' : `\n${failed} FAILURE(S)`)

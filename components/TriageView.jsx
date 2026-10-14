@@ -36,7 +36,10 @@ function TriageCard({ item, projects, onDone }) {
   const payload = item.payload || {}
 
   const edit = (i, field, value) => setEdits(e => ({ ...e, [i]: { ...(e[i] || {}), [field]: value } }))
-  const needsProject = proposed.some((a, i) => selected[i] && a.kind !== 'update_task' && !a.project_id && !(edits[i] && edits[i].project_id))
+  // Actions may name a project; the selector overrides it (and is required when none is named).
+  const needsProject = proposed.some((a, i) => selected[i] && a.kind !== 'update_task' && !a.project_id && !a.project)
+  const hasCreates = proposed.some((a, i) => selected[i] && a.kind !== 'update_task')
+  const proposedProjects = Array.from(new Set(proposed.filter(a => a.kind !== 'update_task' && a.project).map(a => a.project)))
 
   const submit = async (decision) => {
     setBusy(true); setError(null)
@@ -44,8 +47,12 @@ function TriageCard({ item, projects, onDone }) {
       const body = { id: item.id, decision }
       if (decision === 'accept') {
         body.accept_actions = proposed.map((_, i) => i).filter(i => selected[i])
-        body.edits = edits
-        if (projectId) body.project_id = projectId
+        body.edits = { ...edits }
+        if (projectId) {
+          // An explicit choice beats the project named in the proposal.
+          proposed.forEach((a, i) => { if (a.kind !== 'update_task') body.edits[i] = { ...(body.edits[i] || {}), project_id: projectId, project: null, group: null } })
+          body.project_id = projectId
+        }
       }
       const resp = await apiFetch('/api/triage', { method: 'POST', body: JSON.stringify(body) })
       const out = await resp.json()
@@ -82,7 +89,10 @@ function TriageCard({ item, projects, onDone }) {
             <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '5px 0', flexWrap: 'wrap' }}>
               <input type="checkbox" checked={selected[i]} onChange={ev => setSelected(s => s.map((v, j) => (j === i ? ev.target.checked : v)))} />
               <span style={{ fontSize: 11, fontWeight: 700, color: '#6b778c', minWidth: 52 }}>{a.kind === 'update_task' ? 'Update' : 'New task'}</span>
-              <span style={{ flex: 1, minWidth: 180, fontSize: 13, color: '#172b4d' }}>{e.title || a.title || a.task_id}</span>
+              <span style={{ flex: 1, minWidth: 180, fontSize: 13, color: '#172b4d' }}>
+                {e.title || a.title || a.task_id}
+                {(a.status || a.progress != null) && <span style={{ fontSize: 11, color: '#6b778c', fontWeight: 700 }}> · {a.status || ''}{a.progress != null ? ` ${a.progress}%` : ''}</span>}
+              </span>
               <select style={input} value={e.assigned_to ?? a.assigned_to ?? ''} onChange={ev => edit(i, 'assigned_to', ev.target.value || null)}>
                 <option value="">Unassigned</option>
                 {TEAM.map(t => <option key={t.name} value={t.name}>{t.name}</option>)}
@@ -94,9 +104,9 @@ function TriageCard({ item, projects, onDone }) {
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 10, flexWrap: 'wrap' }}>
-        {needsProject && (
+        {hasCreates && (
           <select style={{ ...input, padding: '6px 8px' }} value={projectId} onChange={ev => setProjectId(ev.target.value)}>
-            <option value="">Choose project for new tasks…</option>
+            <option value="">{needsProject ? 'Choose project for new tasks…' : `Project: ${proposedProjects.join(', ')} (as proposed)`}</option>
             {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
           </select>
         )}

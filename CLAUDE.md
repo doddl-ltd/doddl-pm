@@ -55,6 +55,11 @@ lib/
 
 ## Current Database Schema
 
+> **Out of date — kept for history.** The live schema is defined by lib/supabaseSchema.sql
+> plus every file in lib/migrations/ (see schema_migrations). Since 16-pm-hardening the PM
+> tables also include people, task_history, task_links, inbox_items, agent_keys and oauth_*.
+> Agents should read docs/AGENT_BRIEFING.md, not this section.
+
 Three tables. No others exist.
 
 ### projects
@@ -209,13 +214,13 @@ AWAITING APPROVAL: [anything needing Jon sign-off]
 ## Hard Rules
 
 1. staging branch only — never main
-2. Row-level data writes (INSERT / UPDATE / DELETE on `projects`, `tasks`, `task_groups`, `comments`, `notifications`) go through one of three paths only: (a) the agent API (`POST /api/agent/tasks`, `POST /api/agent/artefacts`), (b) the live UI, or (c) a committed migration file under `lib/migrations/` applied via `scripts/safe-apply-migration.js`. Never via ad-hoc SQL, direct Supabase SQL Editor sessions, or scripts outside `lib/migrations/`. "Fix this row quickly in staging" is still not an exception — put it in a migration if you need it durable. Rule 9 (no DELETE/TRUNCATE on `projects` / `tasks` / `task_groups`) continues to apply on top of this rule: a migration can INSERT and UPDATE row data, but it still cannot DELETE from those three tables.
+2. Row-level data writes (INSERT / UPDATE / DELETE on `projects`, `tasks`, `task_groups`, `comments`, `notifications`, `inbox_items`, `task_links`) go through one of three paths only: (a) the agent layer — MCP at `/api/mcp` or REST at `/api/agent/*`, authenticated with a per-agent key or OAuth (see docs/AGENT_BRIEFING.md), (b) the live UI (which reaches the DB only via the `/api/db` proxy), or (c) a committed migration file under `lib/migrations/` applied via `scripts/safe-apply-migration.js`. Never via ad-hoc SQL, direct Supabase SQL Editor sessions, or scripts outside `lib/migrations/`. "Fix this row quickly in staging" is still not an exception — put it in a migration if you need it durable. Rule 9 (no DELETE/TRUNCATE on `projects` / `tasks` / `task_groups`) continues to apply on top of this rule: a migration can INSERT and UPDATE row data, but it still cannot DELETE from those three tables.
 3. SQL migrations — Claude Code may apply migrations to either Supabase project (staging `iknwprxycshrickpswjz` or production `ikcjciscttsvpxoijnqe`) via the Supabase Management API using `SUPABASE_ACCESS_TOKEN` (PAT). Jon no longer applies migrations by hand. Preconditions when targeting production:
    - The migration SQL file must be committed to git (staging or main) BEFORE the Management API call. No "try it against prod first" — the working-copy-only path is staging-only.
    - The file must live under `lib/migrations/` and be idempotent (re-apply-safe).
    - Apply via `scripts/safe-apply-migration.js`, which enforces Rules 8–11 below (check ledger, snapshot, apply, register).
 4. MSAL auth never modified without explicit instruction
-5. pages/api/tasks.js never modified (Power Automate depends on it)
+5. pages/api/tasks.js keeps its request/response contract (Power Automate depends on it). Since 2026-10-14 it requires the `x-intake-key` header and captures into the triage inbox; change it only with Jon's approval.
 6. No npm package installed without stating name, version, reason first
 7. No credentials ever in code or git history
 8. **Check `schema_migrations` before every migration.** If the migration's id is already in the ledger, skip — do not re-apply. Adopted 2026-04-21 after production seed data was overwritten by a re-apply.
@@ -244,12 +249,11 @@ AWAITING APPROVAL: [anything needing Jon sign-off]
    immediately. Do not wait for instruction. Jon reviews in the staging URL.
 
 4. **Auto-update PM tool task status** — after completing any build unit that
-   maps to a task in the PM Tool database, update the corresponding task to
-   `status: 'done', progress: 100` via the agent API (`POST /api/agent/tasks`
-   with `AGENT_SERVICE_KEY`) or the service role client. Match by task title
-   and `project_id`. If a task was only partially completed, set `in_progress`
-   with a realistic `progress` value. This keeps the PM tool a live reflection
-   of delivery state — do not wait for instruction.
+   maps to a task in the PM Tool database, update it through the MCP server
+   (`/api/mcp`) or the agent REST API with a per-agent key — never the
+   service-role client. Find it with `find_tasks` (not by exact title); mark
+   it done only with evidence (commit/PR/deploy link). If partially complete,
+   set a realistic `progress`. See docs/AGENT_BRIEFING.md.
 
 5. **Only stop and ask when:**
    - A decision is required that Jon has not already made

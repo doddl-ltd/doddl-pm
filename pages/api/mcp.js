@@ -54,7 +54,11 @@ const actionSchema = z.object({
   due_date: date.nullable().optional(),
   status: statusEnum.optional(),
   progress: z.number().int().min(0).max(100).optional(),
+  priority: priorityEnum.optional(),
   project: z.string().optional(),
+  group: z.string().optional(),
+  external_ref: z.string().optional(),
+  evidence,
   notes: z.string().optional(),
 })
 
