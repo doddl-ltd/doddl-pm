@@ -2,7 +2,8 @@
 // OAuth endpoints against a running deployment backed by the STAGING database.
 // Creates a few "[e2e test]" rows there. Refuses production.
 //
-//   PM_KEY=<pm-agent-key-claude-agents from Key Vault> BASE=https://doddl-pm-git-staging-d0ddls-projects.vercel.app //     node scripts/e2e-agent-api.mjs
+//   PM_KEY=<pm-agent-key-claude-agents from Key Vault> \
+//   BASE=https://doddl-pm-git-staging-d0ddls-projects.vercel.app node scripts/e2e-agent-api.mjs
 const BASE = process.env.BASE || 'http://localhost:3000'
 if (/doddl-pm\.vercel\.app/.test(BASE)) throw new Error('e2e writes test rows: run against staging or local only')
 const KEY = process.env.PM_KEY
