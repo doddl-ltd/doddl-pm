@@ -139,24 +139,37 @@ BEGIN
   END IF;
 
   IF TG_OP = 'INSERT' THEN
-    status_changed := true; progress_changed := NEW.progress IS NOT NULL;
-  ELSE
-    status_changed   := NEW.status   IS DISTINCT FROM OLD.status;
-    progress_changed := NEW.progress IS DISTINCT FROM OLD.progress;
+    IF NEW.status = 'done' THEN
+      NEW.progress := 100;
+    ELSIF NEW.status = ANY (vanilla) THEN
+      IF NEW.progress = 100 THEN NEW.status := 'done';
+      ELSIF NEW.status = 'not_started' AND coalesce(NEW.progress, 0) > 0 THEN NEW.status := 'in_progress';
+      END IF;
+    END IF;
+    RETURN NEW;
   END IF;
 
-  IF NEW.status = 'done' THEN
-    NEW.progress := 100;
-  ELSIF progress_changed AND NOT status_changed AND OLD.status = ANY (vanilla) THEN
+  status_changed   := NEW.status   IS DISTINCT FROM OLD.status;
+  progress_changed := NEW.progress IS DISTINCT FROM OLD.progress;
+
+  IF status_changed THEN
+    -- An explicit status wins; progress follows it.
+    IF NEW.status = 'done' THEN
+      NEW.progress := 100;
+    ELSIF NEW.status = ANY (vanilla) THEN
+      IF progress_changed AND NEW.progress = 100 THEN
+        NEW.status := 'done';
+      ELSIF NEW.status = 'not_started' THEN
+        IF progress_changed AND coalesce(NEW.progress, 0) > 0 THEN NEW.status := 'in_progress';
+        ELSE NEW.progress := 0;
+        END IF;
+      END IF;
+    END IF;
+  ELSIF progress_changed AND OLD.status = ANY (vanilla) THEN
+    -- Progress alone moved: derive the status (UI rule #11).
     NEW.status := CASE WHEN coalesce(NEW.progress, 0) = 0 THEN 'not_started'
                        WHEN NEW.progress = 100 THEN 'done'
                        ELSE 'in_progress' END;
-  ELSIF status_changed AND NEW.status = ANY (vanilla) THEN
-    IF NEW.progress = 100 AND progress_changed THEN
-      NEW.status := 'done';
-    ELSIF NEW.status = 'not_started' AND coalesce(NEW.progress, 0) > 0 THEN
-      IF progress_changed THEN NEW.status := 'in_progress'; ELSE NEW.progress := 0; END IF;
-    END IF;
   END IF;
   RETURN NEW;
 END $$;
