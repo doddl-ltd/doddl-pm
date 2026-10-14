@@ -1,4 +1,5 @@
-import { createClient } from '@supabase/supabase-js'
+import { adminClient } from '../../lib/server/admin'
+import { requireUser } from '../../lib/server/msalVerify'
 
 // Read-only proxy for agent_audit_log.
 // After Task 4 (migration 04), anon has no SELECT policy on agent_audit_log,
@@ -6,14 +7,7 @@ import { createClient } from '@supabase/supabase-js'
 // endpoint uses the service_role key server-side so the Approvals > Agents
 // tab can still surface per-agent API-call activity.
 //
-// Auth note: like the rest of /api/*, this endpoint is not currently
-// gated at the route layer — operational admin-only access per CLAUDE.md §Task 4
-// ("Level 3 — System administrator: currently OPERATIONAL, not DB-enforced").
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-)
+// Signed-in doddl staff only (MSAL ID token).
 
 const MAX_LIMIT = 1000
 
@@ -22,6 +16,10 @@ export default async function handler(req, res) {
     res.setHeader('Allow', 'GET')
     return res.status(405).json({ error: 'Method not allowed' })
   }
+
+  const user = await requireUser(req, res)
+  if (!user) return
+  const supabase = adminClient(user.name)
 
   const rawLimit = parseInt(req.query.limit, 10)
   const limit = Number.isFinite(rawLimit) ? Math.max(1, Math.min(MAX_LIMIT, rawLimit)) : MAX_LIMIT

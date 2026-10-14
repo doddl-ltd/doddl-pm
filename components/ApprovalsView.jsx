@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import { ARTEFACT_TYPES } from '../lib/artefactTypes'
+import { apiFetch } from '../lib/supabase'
 
 const DECISION_STYLES = {
   approved:           { bg: '#e3fcef', color: '#00875a', label: 'Approved' },
@@ -317,7 +318,7 @@ export default function ApprovalsView({ tasks, projects, setSelectedTask }) {
     // anon cannot read agent_audit_log (see migration 04); hop through /api/audit-log
     // which uses the service_role key server-side.
     try {
-      const resp = await fetch('/api/audit-log?limit=1000')
+      const resp = await apiFetch('/api/audit-log?limit=1000')
       const data = resp.ok ? await resp.json() : []
       setAuditRows(Array.isArray(data) ? data : [])
     } catch {

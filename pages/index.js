@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import Head from 'next/head'
-import { supabase } from '../lib/supabase'
+import { supabase, apiFetch } from '../lib/supabase'
 import { getMsal } from '../lib/msal'
 import { getDisplayName } from '../lib/team'
 import LoginScreen from '../components/LoginScreen'
@@ -13,9 +13,21 @@ import AddProjectModal from '../components/AddProjectModal'
 import MyWorkView from '../components/MyWorkView'
 import MyProjectsView from '../components/MyProjectsView'
 import InboxView from '../components/InboxView'
+import TriageView from '../components/TriageView'
 import ApprovalsView from '../components/ApprovalsView'
 import ProjectGallery from '../components/ProjectGallery'
 import ProjectSection from '../components/ProjectSection'
+
+// PostgREST returns at most 1000 rows per request; page until a short page.
+async function selectAll(build) {
+  const rows = []
+  for (let from = 0; ; from += 1000) {
+    const { data, error } = await build().range(from, from + 999)
+    if (error) throw error
+    rows.push(...(data || []))
+    if (!data || data.length < 1000) return rows
+  }
+}
 
 export default function Home() {
   const [user, setUser]                         = useState(null)
@@ -26,6 +38,7 @@ export default function Home() {
   const [projects, setProjects]                 = useState([])
   const [taskGroups, setTaskGroups]             = useState([])
   const [notifications, setNotifications]       = useState([])
+  const [triageCount, setTriageCount]           = useState(0)
   const [loading, setLoading]                   = useState(true)
   const [activeProject, setActiveProject]       = useState(null)
   const [showAddTask, setShowAddTask]           = useState(false)
@@ -60,13 +73,20 @@ export default function Home() {
   const userName = getDisplayName(user?.username) || user?.name?.split(' ')[0] || ''
 
   const load = useCallback(async () => {
-    const [{ data: t }, { data: p }, { data: g }] = await Promise.all([
-      supabase.from('tasks').select('*').order('created_at', { ascending: true }),
-      supabase.from('projects').select('*').order('created_at', { ascending: false }),
-      supabase.from('task_groups').select('*').is('archived_at', null).order('position', { ascending: true }),
+    const [t, p, g] = await Promise.all([
+      selectAll(() => supabase.from('tasks').select('*').is('archived_at', null).order('created_at', { ascending: true })),
+      selectAll(() => supabase.from('projects').select('*').is('archived_at', null).order('created_at', { ascending: false })),
+      selectAll(() => supabase.from('task_groups').select('*').is('archived_at', null).order('position', { ascending: true })),
     ])
-    setTasks(t || []); setProjects(p || []); setTaskGroups(g || [])
+    setTasks(t); setProjects(p); setTaskGroups(g)
   }, [])
+  const loadTriageCount = useCallback(async () => {
+    try {
+      const resp = await apiFetch('/api/triage?status=new,partial&limit=1')
+      if (resp.ok) setTriageCount((await resp.json()).total || 0)
+    } catch { /* badge only */ }
+  }, [])
+  useEffect(() => { if (user) loadTriageCount() }, [user, loadTriageCount])
   useEffect(() => {
     if (!user) return
     setLoading(true)
@@ -136,7 +156,7 @@ export default function Home() {
       <div style={{ display: 'flex', height: 'calc(100vh - 52px)' }}>
         <AppSidebar view={view} setView={setView} projects={projects}
           activeProject={activeProject} setActiveProject={setActiveProject}
-          myFlowCount={myOpenTasksCount} unreadCount={unreadCount} approvalsCount={approvalsCount} />
+          myFlowCount={myOpenTasksCount} unreadCount={unreadCount} approvalsCount={approvalsCount} triageCount={triageCount} />
 
         <main style={{ flex: 1, overflowY: 'auto', padding: 20, marginRight: selectedTask ? taskPanelW : 0 }}>
           {loading ? (
@@ -150,6 +170,8 @@ export default function Home() {
           ) : view === 'inbox' ? (
             <InboxView notifications={notifications} tasks={tasks} unreadCount={unreadCount}
               markRead={markRead} markAllRead={markAllRead} setSelectedTask={setSelectedTask} />
+          ) : view === 'triage' ? (
+            <TriageView projects={projects} onChanged={load} setTriageCount={setTriageCount} />
           ) : view === 'approvals' ? (
             <ApprovalsView tasks={tasks} projects={projects} setSelectedTask={setSelectedTask} />
           ) : activeProjectData ? (

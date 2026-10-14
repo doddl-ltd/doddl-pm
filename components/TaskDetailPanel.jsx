@@ -11,6 +11,7 @@ import OwnerAvatar from './OwnerAvatar'
 import CommentBody from './CommentBody'
 import MentionInput from './MentionInput'
 import ApprovalTaskPanel from './ApprovalTaskPanel'
+import TaskEvidence from './TaskEvidence'
 
 const MIN_W = 300, MAX_W = 800, DEFAULT_W = 400, STORAGE_KEY = 'doddl-pm-detail-panel-width'
 export const TASK_PANEL = { MIN: MIN_W, MAX: MAX_W, DEFAULT: DEFAULT_W, STORAGE_KEY }
@@ -251,6 +252,9 @@ export default function TaskDetailPanel({ task, user, onClose, onUpdate, onPatch
           <FieldLabel label="Tags" />
           <TagsCell value={editTask.tags} onChange={v => save('tags', v)} />
         </div>
+
+        {/* Evidence links + change history */}
+        <TaskEvidence taskId={task.id} />
 
         {/* Comments */}
         <div style={{ padding: '12px 20px' }}>
