@@ -1,0 +1,23 @@
+# Copy to terraform.tfvars — never commit terraform.tfvars
+# Values: Azure Portal > Azure Active Directory > Overview / App registrations
+
+# Your Azure AD tenant ID
+azure_tenant_id = "YOUR_TENANT_ID"
+
+# Object ID of the service principal used by connectors to read secrets at runtime.
+# Create via: az ad sp create-for-rbac --name "doddl-connector-sp-staging"
+# Then get object ID: az ad sp show --id <appId> --query id -o tsv
+connector_sp_object_ids = [
+  "CONNECTOR_SP_OBJECT_ID"
+]
+
+# Object IDs of engineers with full Key Vault management access.
+# Get your own: az ad signed-in-user show --query id -o tsv
+admin_object_ids = [
+  "JON_FAWCETT_OBJECT_ID"
+]
+
+# Optional: Log Analytics workspace resource ID for Key Vault audit logging.
+# Leave empty ("") to skip diagnostic settings until a workspace is provisioned.
+# Format: /subscriptions/<sub>/resourceGroups/<rg>/providers/Microsoft.OperationalInsights/workspaces/<name>
+log_analytics_workspace_id = ""

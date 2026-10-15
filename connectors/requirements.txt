@@ -1,0 +1,18 @@
+# Azure Key Vault — runtime credential fetching
+azure-keyvault-secrets==4.8.0
+azure-identity==1.17.1
+
+# Scheduling
+APScheduler==3.10.4
+SQLAlchemy==2.0.30  # APScheduler job store backend
+
+# HTTP
+httpx==0.27.0
+tenacity==8.3.0  # retry logic for connector calls
+
+# Connector SDKs
+google-ads==24.1.0  # Google Ads API (gRPC-based, handles OAuth token refresh)
+
+# Data
+psycopg2-binary==2.9.9  # Supabase PostgreSQL connection
+python-dotenv==1.0.1    # local dev only — AZURE_KEYVAULT_URI via .env

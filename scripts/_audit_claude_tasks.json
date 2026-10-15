@@ -1,0 +1,202 @@
+[
+  {
+    "id": "30000000-0000-0000-0000-000000000001",
+    "title": "[Step 1] Create lib/constants.js, lib/team.js, lib/msal.js",
+    "status": "done",
+    "progress": 100,
+    "assigned_to": "Claude",
+    "task_type": "standard",
+    "position": 1,
+    "project_id": "10000000-0000-0000-0000-000000000001"
+  },
+  {
+    "id": "30000000-0000-0000-0000-000000000013",
+    "title": "Build lib/agentAuth.js — agent authentication middleware",
+    "status": "done",
+    "progress": 100,
+    "assigned_to": "Claude",
+    "task_type": "standard",
+    "position": 1,
+    "project_id": "10000000-0000-0000-0000-000000000001"
+  },
+  {
+    "id": "30000000-0000-0000-0000-000000000023",
+    "title": "Write RLS migration SQL — three role-based policy levels",
+    "status": "done",
+    "progress": 100,
+    "assigned_to": "Claude",
+    "task_type": "standard",
+    "position": 1,
+    "project_id": "10000000-0000-0000-0000-000000000001"
+  },
+  {
+    "id": "30000000-0000-0000-0000-000000000002",
+    "title": "[Step 2] Extract leaf components — StatusBadge, PriorityBadge, AssigneeSelect, TagsCell, ProgressBar, InlineEdit, DateCell, OwnerAvatar",
+    "status": "done",
+    "progress": 100,
+    "assigned_to": "Claude",
+    "task_type": "standard",
+    "position": 2,
+    "project_id": "10000000-0000-0000-0000-000000000001"
+  },
+  {
+    "id": "30000000-0000-0000-0000-000000000020",
+    "title": "Build lib/artefactTypes.js",
+    "status": "done",
+    "progress": 100,
+    "assigned_to": "Claude",
+    "task_type": "standard",
+    "position": 2,
+    "project_id": "10000000-0000-0000-0000-000000000001"
+  },
+  {
+    "id": "30000000-0000-0000-0000-000000000003",
+    "title": "[Step 3] Extract CalendarPicker, TimelineCell, LoginScreen",
+    "status": "done",
+    "progress": 100,
+    "assigned_to": "Claude",
+    "task_type": "standard",
+    "position": 3,
+    "project_id": "10000000-0000-0000-0000-000000000001"
+  },
+  {
+    "id": "30000000-0000-0000-0000-000000000021",
+    "title": "Build components/ApprovalTaskPanel.jsx",
+    "status": "done",
+    "progress": 100,
+    "assigned_to": "Claude",
+    "task_type": "standard",
+    "position": 3,
+    "project_id": "10000000-0000-0000-0000-000000000001"
+  },
+  {
+    "id": "30000000-0000-0000-0000-000000000015",
+    "title": "Build pages/api/agent/tasks.js",
+    "status": "done",
+    "progress": 100,
+    "assigned_to": "Claude",
+    "task_type": "standard",
+    "position": 3,
+    "project_id": "10000000-0000-0000-0000-000000000001"
+  },
+  {
+    "id": "30000000-0000-0000-0000-000000000004",
+    "title": "[Step 4] Extract CommentBody, MentionInput, TaskDetailPanel",
+    "status": "done",
+    "progress": 100,
+    "assigned_to": "Claude",
+    "task_type": "standard",
+    "position": 4,
+    "project_id": "10000000-0000-0000-0000-000000000001"
+  },
+  {
+    "id": "30000000-0000-0000-0000-000000000016",
+    "title": "Build pages/api/agent/artefacts.js",
+    "status": "done",
+    "progress": 100,
+    "assigned_to": "Claude",
+    "task_type": "standard",
+    "position": 4,
+    "project_id": "10000000-0000-0000-0000-000000000001"
+  },
+  {
+    "id": "30000000-0000-0000-0000-000000000022",
+    "title": "Implement immutable decision recording logic",
+    "status": "in_progress",
+    "progress": 70,
+    "assigned_to": "Claude",
+    "task_type": "standard",
+    "position": 4,
+    "project_id": "10000000-0000-0000-0000-000000000001"
+  },
+  {
+    "id": "30000000-0000-0000-0000-000000000005",
+    "title": "[Step 5] Extract ProjectTableRow, ProjectGroup, ProjectDashboard, TaskRow",
+    "status": "done",
+    "progress": 100,
+    "assigned_to": "Claude",
+    "task_type": "standard",
+    "position": 5,
+    "project_id": "10000000-0000-0000-0000-000000000001"
+  },
+  {
+    "id": "30000000-0000-0000-0000-000000000017",
+    "title": "Implement rate limiting on agent routes",
+    "status": "done",
+    "progress": 100,
+    "assigned_to": "Claude",
+    "task_type": "standard",
+    "position": 5,
+    "project_id": "10000000-0000-0000-0000-000000000001"
+  },
+  {
+    "id": "30000000-0000-0000-0000-000000000006",
+    "title": "[Step 6] Extract KanbanBoard, GanttView",
+    "status": "done",
+    "progress": 100,
+    "assigned_to": "Claude",
+    "task_type": "standard",
+    "position": 6,
+    "project_id": "10000000-0000-0000-0000-000000000001"
+  },
+  {
+    "id": "30000000-0000-0000-0000-000000000007",
+    "title": "[Step 7] Extract ProjectSection",
+    "status": "done",
+    "progress": 100,
+    "assigned_to": "Claude",
+    "task_type": "standard",
+    "position": 7,
+    "project_id": "10000000-0000-0000-0000-000000000001"
+  },
+  {
+    "id": "30000000-0000-0000-0000-000000000008",
+    "title": "[Step 8] Extract AddTaskModal, AddProjectModal",
+    "status": "done",
+    "progress": 100,
+    "assigned_to": "Claude",
+    "task_type": "standard",
+    "position": 8,
+    "project_id": "10000000-0000-0000-0000-000000000001"
+  },
+  {
+    "id": "30000000-0000-0000-0000-000000000009",
+    "title": "[Step 9] Extract MyWorkView (with MwTaskTable + MwSection)",
+    "status": "done",
+    "progress": 100,
+    "assigned_to": "Claude",
+    "task_type": "standard",
+    "position": 9,
+    "project_id": "10000000-0000-0000-0000-000000000001"
+  },
+  {
+    "id": "30000000-0000-0000-0000-000000000010",
+    "title": "[Step 10] Reduce pages/index.js to <150-line shell + smoke test",
+    "status": "in_progress",
+    "progress": 85,
+    "assigned_to": "Claude",
+    "task_type": "standard",
+    "position": 10,
+    "project_id": "10000000-0000-0000-0000-000000000001"
+  },
+  {
+    "id": "30000000-0000-0000-0000-000000000011",
+    "title": "[Step 11] Add REST API scaffolding — pages/api/projects.js + pages/api/task-groups.js",
+    "status": "done",
+    "progress": 100,
+    "assigned_to": "Claude",
+    "task_type": "standard",
+    "position": 11,
+    "project_id": "10000000-0000-0000-0000-000000000001"
+  },
+  {
+    "id": "30000000-0000-0000-0000-000000000012",
+    "title": "Upgrade Next.js 14.1.0 → 14.2.x (security fix)",
+    "status": "not_started",
+    "progress": 0,
+    "assigned_to": "Claude",
+    "task_type": "standard",
+    "position": 12,
+    "project_id": "10000000-0000-0000-0000-000000000001"
+  }
+]

@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>doddl. — Homepage · Prototype</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --indigo:      #3D157D;
+    --indigo-dark: #26215C;
+    --aqua:        #30BEAA;
+    --aqua-light:  #9ECFC6;
+    --grey:        #EAEAEA;
+    --white:       #FFFFFF;
+    --font:        'Nunito', sans-serif;
+  }
+  body { font-family: var(--font); background: #f7f6fb; display: flex; flex-direction: column; min-height: 100vh; }
+
+  /* ── NAV STRIP ─────────────────────────────────────────── */
+  .nav-strip {
+    background: var(--indigo-dark);
+    padding: 10px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-shrink: 0;
+  }
+  .nav-logo {
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--white);
+    text-decoration: none;
+    letter-spacing: -0.02em;
+  }
+  .nav-logo span { color: var(--aqua); }
+  .nav-title { font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.6); letter-spacing: 0.04em; text-transform: uppercase; }
+
+  .toggle-group {
+    display: flex;
+    background: rgba(255,255,255,0.12);
+    border-radius: 8px;
+    padding: 3px;
+    gap: 2px;
+  }
+  .toggle-btn {
+    padding: 6px 16px;
+    border: none;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 800;
+    cursor: pointer;
+    font-family: var(--font);
+    background: transparent;
+    color: rgba(255,255,255,0.6);
+    transition: all 0.15s;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+  }
+  .toggle-btn.active {
+    background: var(--aqua);
+    color: var(--white);
+  }
+
+  .back-link {
+    font-size: 12px;
+    font-weight: 700;
+    color: rgba(255,255,255,0.6);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    letter-spacing: 0.02em;
+  }
+  .back-link:hover { color: var(--white); }
+
+  /* ── IFRAME ─────────────────────────────────────────────── */
+  .frame-wrap {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: #e8e6f0;
+    padding: 0;
+    transition: padding 0.2s;
+  }
+  .frame-wrap.mobile-mode {
+    padding: 16px;
+    align-items: center;
+    background: #c8c4d8;
+  }
+  .frame-wrap.mobile-mode .device-shell {
+    display: flex;
+  }
+
+  .device-shell {
+    display: none;
+    flex-direction: column;
+    background: #1a1a1a;
+    border-radius: 36px;
+    padding: 12px;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.4);
+    width: 390px;
+    flex-shrink: 0;
+  }
+  .device-notch {
+    height: 28px;
+    background: #1a1a1a;
+    border-radius: 20px;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .notch-bar {
+    width: 100px;
+    height: 10px;
+    background: #333;
+    border-radius: 10px;
+  }
+  .device-screen {
+    flex: 1;
+    border-radius: 24px;
+    overflow: hidden;
+    background: var(--white);
+  }
+
+  iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    display: block;
+    min-height: calc(100vh - 52px);
+  }
+  .device-screen iframe {
+    min-height: 760px;
+    height: 760px;
+  }
+</style>
+</head>
+<body>
+
+<div class="nav-strip">
+  <a href="../" class="back-link">← Back to prototypes</a>
+  <span class="nav-title">Homepage · Storyboard</span>
+  <div class="toggle-group">
+    <button class="toggle-btn active" id="btn-desktop" onclick="setMode('desktop')">🖥 Desktop</button>
+    <button class="toggle-btn" id="btn-mobile" onclick="setMode('mobile')">📱 Mobile</button>
+  </div>
+  <a href="/prototypes/journey/" target="_top" class="nav-logo">doddl<span>.</span></a>
+</div>
+
+<div class="frame-wrap" id="frame-wrap">
+  <div class="device-shell" id="device-shell">
+    <div class="device-notch"><div class="notch-bar"></div></div>
+    <div class="device-screen">
+      <iframe id="proto-iframe" src="../homepage/desktop.html" title="Homepage prototype"></iframe>
+    </div>
+  </div>
+  <iframe id="desktop-iframe" src="../homepage/desktop.html" title="Homepage prototype (desktop)"></iframe>
+</div>
+
+<script>
+  function setMode(mode) {
+    const wrap = document.getElementById('frame-wrap');
+    const shell = document.getElementById('device-shell');
+    const desktopFrame = document.getElementById('desktop-iframe');
+    const btnD = document.getElementById('btn-desktop');
+    const btnM = document.getElementById('btn-mobile');
+
+    if (mode === 'mobile') {
+      wrap.classList.add('mobile-mode');
+      shell.style.display = 'flex';
+      desktopFrame.style.display = 'none';
+      btnM.classList.add('active');
+      btnD.classList.remove('active');
+      // mobile storyboard — if a mobile.html exists, load it; otherwise reuse desktop
+      document.getElementById('proto-iframe').src = '../homepage/desktop.html';
+    } else {
+      wrap.classList.remove('mobile-mode');
+      shell.style.display = 'none';
+      desktopFrame.style.display = 'block';
+      btnD.classList.add('active');
+      btnM.classList.remove('active');
+    }
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>doddl. — Navigation · Prototype v1</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --indigo: #3D157D; --indigo-dark: #26215C; --aqua: #30BEAA;
+  --aqua-light: #9ECFC6; --grey: #F4F3F8; --grey-line: #EAEAEA;
+  --white: #fff; --text: #1a1630; --text-mid: #666; --font: 'Nunito', sans-serif;
+}
+body { font-family: var(--font); background: var(--grey); color: var(--text); }
+
+/* ── STORYBOARD BANNER ─────────────────────────── */
+.sb-banner {
+  background: var(--indigo-dark); color: var(--white);
+  font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+  padding: 7px 24px; display: flex; align-items: center; justify-content: space-between;
+}
+.sb-logo { font-size: 16px; font-weight: 800; text-decoration: none; color: var(--white); text-transform: none; letter-spacing: -.02em; }
+.sb-logo span { color: var(--aqua); }
+.sb-badge { background: rgba(48,190,170,.2); color: var(--aqua-light); border-radius: 4px; padding: 2px 8px; font-size: 10px; }
+
+/* ── PAGE LAYOUT ────────────────────────────────── */
+.page { max-width: 1400px; margin: 0 auto; padding: 32px 24px 80px; }
+.section-tag { font-size: 11px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--aqua); margin-bottom: 10px; display: block; }
+.section-heading { font-size: 28px; font-weight: 800; color: var(--indigo); margin-bottom: 8px; letter-spacing: -.01em; }
+.section-body { font-size: 14px; color: var(--text-mid); line-height: 1.7; margin-bottom: 28px; max-width: 600px; }
+.annotation { background: #fffbea; border: 1.5px dashed #f0c040; border-radius: 8px; padding: 10px 14px; font-size: 11px; color: #7a6000; margin-bottom: 20px; line-height: 1.6; }
+.annotation::before { content: "📝 "; }
+.sep { border: none; border-top: 2px dashed var(--grey-line); margin: 48px 0; }
+
+/* ── DESKTOP NAV ─────────────────────────────────── */
+.nav-demo-wrap { background: var(--white); border-radius: 12px; border: 1px solid var(--grey-line); overflow: hidden; margin-bottom: 16px; }
+.nb { background: var(--white); display: flex; align-items: center; justify-content: space-between; padding: 0 24px; height: 68px; border-bottom: 1px solid var(--grey-line); position: relative; z-index: 20; }
+.nl { font-size: 22px; font-weight: 800; color: var(--indigo); letter-spacing: -.02em; text-decoration: none; }
+.nl span { color: var(--aqua); }
+.ni-row { display: flex; height: 100%; }
+.ni { display: flex; align-items: center; gap: 4px; padding: 0 16px; font-size: 15px; font-weight: 800; color: #3a3060; cursor: pointer; position: relative; white-space: nowrap; user-select: none; transition: color .15s; }
+.ni:hover, .ni.act { color: var(--indigo); }
+.ni.act::after { content: ''; position: absolute; bottom: 0; left: 14px; right: 14px; height: 2px; background: var(--aqua); border-radius: 2px 2px 0 0; }
+.ch { font-size: 8px; transition: transform .18s; display: inline-block; }
+.ni.op .ch { transform: rotate(180deg); }
+.sbtn { background: var(--indigo); color: var(--white); border: none; border-radius: 8px; padding: 10px 20px; font-size: 14px; font-weight: 800; cursor: pointer; font-family: var(--font); letter-spacing: -.01em; }
+.nav-right { display: flex; gap: 14px; align-items: center; }
+.nav-icon { font-size: 15px; color: var(--text-mid); cursor: pointer; }
+
+/* Mega dropdown */
+.mw { background: var(--white); border-top: 2px solid var(--aqua); display: none; }
+.mw.open { display: block; }
+.pn { display: none; padding: 24px 28px; }
+.pn.act { display: block; }
+.slabel { font-size: 10px; font-weight: 800; color: var(--text-mid); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 12px; }
+
+/* Stage cards */
+.sr { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0; margin-bottom: 0; border-bottom: 2px solid var(--grey-line); }
+.sc { border: none; border-bottom: 3px solid transparent; padding: 20px 12px 18px; cursor: pointer; text-align: center; transition: border-color .15s; background: none; }
+.sc:hover, .sc.hov { border-bottom-color: var(--aqua); }
+.sc .avatar { width: 72px; height: 72px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px; transition: transform .15s; }
+.sc:hover .avatar, .sc.hov .avatar { transform: scale(1.06); }
+.sc .avatar svg { width: 52px; height: 52px; }
+.sc .num { width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 900; margin: 0 auto 9px; transition: transform .15s; }
+.sc:hover .num, .sc.hov .num { transform: scale(1.08); }
+.sc .s { font-size: 13px; font-weight: 900; color: #888; text-transform: uppercase; letter-spacing: .07em; margin-bottom: 3px; line-height: 1.2; }
+.sc.hov .s { color: var(--aqua); }
+.sc:hover .s { color: var(--aqua); }
+.sc .a { font-size: 11px; font-weight: 600; color: #aaa; }
+.sc .go { font-size: 10px; font-weight: 700; color: var(--indigo); margin-top: 6px; opacity: 0; transition: opacity .15s; }
+.sc:hover .go, .sc.hov .go { opacity: 1; }
+
+/* Preview section */
+.preview-wrap { border-top: 1px solid var(--grey-line); margin-top: 14px; padding-top: 18px; display: none; }
+.preview-wrap.show { display: block; }
+.preview-label { font-size: 10px; font-weight: 800; color: var(--text-mid); text-transform: uppercase; letter-spacing: .07em; margin-bottom: 14px; }
+.preview-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+.dh { font-size: 10px; font-weight: 800; color: var(--text-mid); text-transform: uppercase; letter-spacing: .07em; margin-bottom: 8px; padding-bottom: 7px; border-bottom: 1px solid var(--grey-line); }
+.dp { display: none; }
+.dp.act { display: block; }
+.ml { display: flex; flex-direction: column; gap: 5px; margin-bottom: 12px; }
+.mi { font-size: 12px; color: var(--text-mid); display: flex; align-items: flex-start; gap: 5px; line-height: 1.4; }
+.md { width: 5px; height: 5px; border-radius: 50%; background: var(--aqua); flex-shrink: 0; margin-top: 3px; }
+.pr { display: flex; flex-direction: column; gap: 5px; margin-bottom: 8px; }
+.pc { display: flex; justify-content: space-between; align-items: center; font-size: 12px; padding: 6px 8px; border: 1px solid var(--grey-line); border-radius: 6px; }
+.pc .pn2 { font-weight: 800; color: var(--text); }
+.pc .pp { color: var(--text-mid); }
+.pc.bv { border-color: var(--aqua); background: rgba(48,190,170,.05); }
+.cta-link { font-size: 12px; font-weight: 800; color: var(--indigo); cursor: pointer; }
+.bl { display: flex; flex-direction: column; gap: 5px; }
+.bc { font-size: 11px; color: var(--text-mid); padding: 5px 8px; border: 1px solid var(--grey-line); border-radius: 5px; display: flex; align-items: flex-start; gap: 5px; line-height: 1.35; }
+.bt { font-size: 9px; font-weight: 800; padding: 1px 5px; border-radius: 3px; flex-shrink: 0; white-space: nowrap; }
+.btt { background: #EAE4F4; color: #534AB7; }
+.btr { background: #E1F5EE; color: #085041; }
+.eb { background: var(--grey); border-radius: 7px; padding: 11px; margin-bottom: 10px; }
+.eb p { font-size: 10px; color: var(--text-mid); margin-bottom: 8px; line-height: 1.5; }
+.er { display: flex; gap: 6px; }
+.ei { flex: 1; border: 1px solid var(--grey-line); border-radius: 6px; padding: 6px 8px; font-size: 10px; font-family: var(--font); color: var(--text); }
+.es { background: var(--indigo); color: var(--white); border: none; border-radius: 6px; padding: 6px 10px; font-size: 10px; font-weight: 700; cursor: pointer; font-family: var(--font); white-space: nowrap; }
+
+/* Category panel */
+.cg { display: grid; grid-template-columns: repeat(5, 1fr); gap: 9px; margin-bottom: 18px; }
+.cc { border: 1.5px solid var(--grey-line); border-radius: 10px; padding: 14px 10px; cursor: pointer; transition: border-color .15s; }
+.cc:hover { border-color: var(--indigo); background: var(--grey); }
+.cc .e { font-size: 22px; display: block; margin-bottom: 7px; }
+.cc .cn { font-size: 14px; font-weight: 800; color: var(--text); margin-bottom: 2px; }
+.cc .cr { font-size: 11px; color: var(--text-mid); margin-bottom: 4px; }
+.cc .cc2 { font-size: 11px; color: var(--aqua); font-weight: 700; }
+.cb { display: grid; grid-template-columns: 2fr 1fr; gap: 18px; border-top: 1px solid var(--grey-line); padding-top: 16px; }
+.cbr { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+.cbc { font-size: 10px; color: var(--text-mid); padding: 6px 8px; border: 1px solid var(--grey-line); border-radius: 6px; cursor: pointer; line-height: 1.4; transition: border-color .15s, color .15s; }
+.cbc:hover { color: var(--indigo); border-color: var(--indigo); }
+.cf { background: var(--grey); border-radius: 9px; padding: 14px; }
+.cft { font-size: 8px; font-weight: 800; color: var(--aqua); text-transform: uppercase; letter-spacing: .07em; margin-bottom: 5px; }
+.cfh { font-size: 13px; font-weight: 800; color: var(--text); margin-bottom: 4px; }
+.cfd { font-size: 10px; color: var(--text-mid); line-height: 1.45; margin-bottom: 8px; }
+.cfl { font-size: 11px; font-weight: 700; color: var(--indigo); cursor: pointer; }
+
+/* SEN panel */
+.sg { display: grid; grid-template-columns: repeat(4, 1fr); gap: 9px; margin-bottom: 18px; }
+.skc { border: 1.5px solid #C0DD97; border-radius: 10px; padding: 13px 11px; cursor: pointer; transition: background .15s; }
+.skc:hover { background: #EAF3DE; }
+.skc .e { font-size: 18px; display: block; margin-bottom: 5px; }
+.skc .sn { font-size: 9px; font-weight: 800; color: #3B6D11; margin-bottom: 3px; }
+.skc .sh { font-size: 13px; font-weight: 800; color: var(--text); margin-bottom: 2px; }
+.skc .sd { font-size: 11px; color: var(--text-mid); line-height: 1.4; }
+.sl2 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; border-top: 1px solid var(--grey-line); padding-top: 16px; }
+.qb { background: #E1F5EE; border-radius: 8px; padding: 12px; }
+.qq { font-size: 11px; color: #27500A; font-style: italic; line-height: 1.55; margin-bottom: 6px; }
+.qa { font-size: 10px; color: #3B6D11; font-weight: 700; }
+.qb2 { background: var(--grey); border-radius: 8px; padding: 12px; }
+.qq2 { font-size: 11px; color: var(--text-mid); font-style: italic; line-height: 1.55; margin-bottom: 6px; }
+.qa2 { font-size: 10px; color: var(--text-mid); font-weight: 700; }
+.trust-pills { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
+.tp2 { font-size: 9px; background: #E1F5EE; color: #085041; border-radius: 4px; padding: 2px 6px; font-weight: 700; }
+
+/* Tips panel */
+.tips-cols { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+.tph { font-size: 10px; font-weight: 800; color: var(--text-mid); text-transform: uppercase; letter-spacing: .07em; margin-bottom: 10px; padding-bottom: 7px; border-bottom: 1px solid var(--grey-line); }
+.ta { display: flex; align-items: flex-start; gap: 7px; margin-bottom: 9px; cursor: pointer; }
+.ta:hover .tit { color: var(--indigo); }
+.tit { font-size: 13px; font-weight: 800; color: var(--text); line-height: 1.35; transition: color .15s; }
+.tva { font-size: 12px; font-weight: 800; color: var(--indigo); cursor: pointer; margin-top: 4px; display: block; }
+
+/* ── MOBILE SECTION ─────────────────────────────── */
+.mobile-layout { display: grid; grid-template-columns: auto 1fr; gap: 32px; align-items: start; }
+.phone-frame { background: #111; border-radius: 36px; padding: 10px; width: 240px; flex-shrink: 0; }
+.phone-screen { background: var(--white); border-radius: 26px; overflow: hidden; min-height: 480px; position: relative; }
+.notch { height: 22px; background: #111; border-radius: 0 0 14px 14px; width: 80px; margin: 0 auto; }
+.mob-bar { display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; border-bottom: 1px solid var(--grey-line); }
+.mob-logo { font-size: 15px; font-weight: 800; color: var(--indigo); }
+.mob-logo span { color: var(--aqua); }
+.mob-icons { display: flex; gap: 12px; align-items: center; font-size: 14px; color: var(--text-mid); }
+.ham { display: flex; flex-direction: column; gap: 4px; cursor: pointer; }
+.ham span { display: block; width: 18px; height: 2px; background: var(--text); border-radius: 2px; transition: transform .2s, opacity .2s; }
+.ham.open span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+.ham.open span:nth-child(2) { opacity: 0; }
+.ham.open span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+.mob-page-content { padding: 16px; }
+.mob-hero { background: var(--indigo); border-radius: 10px; padding: 16px; margin-bottom: 14px; }
+.mob-hero-tag { font-size: 9px; font-weight: 800; color: var(--aqua-light); text-transform: uppercase; letter-spacing: .07em; margin-bottom: 4px; }
+.mob-hero-h { font-size: 15px; font-weight: 800; color: var(--white); line-height: 1.3; margin-bottom: 3px; }
+.mob-hero-h em { font-style: normal; color: var(--aqua); }
+.mob-hero-body { font-size: 11px; color: rgba(255,255,255,.65); margin-bottom: 10px; line-height: 1.5; }
+.mob-hero-btn { background: var(--aqua); color: var(--white); border: none; border-radius: 6px; padding: 7px; font-size: 11px; font-weight: 800; width: 100%; cursor: pointer; font-family: var(--font); }
+.mob-trust { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+.mob-trust-item { background: var(--grey); border-radius: 7px; padding: 9px; text-align: center; font-size: 10px; color: var(--text-mid); }
+.mob-trust-num { font-size: 14px; font-weight: 800; color: var(--indigo); display: block; margin-bottom: 2px; }
+.drawer-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,.45); z-index: 10; display: none; }
+.drawer-overlay.open { display: block; }
+.drawer { position: absolute; top: 0; left: -100%; width: 88%; background: var(--white); height: 100%; z-index: 20; transition: left .25s ease; overflow-y: auto; }
+.drawer.open { left: 0; }
+.drawer-head { background: var(--indigo); padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; }
+.drawer-dlogo { font-size: 16px; font-weight: 800; color: var(--white); }
+.drawer-dlogo span { color: var(--aqua); }
+.close-btn { background: none; border: none; color: var(--white); font-size: 20px; cursor: pointer; line-height: 1; font-family: var(--font); padding: 0; }
+.d-row { display: flex; align-items: center; justify-content: space-between; padding: 13px 16px; cursor: pointer; transition: background .15s; border-bottom: 1px solid var(--grey-line); }
+.d-row:hover { background: var(--grey); }
+.d-row.open-sub { background: var(--grey); }
+.d-row-left { display: flex; align-items: center; gap: 10px; }
+.d-icon { font-size: 16px; width: 28px; text-align: center; }
+.d-label { font-size: 13px; font-weight: 800; color: var(--text); }
+.d-sub-label { font-size: 10px; color: var(--text-mid); margin-top: 1px; }
+.d-chevron { font-size: 10px; color: var(--text-mid); transition: transform .2s; }
+.d-row.open-sub .d-chevron { transform: rotate(90deg); }
+.d-sub { display: none; background: var(--grey); padding: 0 0 8px; }
+.d-sub.open { display: block; }
+.d-sub-head { font-size: 9px; font-weight: 800; color: var(--text-mid); text-transform: uppercase; letter-spacing: .07em; padding: 10px 16px 6px; }
+.mob-stage-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; padding: 0 12px 10px; }
+.mob-sc { border: 1px solid var(--grey-line); border-radius: 10px; padding: 12px 8px; background: var(--white); cursor: pointer; transition: border-color .15s; text-align: center; }
+.mob-sc:hover { border-color: var(--indigo); }
+.mob-sc .m-avatar { width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 5px; }
+.mob-sc .m-avatar svg { width: 32px; height: 32px; }
+.mob-sc .m-num { width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 900; margin: 0 auto 5px; }
+.mob-sc .s { font-size: 10px; font-weight: 900; color: #666; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 1px; }
+.mob-sc .a { font-size: 9px; color: #aaa; font-weight: 600; }
+.mob-cat-list { padding: 0 12px 10px; display: flex; flex-direction: column; gap: 5px; }
+.mob-cat-chip { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border: 1px solid var(--grey-line); border-radius: 7px; background: var(--white); cursor: pointer; font-size: 12px; font-weight: 700; transition: border-color .15s; }
+.mob-cat-chip:hover { border-color: var(--indigo); }
+.mob-cat-chip .cce { font-size: 15px; }
+.mob-cat-chip .ccr { font-size: 10px; color: var(--text-mid); margin-left: auto; font-weight: 600; }
+.mob-sen-list { padding: 0 12px 10px; display: flex; flex-direction: column; gap: 5px; }
+.mob-sen-chip { border: 1px solid #C0DD97; border-radius: 7px; padding: 9px 11px; cursor: pointer; background: var(--white); transition: background .15s; }
+.mob-sen-chip:hover { background: #EAF3DE; }
+.mob-sen-chip .sn { font-size: 9px; font-weight: 800; color: #3B6D11; }
+.mob-sen-chip .sh { font-size: 12px; font-weight: 800; color: var(--text); }
+.mob-tips-list { padding: 0 12px 10px; display: flex; flex-direction: column; gap: 5px; }
+.mob-tips-section-head { font-size: 9px; font-weight: 800; color: var(--text-mid); text-transform: uppercase; letter-spacing: .07em; padding: 8px 4px 4px; margin-top: 4px; }
+.mob-tip-chip { display: flex; align-items: flex-start; gap: 6px; padding: 7px 8px; border: 1px solid var(--grey-line); border-radius: 6px; background: var(--white); cursor: pointer; font-size: 11px; color: var(--text-mid); transition: border-color .15s, color .15s; }
+.mob-tip-chip:hover { color: var(--indigo); border-color: var(--indigo); }
+.mob-bb-chip { margin: 0 12px 12px; background: #EAE4F4; border-radius: 9px; padding: 12px; display: flex; align-items: center; gap: 10px; }
+.mob-bb-text .bbt { font-size: 9px; font-weight: 800; color: var(--aqua); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 3px; }
+.mob-bb-text .bbh { font-size: 13px; font-weight: 800; color: var(--indigo); margin-bottom: 1px; }
+.mob-bb-text .bbd { font-size: 10px; color: #534AB7; }
+.mob-bb-btn { background: var(--indigo); color: var(--white); border: none; border-radius: 6px; padding: 7px 11px; font-size: 10px; font-weight: 800; cursor: pointer; font-family: var(--font); white-space: nowrap; margin-left: auto; flex-shrink: 0; }
+.drawer-footer { padding: 14px 16px; border-top: 1px solid var(--grey-line); }
+.df-label { font-size: 9px; font-weight: 800; color: var(--text-mid); text-transform: uppercase; letter-spacing: .07em; margin-bottom: 8px; }
+.df-link { font-size: 12px; font-weight: 700; color: var(--text-mid); padding: 5px 0; cursor: pointer; display: block; }
+.df-link:hover { color: var(--indigo); }
+
+/* mobile annotation */
+.mob-notes { }
+.mob-note-head { font-size: 16px; font-weight: 800; color: var(--indigo); margin-bottom: 16px; }
+.mob-note-item { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 14px; }
+.mob-note-num { width: 22px; height: 22px; border-radius: 50%; background: var(--indigo); color: var(--white); font-size: 11px; font-weight: 800; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px; }
+.mob-note-text { font-size: 13px; color: var(--text-mid); line-height: 1.55; }
+.mob-note-text strong { color: var(--text); font-weight: 800; }
+
+/* footer */
+.proto-footer { background: var(--indigo-dark); padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; font-size: 11px; color: rgba(255,255,255,.4); font-weight: 600; margin-top: 0; }
+.proto-footer a { font-size: 15px; font-weight: 800; color: rgba(255,255,255,.8); letter-spacing: -.02em; text-decoration: none; }
+.proto-footer a span { color: var(--aqua); }
+</style>
+</head>
+<body>
+
+<div class="sb-banner">
+  <a href="/prototypes/journey/" class="sb-logo">doddl<span>.</span></a>
+  <div style="display:flex;align-items:center;gap:10px;">
+    <span>Navigation · Prototype v1</span>
+    <span class="sb-badge">STAGING</span>
+  </div>
+  <span>UX / Header exploration</span>
+</div>
+
+<div class="page">
+
+  <!-- DESKTOP -->
+  <span class="section-tag">Desktop</span>
+  <h2 class="section-heading">Mega menu navigation</h2>
+  <p class="section-body">Four dropdown panels. Stage cards: hover to preview milestones, products and reads — click to navigate to that stage page. Shop by Category, SEN Journey and Tips & Advice each open their own panel. Bundle Box is a direct link with no dropdown.</p>
+  <div class="annotation">Hover any stage card to preview its content below. Click the card to navigate to the stage page. In Shopify this will use <code>window.location.href</code> on click and <code>onmouseenter</code> for the preview panel.</div>
+
+  <div class="nav-demo-wrap">
+    <div class="nb">
+      <a href="/prototypes/journey/" class="nl" target="_top">doddl<span>.</span></a>
+      <div class="ni-row">
+        <div class="ni act op" id="ni-stage" onclick="ot('stage',this)">Shop by Stage <span class="ch">▾</span></div>
+        <div class="ni" id="ni-cat" onclick="ot('cat',this)">Shop by Category <span class="ch">▾</span></div>
+        <div class="ni" id="ni-sen" onclick="ot('sen',this)">SEN Journey <span class="ch">▾</span></div>
+        <div class="ni" id="ni-tips" onclick="ot('tips',this)">Tips &amp; Advice <span class="ch">▾</span></div>
+        <div class="ni" onclick="closeMega()">Bundle Box</div>
+      </div>
+      <div class="nav-right">
+        <span class="nav-icon">🔍</span>
+        <span class="nav-icon">👤</span>
+        <span class="nav-icon">🛒</span>
+        <button class="sbtn">Shop now</button>
+      </div>
+    </div>
+
+    <div class="mw open" id="mega">
+
+      <!-- STAGE -->
+      <div class="pn act" id="p-stage">
+        <div class="slabel">Hover a stage to preview — click to go to that stage page</div>
+        <div class="sr">
+          <div class="sc hov" id="sc0" onmouseenter="hs(0)" onclick="toastNav('/pages/shop-by-stage?stage=0')">
+            <div class="avatar" style="background:#FEF9F2"><svg viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="28" cy="19" r="12" fill="#FACC91"/><circle cx="24" cy="17" r="1.6" fill="#3D157D"/><circle cx="32" cy="17" r="1.6" fill="#3D157D"/><path d="M24.5 23 Q28 26.5 31.5 23" stroke="#3D157D" stroke-width="1.6" stroke-linecap="round" fill="none"/><ellipse cx="28" cy="41" rx="12" ry="7" fill="#947FB6" opacity=".7"/><ellipse cx="13" cy="44" rx="5" ry="3" fill="#947FB6" opacity=".45" transform="rotate(-25 13 44)"/><ellipse cx="43" cy="44" rx="5" ry="3" fill="#947FB6" opacity=".45" transform="rotate(25 43 44)"/></svg></div>
+            <div class="num" style="background:#FEF5EC;color:#D4890A">0</div>
+            <div class="s">Preparing</div>
+            <div class="a">0–6 months</div>
+            <div class="go">View stage →</div>
+          </div>
+          <div class="sc" id="sc1" onmouseenter="hs(1)" onclick="toastNav('/pages/shop-by-stage?stage=1')">
+            <span class="e">🥄</span><div class="n">Stage 1</div><div class="s">First foods</div><div class="a">6–12 months</div><div class="go">Go to stage →</div>
+          </div>
+          <div class="sc" id="sc2" onmouseenter="hs(2)" onclick="toastNav('/pages/shop-by-stage?stage=2')">
+            <span class="e">✊</span><div class="n">Stage 2</div><div class="s">Building control</div><div class="a">12–18 months</div><div class="go">Go to stage →</div>
+          </div>
+          <div class="sc" id="sc3" onmouseenter="hs(3)" onclick="toastNav('/pages/shop-by-stage?stage=3')">
+            <span class="e">🍽</span><div class="n">Stage 3</div><div class="s">Growing skills</div><div class="a">18m–3 years</div><div class="go">Go to stage →</div>
+          </div>
+          <div class="sc" id="sc4" onmouseenter="hs(4)" onclick="toastNav('/pages/shop-by-stage?stage=4')">
+            <span class="e">🔪</span><div class="n">Stage 4</div><div class="s">Little adult</div><div class="a">3–5 years</div><div class="go">Go to stage →</div>
+          </div>
+        </div>
+        <div class="preview-wrap show" id="preview">
+          <div class="preview-label" id="preview-label">Previewing — Stage 0 · Preparing</div>
+          <div class="preview-grid">
+            <div>
+              <div class="dh">What to look for</div>
+              <div class="dp act" id="d-s0"><div class="ml"><div class="mi"><span class="md"></span>Head and neck control developing</div><div class="mi"><span class="md"></span>Watching you eat with real interest</div><div class="mi"><span class="md"></span>Reaching and grasping objects</div><div class="mi"><span class="md"></span>Sitting upright with some support</div></div><div class="eb"><p>Weaning starts at 6 months — get a reminder at the right moment</p><div class="er"><input class="ei" type="email" placeholder="Your email"/><button class="es">Remind me</button></div></div></div>
+              <div class="dp" id="d-s1"><div class="ml"><div class="mi"><span class="md"></span>Sitting in a high chair with support</div><div class="mi"><span class="md"></span>Reaching and grasping reliably</div><div class="mi"><span class="md"></span>Bringing hand to mouth confidently</div><div class="mi"><span class="md"></span>Real interest in what you eat</div></div></div>
+              <div class="dp" id="d-s2"><div class="ml"><div class="mi"><span class="md"></span>Pincer grip developing fast</div><div class="mi"><span class="md"></span>Deliberately scooping food</div><div class="mi"><span class="md"></span>Self-feeding most of the meal</div><div class="mi"><span class="md"></span>Frustrated if you try to help</div></div></div>
+              <div class="dp" id="d-s3"><div class="ml"><div class="mi"><span class="md"></span>Self-feeding confidently</div><div class="mi"><span class="md"></span>Eating alongside the family</div><div class="mi"><span class="md"></span>Managing more textures</div><div class="mi"><span class="md"></span>Nursery-ready at mealtimes</div></div></div>
+              <div class="dp" id="d-s4"><div class="ml"><div class="mi"><span class="md"></span>Fine motor control established</div><div class="mi"><span class="md"></span>Ready to learn to cut safely</div><div class="mi"><span class="md"></span>Eating independently every meal</div><div class="mi"><span class="md"></span>Copying adult mealtime behaviour</div></div></div>
+            </div>
+            <div>
+              <div class="dh">Products for this stage</div>
+              <div class="dp act" id="d-p0"><p style="font-size:11px;color:var(--text-mid);font-style:italic;margin-bottom:8px;">No products yet — Stage 0 is preparation.</p><a class="cta-link">Preview Stage 1 →</a></div>
+              <div class="dp" id="d-p1"><div class="pr"><div class="pc"><span class="pn2">Baby Spoon &amp; Fork</span><span class="pp">£14.99</span></div><div class="pc"><span class="pn2">Suction Bowl 2-in-1</span><span class="pp">£12.99</span></div><div class="pc bv"><span class="pn2">Stage 1 Bundle ✦</span><span class="pp">£24.99</span></div></div><a class="cta-link">Shop all Stage 1 →</a></div>
+              <div class="dp" id="d-p2"><div class="pr"><div class="pc"><span class="pn2">2-piece Cutlery Set</span><span class="pp">£16.99</span></div><div class="pc"><span class="pn2">Suction Plate 2-in-1</span><span class="pp">£14.99</span></div><div class="pc bv"><span class="pn2">Stage 2 Bundle ✦</span><span class="pp">£27.99</span></div></div><a class="cta-link">Shop all Stage 2 →</a></div>
+              <div class="dp" id="d-p3"><div class="pr"><div class="pc"><span class="pn2">3-piece Cutlery Set</span><span class="pp">£18.99</span></div><div class="pc"><span class="pn2">Travel Case</span><span class="pp">£9.99</span></div><div class="pc bv"><span class="pn2">Stage 3 Bundle ✦</span><span class="pp">£25.99</span></div></div><a class="cta-link">Shop all Stage 3 →</a></div>
+              <div class="dp" id="d-p4"><div class="pr"><div class="pc"><span class="pn2">doddl Knife</span><span class="pp">£12.99</span></div><div class="pc"><span class="pn2">Full 3-piece Set</span><span class="pp">£24.99</span></div><div class="pc bv"><span class="pn2">Stage 4 Bundle ✦</span><span class="pp">£34.99</span></div></div><a class="cta-link">Shop all Stage 4 →</a></div>
+            </div>
+            <div>
+              <div class="dh">Tips &amp; reads</div>
+              <div class="dp act" id="d-b0"><div class="bl"><div class="bc"><span class="bt btt">Tips</span>How to wean a baby</div><div class="bc"><span class="bt btt">Tips</span>Simple weaning journey markers</div><div class="bc"><span class="bt btt">Tips</span>Weaning myths debunked</div><div class="bc"><span class="bt btr">Recipe</span>Blueberry oaty bars</div><div class="bc"><span class="bt btr">Recipe</span>Spiced baked oats</div></div><a class="cta-link" style="display:block;margin-top:8px;">All Stage 0 reads →</a></div>
+              <div class="dp" id="d-b1"><div class="bl"><div class="bc"><span class="bt btt">Tips</span>How little hands develop</div><div class="bc"><span class="bt btt">Tips</span>Mealtime milestones</div><div class="bc"><span class="bt btt">Tips</span>Introducing solid foods</div><div class="bc"><span class="bt btr">Recipe</span>Porridge fingers</div><div class="bc"><span class="bt btr">Recipe</span>Apple oat pancakes</div></div><a class="cta-link" style="display:block;margin-top:8px;">All Stage 1 reads →</a></div>
+              <div class="dp" id="d-b2"><div class="bl"><div class="bc"><span class="bt btt">Tips</span>Fine motor skills activities</div><div class="bc"><span class="bt btt">Tips</span>Setting up for mealtime success</div><div class="bc"><span class="bt btt">Tips</span>Encouraging independent eating</div><div class="bc"><span class="bt btr">Recipe</span>Banana oat cookies</div><div class="bc"><span class="bt btr">Recipe</span>Mini egg frittatas</div></div><a class="cta-link" style="display:block;margin-top:8px;">All Stage 2 reads →</a></div>
+              <div class="dp" id="d-b3"><div class="bl"><div class="bc"><span class="bt btt">Tips</span>Fussy, picky, choosy eater?</div><div class="bc"><span class="bt btt">Tips</span>Healthier packed lunches</div><div class="bc"><span class="bt btt">Tips</span>Children involved in food prep</div><div class="bc"><span class="bt btr">Recipe</span>Hidden veg tomato sauce</div><div class="bc"><span class="bt btr">Recipe</span>Sweet potato fishcakes</div></div><a class="cta-link" style="display:block;margin-top:8px;">All Stage 3 reads →</a></div>
+              <div class="dp" id="d-b4"><div class="bl"><div class="bc"><span class="bt btt">Tips</span>How to teach using a knife</div><div class="bc"><span class="bt btt">Tips</span>Tips for cooking with kids</div><div class="bc"><span class="bt btt">Tips</span>Why doddl knife is unlike any other</div><div class="bc"><span class="bt btr">Recipe</span>Scary spider pizza bites</div><div class="bc"><span class="bt btr">Recipe</span>Roaring rotini pasta</div></div><a class="cta-link" style="display:block;margin-top:8px;">All Stage 4 reads →</a></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CATEGORY -->
+      <div class="pn" id="p-cat">
+        <div class="slabel">Browse by product type — click to view the full collection</div>
+        <div class="cg">
+          <div class="cc"><span class="e">🥄</span><div class="cn">Baby cutlery</div><div class="cr">Stage 0–1</div><div class="cc2">6 products</div></div>
+          <div class="cc"><span class="e">🍴</span><div class="cn">Toddler cutlery</div><div class="cr">Stage 1–4</div><div class="cc2">12 products</div></div>
+          <div class="cc"><span class="e">🍽</span><div class="cn">Plates &amp; bowls</div><div class="cr">Stage 0–4</div><div class="cc2">8 products</div></div>
+          <div class="cc"><span class="e">🧷</span><div class="cn">Bibs</div><div class="cr">Stage 0–4</div><div class="cc2">4 products</div></div>
+          <div class="cc" style="border-color:var(--aqua);background:rgba(48,190,170,.05);"><span class="e">🎁</span><div class="cn">Bundles &amp; kits</div><div class="cr">All stages</div><div class="cc2" style="color:#E09A3A;">Saves up to £29</div></div>
+        </div>
+        <div class="cb">
+          <div>
+            <div class="dh">Relevant reads</div>
+            <div class="cbr">
+              <div class="cbc"><span class="bt btt" style="margin-bottom:3px;display:inline-block;">Tips</span><br>Introducing doddl baby cutlery</div>
+              <div class="cbc"><span class="bt btt" style="margin-bottom:3px;display:inline-block;">Tips</span><br>Why doddl helps self-feeding</div>
+              <div class="cbc"><span class="bt btt" style="margin-bottom:3px;display:inline-block;">Tips</span><br>How to introduce the doddl plate</div>
+              <div class="cbc"><span class="bt btr" style="margin-bottom:3px;display:inline-block;">Recipe</span><br>Easy midweek family recipes</div>
+              <div class="cbc"><span class="bt btt" style="margin-bottom:3px;display:inline-block;">Tips</span><br>How to teach a toddler to use a knife</div>
+              <div class="cbc"><span class="bt btr" style="margin-bottom:3px;display:inline-block;">Recipe</span><br>Pancake ideas for toddlers</div>
+            </div>
+          </div>
+          <div>
+            <div class="cf">
+              <div class="cft">Best value</div>
+              <div class="cfh">The Bundle Box</div>
+              <div class="cfd">All 5 stages in one box. £80 — saves £29 vs individual. Free UK delivery.</div>
+              <div class="cfl">See what's inside →</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SEN -->
+      <div class="pn" id="p-sen">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+          <div class="slabel" style="color:#3B6D11;margin-bottom:0;">Every child's journey — no age labels, just progress — click to go to that stage</div>
+          <span style="font-size:10px;color:var(--text-mid);">OT recommended · 500+ nurseries</span>
+        </div>
+        <div class="sg">
+          <div class="skc"><span class="e">🌱</span><div class="sn">Stage one</div><div class="sh">Just starting out</div><div class="sd">Interest is showing. The first tools.</div></div>
+          <div class="skc"><span class="e">✊</span><div class="sn">Stage two</div><div class="sh">Finding their grip</div><div class="sd">Beginning to grasp and guide.</div></div>
+          <div class="skc"><span class="e">📈</span><div class="sn">Stage three</div><div class="sh">Building confidence</div><div class="sd">More good days than hard ones.</div></div>
+          <div class="skc"><span class="e">🎉</span><div class="sn">Stage four</div><div class="sh">Eating independently</div><div class="sd">They did it. Whatever age it took.</div></div>
+        </div>
+        <div class="sl2">
+          <div>
+            <div class="dh">Relevant reads</div>
+            <div class="bl"><div class="bc"><span class="bt btt">Tips</span>How little hands develop</div><div class="bc"><span class="bt btt">Tips</span>Fine motor skills activities</div><div class="bc"><span class="bt btt">Tips</span>Creating the right mealtime environment</div><div class="bc"><span class="bt btt">Tips</span>When mealtimes are extra challenging</div></div>
+            <a class="cta-link" style="display:block;margin-top:8px;">All SEN reads →</a>
+          </div>
+          <div>
+            <div class="dh">What parents say</div>
+            <div class="qb"><div class="qq">"The first time he fed himself with doddl I actually cried. We'd tried everything. It took longer than most — but we got there."</div><div class="qa">Emma, mum to Archie — dyspraxia</div></div>
+            <a class="cta-link" style="display:block;margin-top:8px;">Read more stories →</a>
+          </div>
+          <div>
+            <div class="dh">OT recommended</div>
+            <div class="qb2"><div class="qq2">"doddl's ergonomic handle significantly reduces the effort required to self-feed. I recommend it at the earliest stages of intervention."</div><div class="qa2">Sarah Jennings, Paediatric OT</div><div class="trust-pills"><span class="tp2">OT UK</span><span class="tp2">RCOT</span><span class="tp2">NHS partner</span></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TIPS -->
+      <div class="pn" id="p-tips">
+        <div class="slabel">Click any article to read it on doddl.com</div>
+        <div class="tips-cols">
+          <div>
+            <div class="tph">Weaning &amp; Stage 0–1</div>
+            <div class="ta"><span class="bt btt">Tips</span><span class="tit">How to wean a baby — the complete guide</span></div>
+            <div class="ta"><span class="bt btt">Tips</span><span class="tit">Mealtime milestones: what to look for</span></div>
+            <div class="ta"><span class="bt btt">Tips</span><span class="tit">Weaning myths debunked</span></div>
+            <div class="ta"><span class="bt btr">Recipe</span><span class="tit">Blueberry oaty bars</span></div>
+            <div class="ta"><span class="bt btr">Recipe</span><span class="tit">Apple pie chia pudding</span></div>
+            <a class="tva">All weaning reads →</a>
+          </div>
+          <div>
+            <div class="tph">Toddler &amp; Stage 2–4</div>
+            <div class="ta"><span class="bt btt">Tips</span><span class="tit">How to teach a toddler to use a knife</span></div>
+            <div class="ta"><span class="bt btt">Tips</span><span class="tit">Fussy, picky, choosy eater?</span></div>
+            <div class="ta"><span class="bt btt">Tips</span><span class="tit">Getting children involved in food prep</span></div>
+            <div class="ta"><span class="bt btr">Recipe</span><span class="tit">Easy midweek family recipes</span></div>
+            <div class="ta"><span class="bt btr">Recipe</span><span class="tit">Pancake ideas for toddlers</span></div>
+            <a class="tva">All toddler reads →</a>
+          </div>
+          <div>
+            <div class="tph">Family &amp; SEN</div>
+            <div class="ta"><span class="bt btt">Tips</span><span class="tit">Importance of family meal times</span></div>
+            <div class="ta"><span class="bt btt">Tips</span><span class="tit">Fine motor skills activities</span></div>
+            <div class="ta"><span class="bt btt">Tips</span><span class="tit">When mealtimes are extra challenging</span></div>
+            <div class="ta"><span class="bt btr">Recipe</span><span class="tit">Hidden veg tomato sauce</span></div>
+            <div class="ta"><span class="bt btr">Recipe</span><span class="tit">Rainbow rice salad</span></div>
+            <a class="tva">All family reads →</a>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <hr class="sep">
+
+  <!-- MOBILE -->
+  <span class="section-tag">Mobile</span>
+  <h2 class="section-heading">Hamburger drawer navigation</h2>
+  <p class="section-body">Full-screen drawer slides from the left. Each section expands inline — no separate screen. Stage cards are a 2-column tap grid. No hover preview on mobile — tapping a stage navigates directly.</p>
+
+  <div class="mobile-layout">
+    <div class="phone-frame">
+      <div class="phone-screen">
+        <div class="notch"></div>
+        <div class="mob-bar">
+          <div class="ham" id="ham" onclick="toggleDrawer()"><span></span><span></span><span></span></div>
+          <div class="mob-logo">doddl<span>.</span></div>
+          <div class="mob-icons">🔍 🛒</div>
+        </div>
+        <div class="mob-page-content">
+          <div class="mob-hero">
+            <div class="mob-hero-tag">The doddl journey</div>
+            <div class="mob-hero-h">The right tool.<br><em>At every stage.</em></div>
+            <div class="mob-hero-body">From first spoon to the family dinner table.</div>
+            <button class="mob-hero-btn">Explore the stages</button>
+          </div>
+          <div class="mob-trust">
+            <div class="mob-trust-item"><span class="mob-trust-num">25k+</span>reviews</div>
+            <div class="mob-trust-item"><span class="mob-trust-num">OT</span>recommended</div>
+            <div class="mob-trust-item"><span class="mob-trust-num">500+</span>nurseries</div>
+            <div class="mob-trust-item"><span class="mob-trust-num">5</span>stages</div>
+          </div>
+        </div>
+        <div class="drawer-overlay" id="mob-overlay" onclick="toggleDrawer()"></div>
+        <div class="drawer" id="mob-drawer">
+          <div class="drawer-head">
+            <div class="drawer-dlogo">doddl<span>.</span></div>
+            <button class="close-btn" onclick="toggleDrawer()">&#215;</button>
+          </div>
+          <div>
+            <div class="d-row" id="dr-stage" onclick="toggleSub('stage')">
+              <div class="d-row-left"><span class="d-icon">🌱</span><div><div class="d-label">Shop by Stage</div><div class="d-sub-label">Find tools for your child's age</div></div></div>
+              <span class="d-chevron">&#9654;</span>
+            </div>
+            <div class="d-sub" id="ds-stage">
+              <div class="d-sub-head">Select a stage — tap to go there</div>
+              <div class="mob-stage-grid">
+                <div class="mob-sc">
+                  <div class="m-avatar" style="background:#FEF9F2"><svg viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="28" cy="19" r="12" fill="#FACC91"/><circle cx="24" cy="17" r="1.6" fill="#3D157D"/><circle cx="32" cy="17" r="1.6" fill="#3D157D"/><path d="M24.5 23 Q28 26.5 31.5 23" stroke="#3D157D" stroke-width="1.6" stroke-linecap="round" fill="none"/><ellipse cx="28" cy="41" rx="12" ry="7" fill="#947FB6" opacity=".7"/><ellipse cx="13" cy="44" rx="5" ry="3" fill="#947FB6" opacity=".45" transform="rotate(-25 13 44)"/><ellipse cx="43" cy="44" rx="5" ry="3" fill="#947FB6" opacity=".45" transform="rotate(25 43 44)"/></svg></div>
+                  <div class="m-num" style="background:#FEF5EC;color:#D4890A">0</div>
+                  <div class="s">Preparing</div>
+                  <div class="a">0–6 months</div>
+                </div>
+                <div class="mob-sc">
+                  <div class="m-avatar" style="background:#F2FBF9"><svg viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="28" cy="13" r="11" fill="#FACC91"/><circle cx="24" cy="11" r="1.5" fill="#3D157D"/><circle cx="32" cy="11" r="1.5" fill="#3D157D"/><path d="M24.5 17 Q28 20 31.5 17" stroke="#3D157D" stroke-width="1.5" stroke-linecap="round" fill="none"/><rect x="19" y="25" width="18" height="15" rx="6" fill="#30BEAA" opacity=".8"/><line x1="19" y1="31" x2="10" y2="37" stroke="#30BEAA" stroke-width="4.5" stroke-linecap="round"/><line x1="37" y1="31" x2="46" y2="26" stroke="#30BEAA" stroke-width="4.5" stroke-linecap="round"/><ellipse cx="28" cy="45" rx="10" ry="5" fill="#947FB6" opacity=".6"/></svg></div>
+                  <div class="m-num" style="background:#1E9A88;color:#fff">1</div>
+                  <div class="s">First foods</div>
+                  <div class="a">6–12 months</div>
+                </div>
+                <div class="mob-sc">
+                  <div class="m-avatar" style="background:#F2F0FB"><svg viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="28" cy="11" r="10" fill="#FACC91"/><circle cx="25" cy="10" r="1.4" fill="#3D157D"/><circle cx="31" cy="10" r="1.4" fill="#3D157D"/><path d="M25 15.5 Q28 18 31 15.5" stroke="#3D157D" stroke-width="1.4" stroke-linecap="round" fill="none"/><rect x="20" y="22" width="16" height="14" rx="5" fill="#9ECFC6" opacity=".85"/><line x1="20" y1="27" x2="11" y2="22" stroke="#9ECFC6" stroke-width="4" stroke-linecap="round"/><line x1="36" y1="27" x2="45" y2="22" stroke="#9ECFC6" stroke-width="4" stroke-linecap="round"/><line x1="24" y1="36" x2="22" y2="50" stroke="#947FB6" stroke-width="4.5" stroke-linecap="round"/><line x1="32" y1="36" x2="34" y2="50" stroke="#947FB6" stroke-width="4.5" stroke-linecap="round"/></svg></div>
+                  <div class="m-num" style="background:#F3EFF9;color:#7B62A8">2</div>
+                  <div class="s">Building control</div>
+                  <div class="a">12–18 months</div>
+                </div>
+                <div class="mob-sc">
+                  <div class="m-avatar" style="background:#F0FBF8"><svg viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="30" cy="10" r="10" fill="#FACC91"/><circle cx="27" cy="9" r="1.4" fill="#3D157D"/><circle cx="33" cy="9" r="1.4" fill="#3D157D"/><path d="M27 14 Q30 16.5 33 14" stroke="#3D157D" stroke-width="1.4" stroke-linecap="round" fill="none"/><rect x="22" y="21" width="16" height="14" rx="5" fill="#30BEAA" opacity=".85"/><line x1="22" y1="26" x2="12" y2="20" stroke="#30BEAA" stroke-width="4" stroke-linecap="round"/><line x1="38" y1="29" x2="47" y2="36" stroke="#30BEAA" stroke-width="4" stroke-linecap="round"/><line x1="26" y1="35" x2="19" y2="49" stroke="#947FB6" stroke-width="4.5" stroke-linecap="round"/><line x1="34" y1="35" x2="40" y2="49" stroke="#947FB6" stroke-width="4.5" stroke-linecap="round"/></svg></div>
+                  <div class="m-num" style="background:#E8F9F6;color:#1E9A88">3</div>
+                  <div class="s">Growing skills</div>
+                  <div class="a">18m–3 years</div>
+                </div>
+                <div class="mob-sc">
+                  <div class="m-avatar" style="background:#F8F2FB"><svg viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="28" cy="9" r="9" fill="#FACC91"/><circle cx="25" cy="8" r="1.3" fill="#3D157D"/><circle cx="31" cy="8" r="1.3" fill="#3D157D"/><path d="M25 13 Q28 15.5 31 13" stroke="#3D157D" stroke-width="1.3" stroke-linecap="round" fill="none"/><rect x="19" y="19" width="18" height="15" rx="5" fill="#3D157D" opacity=".7"/><line x1="19" y1="25" x2="10" y2="32" stroke="#3D157D" stroke-width="4" stroke-linecap="round" opacity=".65"/><line x1="37" y1="25" x2="46" y2="32" stroke="#3D157D" stroke-width="4" stroke-linecap="round" opacity=".65"/><line x1="23" y1="34" x2="21" y2="49" stroke="#947FB6" stroke-width="4.5" stroke-linecap="round"/><line x1="33" y1="34" x2="35" y2="49" stroke="#947FB6" stroke-width="4.5" stroke-linecap="round"/><rect x="7" y="36" width="42" height="3" rx="1.5" fill="#FACC91" opacity=".85"/></svg></div>
+                  <div class="m-num" style="background:#EDE8F6;color:#3D157D">4</div>
+                  <div class="s">Little adult</div>
+                  <div class="a">3–5 years</div>
+                </div>
+              </div>
+              </div>
+            </div>
+            <div class="d-row" id="dr-cat" onclick="toggleSub('cat')">
+              <div class="d-row-left"><span class="d-icon">🍴</span><div><div class="d-label">Shop by Category</div><div class="d-sub-label">Browse by product type</div></div></div>
+              <span class="d-chevron">&#9654;</span>
+            </div>
+            <div class="d-sub" id="ds-cat">
+              <div class="d-sub-head">Product types</div>
+              <div class="mob-cat-list">
+                <div class="mob-cat-chip"><span class="cce">🥄</span>Baby cutlery<span class="ccr">Stage 0–1</span></div>
+                <div class="mob-cat-chip"><span class="cce">🍴</span>Toddler cutlery<span class="ccr">Stage 1–4</span></div>
+                <div class="mob-cat-chip"><span class="cce">🍽</span>Plates &amp; bowls<span class="ccr">All stages</span></div>
+                <div class="mob-cat-chip"><span class="cce">🧷</span>Bibs<span class="ccr">All stages</span></div>
+                <div class="mob-cat-chip" style="border-color:var(--aqua);"><span class="cce">🎁</span>Bundles &amp; kits<span class="ccr" style="color:var(--aqua);">Saves £29</span></div>
+              </div>
+            </div>
+            <div class="d-row" id="dr-sen" onclick="toggleSub('sen')">
+              <div class="d-row-left"><span class="d-icon">❤</span><div><div class="d-label">SEN Journey</div><div class="d-sub-label">Every child's path — no age labels</div></div></div>
+              <span class="d-chevron">&#9654;</span>
+            </div>
+            <div class="d-sub" id="ds-sen">
+              <div class="d-sub-head">Choose a stage</div>
+              <div class="mob-sen-list">
+                <div class="mob-sen-chip"><div class="sn">Stage one</div><div class="sh">Just starting out</div></div>
+                <div class="mob-sen-chip"><div class="sn">Stage two</div><div class="sh">Finding their grip</div></div>
+                <div class="mob-sen-chip"><div class="sn">Stage three</div><div class="sh">Building confidence</div></div>
+                <div class="mob-sen-chip"><div class="sn">Stage four</div><div class="sh">Eating independently</div></div>
+              </div>
+            </div>
+            <div class="d-row" id="dr-tips" onclick="toggleSub('tips')">
+              <div class="d-row-left"><span class="d-icon">📚</span><div><div class="d-label">Tips &amp; Advice</div><div class="d-sub-label">Reads, recipes, expert guides</div></div></div>
+              <span class="d-chevron">&#9654;</span>
+            </div>
+            <div class="d-sub" id="ds-tips">
+              <div class="mob-tips-list">
+                <div class="mob-tips-section-head">Weaning &amp; Stage 0–1</div>
+                <div class="mob-tip-chip"><span class="bt btt">Tips</span>How to wean a baby</div>
+                <div class="mob-tip-chip"><span class="bt btr">Recipe</span>Blueberry oaty bars</div>
+                <div class="mob-tips-section-head">Toddler &amp; Stage 2–4</div>
+                <div class="mob-tip-chip"><span class="bt btt">Tips</span>How to teach using a knife</div>
+                <div class="mob-tip-chip"><span class="bt btr">Recipe</span>Pancake ideas for toddlers</div>
+                <div class="mob-tips-section-head">Family &amp; SEN</div>
+                <div class="mob-tip-chip"><span class="bt btt">Tips</span>When mealtimes are extra challenging</div>
+                <div class="mob-tip-chip"><span class="bt btr">Recipe</span>Hidden veg tomato sauce</div>
+                <div style="padding:8px 12px 0;"><a class="cta-link">View all tips &amp; advice →</a></div>
+              </div>
+            </div>
+            <div class="d-row" style="border-bottom:none;" onclick="toggleDrawer()">
+              <div class="d-row-left"><span class="d-icon">🎁</span><div class="d-label">Bundle Box</div></div>
+              <span style="font-size:10px;color:var(--text-mid);">Direct →</span>
+            </div>
+            <div class="mob-bb-chip">
+              <div class="mob-bb-text"><div class="bbt">Best value</div><div class="bbh">Bundle Box</div><div class="bbd">All 5 stages · £80 · saves £29</div></div>
+              <button class="mob-bb-btn">Shop now</button>
+            </div>
+            <div class="drawer-footer">
+              <div class="df-label">Account</div>
+              <div class="df-links">
+                <a class="df-link">My account</a>
+                <a class="df-link">Order tracking</a>
+                <a class="df-link">Contact us</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mob-notes">
+      <div class="mob-note-head">How the mobile drawer works</div>
+      <div class="mob-note-item"><div class="mob-note-num">1</div><div class="mob-note-text"><strong>Hamburger icon</strong> top-left opens the drawer. Logo stays centred, basket and search on the right.</div></div>
+      <div class="mob-note-item"><div class="mob-note-num">2</div><div class="mob-note-text"><strong>Drawer slides in</strong> from the left at 88% screen width. Tapping the overlay or ✕ closes it.</div></div>
+      <div class="mob-note-item"><div class="mob-note-num">3</div><div class="mob-note-text"><strong>Each section</strong> expands inline on tap — one open at a time. No separate screen needed, keeps orientation clear.</div></div>
+      <div class="mob-note-item"><div class="mob-note-num">4</div><div class="mob-note-text"><strong>Stage cards</strong> are a 2-column grid — tap any card to navigate to that stage page directly.</div></div>
+      <div class="mob-note-item"><div class="mob-note-num">5</div><div class="mob-note-text"><strong>No hover preview</strong> on mobile — hover is a desktop-only behaviour. Mobile taps navigate straight to the page.</div></div>
+      <div class="mob-note-item"><div class="mob-note-num">6</div><div class="mob-note-text"><strong>Bundle Box chip</strong> always visible at the bottom of the drawer — good for impulse and gift purchase regardless of where in the nav a parent is.</div></div>
+      <div class="mob-note-item"><div class="mob-note-num">7</div><div class="mob-note-text"><strong>Account links</strong> at the very bottom — My account, Order tracking, Contact us. Low priority, stays out of the way.</div></div>
+    </div>
+  </div>
+
+</div>
+
+<div class="proto-footer">
+  <a href="/prototypes/journey/" target="_top">doddl<span>.</span></a>
+  <span>Navigation Prototype v1 · Staging · © doddl 2026</span>
+  <span>Prototype — not for public distribution</span>
+</div>
+
+<script>
+const stageLabels = ['Stage 0 · Preparing','Stage 1 · First foods','Stage 2 · Building control','Stage 3 · Growing skills','Stage 4 · Little adult'];
+
+function ot(tab, el) {
+  ['stage','cat','sen','tips'].forEach(t => {
+    document.getElementById('p-'+t).classList.toggle('act', t===tab);
+  });
+  document.querySelectorAll('.ni').forEach(n => n.classList.remove('act','op'));
+  if (el) el.classList.add('act','op');
+  document.getElementById('mega').classList.add('open');
+}
+function closeMega() {
+  document.getElementById('mega').classList.remove('open');
+  document.querySelectorAll('.ni').forEach(n => n.classList.remove('act','op'));
+}
+function hs(n) {
+  for (let i=0;i<5;i++) {
+    document.getElementById('sc'+i).classList.toggle('hov', i===n);
+    ['s','p','b'].forEach(t => {
+      const el = document.getElementById('d-'+t+i);
+      if (el) el.classList.toggle('act', i===n);
+    });
+  }
+  document.getElementById('preview-label').textContent = 'Previewing — ' + stageLabels[n];
+}
+function toastNav(url) {
+  const t = document.createElement('div');
+  t.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#3D157D;color:#fff;font-size:13px;font-weight:700;padding:10px 20px;border-radius:8px;z-index:999;transition:opacity .3s;';
+  t.textContent = '→ Navigating to ' + url;
+  document.body.appendChild(t);
+  setTimeout(() => { t.style.opacity='0'; setTimeout(() => t.remove(), 400); }, 1800);
+}
+function toggleDrawer() {
+  const d = document.getElementById('mob-drawer');
+  const o = document.getElementById('mob-overlay');
+  const h = document.getElementById('ham');
+  const open = d.classList.toggle('open');
+  o.classList.toggle('open', open);
+  h.classList.toggle('open', open);
+}
+function toggleSub(id) {
+  const sub = document.getElementById('ds-'+id);
+  const row = document.getElementById('dr-'+id);
+  const wasOpen = sub.classList.contains('open');
+  document.querySelectorAll('.d-sub').forEach(s => s.classList.remove('open'));
+  document.querySelectorAll('.d-row').forEach(r => r.classList.remove('open-sub'));
+  if (!wasOpen) { sub.classList.add('open'); row.classList.add('open-sub'); }
+}
+</script>
+</body>
+</html>

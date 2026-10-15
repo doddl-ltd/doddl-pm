@@ -1,0 +1,89 @@
+{
+  "db": "prod",
+  "url": "https://ikcjciscttsvpxoijnqe.supabase.co",
+  "group": {
+    "id": "93d5c0b7-7e2f-4995-bb73-dc4308c42e35",
+    "name": "Agent Chat Integration",
+    "position": 6
+  },
+  "tasks": [
+    {
+      "id": "1ae7cdf4-caea-4b6c-a52d-ed3fe127eb75",
+      "title": "Write doddl PM Claude Project system prompt",
+      "assigned_to": "Jon",
+      "priority": "high",
+      "position": 13,
+      "depends_on": null
+    },
+    {
+      "id": "f2ac2515-3e71-46b1-80b2-f2391d4d8e2d",
+      "title": "Build /api/agent/lookup endpoint",
+      "assigned_to": "Claude",
+      "priority": "high",
+      "position": 14,
+      "depends_on": "1ae7cdf4-caea-4b6c-a52d-ed3fe127eb75"
+    },
+    {
+      "id": "2bf6ca1c-7659-42d2-b4d9-38561de47575",
+      "title": "Test shared Claude Project end to end",
+      "assigned_to": "Jon",
+      "priority": "high",
+      "position": 15,
+      "depends_on": "f2ac2515-3e71-46b1-80b2-f2391d4d8e2d"
+    },
+    {
+      "id": "9abc4c43-a26e-4713-84e4-b856069e39ab",
+      "title": "Brief team on shared Claude Project — Laura and Cat",
+      "assigned_to": "Jon",
+      "priority": "medium",
+      "position": 16,
+      "depends_on": "2bf6ca1c-7659-42d2-b4d9-38561de47575"
+    },
+    {
+      "id": "b479940e-9bff-40e6-8b41-5cd2c953dd6d",
+      "title": "Design user-scoped API key model",
+      "assigned_to": "Jon",
+      "priority": "high",
+      "position": 17,
+      "depends_on": "30000000-0000-0000-0000-000000000028"
+    },
+    {
+      "id": "ba9c7a4e-47f4-4301-bbe4-dac4fc1b8899",
+      "title": "Build user key issuance in PM tool settings",
+      "assigned_to": "Claude",
+      "priority": "high",
+      "position": 18,
+      "depends_on": "b479940e-9bff-40e6-8b41-5cd2c953dd6d"
+    },
+    {
+      "id": "8e8eea60-329d-44b1-a106-94e97b4b85bf",
+      "title": "Update agent auth middleware for per-user keys",
+      "assigned_to": "Claude",
+      "priority": "high",
+      "position": 19,
+      "depends_on": "ba9c7a4e-47f4-4301-bbe4-dac4fc1b8899"
+    },
+    {
+      "id": "4168c831-ef7d-44aa-827e-389203fbd868",
+      "title": "Update each team member Claude Project to use personal key",
+      "assigned_to": "Jon",
+      "priority": "medium",
+      "position": 20,
+      "depends_on": "8e8eea60-329d-44b1-a106-94e97b4b85bf"
+    },
+    {
+      "id": "9e0f6b29-f6b9-4c16-bd50-56393d297999",
+      "title": "Regression test user-scoped auth",
+      "assigned_to": "Jon",
+      "priority": "high",
+      "position": 21,
+      "depends_on": "8e8eea60-329d-44b1-a106-94e97b4b85bf"
+    }
+  ],
+  "counts": {
+    "groupsBefore": 5,
+    "groupsAfter": 6,
+    "tasksBefore": 27,
+    "tasksAfter": 36
+  }
+}

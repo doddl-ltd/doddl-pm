@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>doddl. — Developmental Journey · Mobile Storyboard v2</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --indigo:    #3D157D;
+    --aqua:      #30BEAA;
+    --lt-aqua:   #9ECFC6;
+    --lt-orange: #FACC91;
+    --lt-indigo: #947FB6;
+    --cool-grey: #EAEAEA;
+    --white:     #FFFFFF;
+    --bg:        #F8F8F6;
+    --text:      #1C1C1C;
+    --muted:     #6A6A6A;
+    --border:    #E0DDD5;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html { font-size: 16px; }
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: var(--bg); color: var(--text);
+    max-width: 430px; margin: 0 auto;
+    min-height: 100vh;
+  }
+
+  /* ── STORYBOARD BANNER ── */
+  .sb-banner {
+    background: var(--indigo); color: #fff;
+    padding: 7px 14px; font-size: 10px; font-weight: 700;
+    letter-spacing: .06em; text-transform: uppercase; text-align: center;
+    position: sticky; top: 0; z-index: 100; line-height: 1.5;
+  }
+  .sb-banner span { display: block; font-size: 9px; opacity: .55; font-weight: 400; text-transform: none; letter-spacing: 0; margin-top: 1px; }
+
+  /* ── NAV ── */
+  nav {
+    background: var(--white); border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 18px; height: 54px;
+    position: sticky; top: 42px; z-index: 90;
+  }
+  .nav-logo { font-size: 22px; font-weight: 900; color: var(--indigo); letter-spacing: -.01em; }
+  .nav-logo .dot { color: var(--aqua); }
+  .nav-hamburger {
+    width: 36px; height: 36px; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 5px; cursor: pointer;
+  }
+  .nav-hamburger span {
+    display: block; width: 20px; height: 2px;
+    background: var(--indigo); border-radius: 2px;
+  }
+  .nav-cta {
+    background: var(--indigo); color: #fff; font-size: 12px; font-weight: 800;
+    padding: 8px 16px; border-radius: 50px; cursor: pointer; border: none;
+    font-family: 'Nunito', sans-serif;
+  }
+  .journey-switch {
+    display: flex; gap: 6px; padding: 8px 18px;
+    background: var(--white); border-bottom: 1px solid var(--border);
+    position: sticky; top: 96px; z-index: 89;
+  }
+  .journey-switch a {
+    flex: 1; text-align: center; text-decoration: none;
+    font-size: 12px; font-weight: 700; color: var(--muted);
+    padding: 7px 10px; border-radius: 50px;
+    border: 1px solid var(--border); background: #fafafa;
+  }
+  .journey-switch a.active {
+    color: var(--indigo); border-color: var(--aqua); background: #fff;
+    box-shadow: inset 0 -2px 0 var(--aqua);
+  }
+
+  /* ── HERO ── */
+  .hero {
+    background: var(--indigo); color: #fff;
+    padding: 40px 20px 36px; text-align: center;
+    position: relative; overflow: hidden;
+  }
+  .hero::after {
+    content: ''; position: absolute; top: -40px; right: -40px;
+    width: 180px; height: 180px; border-radius: 50%;
+    background: rgba(48,190,170,.18); pointer-events: none;
+  }
+  .hero-eyebrow {
+    font-size: 10px; font-weight: 800; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--aqua); margin-bottom: 14px;
+  }
+  .hero h1 {
+    font-size: 26px; font-weight: 900; line-height: 1.12; margin-bottom: 14px;
+  }
+  .hero h1 em { font-style: normal; color: var(--aqua); }
+  .hero p {
+    font-size: 14px; font-weight: 600; color: rgba(255,255,255,.7);
+    line-height: 1.6; margin-bottom: 20px;
+  }
+  .hero-hint { font-size: 12px; color: rgba(255,255,255,.4); font-weight: 600; }
+
+  /* ── STAGE TABS — horizontally scrollable ── */
+  .tabs-wrap {
+    background: var(--white); border-bottom: 1.5px solid var(--border);
+    position: sticky; top: 96px; z-index: 80;
+    box-shadow: 0 2px 10px rgba(0,0,0,.06);
+    overflow: hidden;
+  }
+  .tabs {
+    display: flex; overflow-x: auto; scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch; scrollbar-width: none;
+    padding: 0 4px;
+  }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab {
+    flex: 0 0 auto; scroll-snap-align: start;
+    min-width: 80px; display: flex; flex-direction: column; align-items: center;
+    padding: 12px 10px 10px; cursor: pointer;
+    border-bottom: 3px solid transparent; transition: all .18s;
+    position: relative; user-select: none;
+  }
+  .tab.active { border-bottom-color: var(--tab-acc); background: var(--bg); }
+  .tab-circle {
+    width: 30px; height: 30px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 900; margin-bottom: 5px;
+    background: var(--tab-bg); color: var(--tab-acc); transition: all .18s;
+  }
+  .tab.active .tab-circle { background: var(--tab-acc); color: #fff; }
+  .tab-name {
+    font-size: 9px; font-weight: 800; text-transform: uppercase;
+    letter-spacing: .05em; color: var(--muted); margin-bottom: 1px;
+    text-align: center; line-height: 1.3; transition: color .18s;
+  }
+  .tab.active .tab-name { color: var(--tab-acc); }
+  .tab-age { font-size: 8px; font-weight: 600; color: var(--muted); opacity: .65; text-align: center; }
+  .tab-new {
+    position: absolute; top: 5px; right: 2px;
+    font-size: 6px; font-weight: 900; background: var(--lt-orange);
+    color: var(--indigo); padding: 1px 5px; border-radius: 20px;
+    text-transform: uppercase; letter-spacing: .04em;
+  }
+  /* Scroll hint fade on right edge */
+  .tabs-wrap::after {
+    content: ''; position: absolute; right: 0; top: 0; bottom: 0;
+    width: 24px; background: linear-gradient(to right, transparent, white);
+    pointer-events: none;
+  }
+
+  /* ── PANELS ── */
+  .panel { display: none; }
+  .panel.active { display: block; animation: fadein .22s ease; }
+  @keyframes fadein { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:translateY(0); } }
+
+  /* ── STAGE INTRO CARD ── */
+  .stage-intro {
+    background: var(--panel-bg); padding: 24px 18px 20px;
+  }
+  .stage-badge {
+    display: inline-flex; align-items: center;
+    font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: .1em;
+    color: var(--panel-acc); background: rgba(255,255,255,.85);
+    border: 1.5px solid var(--panel-acc); padding: 4px 12px;
+    border-radius: 50px; margin-bottom: 14px;
+  }
+  .stage-intro h2 {
+    font-size: 24px; font-weight: 900; line-height: 1.12;
+    color: var(--indigo); margin-bottom: 8px;
+  }
+  .stage-intro h2 em { font-style: normal; color: var(--panel-acc); }
+  .stage-tagline {
+    font-size: 13px; font-weight: 600; color: var(--muted);
+    line-height: 1.6; margin-bottom: 16px;
+  }
+  .milestones { list-style: none; margin-bottom: 20px; }
+  .milestones li {
+    font-size: 13px; font-weight: 700; padding: 8px 0;
+    border-bottom: 1px solid rgba(0,0,0,.07);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .milestones li::before {
+    content: ''; width: 7px; height: 7px; border-radius: 50%;
+    background: var(--panel-acc); flex-shrink: 0;
+  }
+  .stage-btn {
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    width: 100%; background: var(--indigo); color: #fff;
+    font-size: 14px; font-weight: 800; padding: 15px 20px;
+    border-radius: 50px; cursor: pointer; border: none;
+    font-family: 'Nunito', sans-serif; transition: opacity .15s;
+  }
+  .stage-btn:active { opacity: .82; }
+
+  /* ── FEATURED PRODUCTS (horizontal scroll) ── */
+  .feat-section { padding: 20px 0 8px; }
+  .feat-section .section-hdr {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 18px; margin-bottom: 12px;
+  }
+  .section-hdr h3 { font-size: 15px; font-weight: 900; color: var(--indigo); }
+  .section-hdr h3 span { color: var(--panel-acc); }
+  .section-hdr .see-all { font-size: 12px; font-weight: 700; color: var(--panel-acc); text-decoration: underline; cursor: pointer; }
+  .feat-scroll {
+    display: flex; gap: 12px; overflow-x: auto; padding: 4px 18px 16px;
+    scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .feat-scroll::-webkit-scrollbar { display: none; }
+  .feat-card {
+    flex: 0 0 140px; scroll-snap-align: start;
+    background: var(--white); border-radius: 14px; padding: 14px;
+    border: 1.5px solid var(--border); cursor: pointer;
+  }
+  .feat-card.bundle-card { border-color: var(--panel-acc); border-width: 2px; }
+  .feat-img {
+    width: 100%; aspect-ratio: 1; border-radius: 10px;
+    background: var(--panel-bg); display: flex; align-items: center;
+    justify-content: center; font-size: 32px; margin-bottom: 10px;
+  }
+  .feat-name { font-size: 12px; font-weight: 800; color: var(--indigo); margin-bottom: 2px; line-height: 1.3; }
+  .feat-age { font-size: 10px; color: var(--muted); font-weight: 600; margin-bottom: 7px; }
+  .feat-price { font-size: 14px; font-weight: 900; color: var(--panel-acc); margin-bottom: 8px; }
+  .feat-atc {
+    width: 100%; padding: 9px; border-radius: 50px; border: none;
+    background: var(--panel-acc); color: #fff; font-size: 11px;
+    font-weight: 800; cursor: pointer; font-family: 'Nunito', sans-serif;
+  }
+  .feat-atc.bundle { background: var(--indigo); }
+
+  /* ── EXPERT STRIP ── */
+  .expert-strip {
+    margin: 0 18px 20px;
+    background: var(--white); border: 1px solid var(--border);
+    border-radius: 14px; padding: 16px 18px;
+  }
+  .expert-lbl {
+    font-size: 9px; font-weight: 800; text-transform: uppercase;
+    letter-spacing: .09em; color: var(--muted); margin-bottom: 10px;
+  }
+  .expert-q {
+    font-size: 13px; font-weight: 600; font-style: italic; color: var(--text);
+    border-left: 3px solid var(--panel-acc); padding-left: 12px;
+    line-height: 1.55; margin-bottom: 8px;
+  }
+  .expert-who { font-size: 11px; font-weight: 800; color: var(--panel-acc); font-style: normal; }
+  .logos { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+  .logo-pill {
+    background: var(--bg); border: 1px solid var(--border); border-radius: 6px;
+    padding: 5px 10px; font-size: 9px; font-weight: 800;
+    text-transform: uppercase; letter-spacing: .05em; color: var(--muted);
+  }
+
+  /* ── PRODUCT GRID ── */
+  .prod-section { padding: 0 18px 20px; }
+  .prod-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .prod-card {
+    background: var(--white); border-radius: 14px; overflow: hidden;
+    border: 1.5px solid var(--border); cursor: pointer;
+  }
+  .prod-card.best { border-color: var(--panel-acc); border-width: 2px; position: relative; }
+  .best-lbl {
+    position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+    background: var(--panel-acc); color: #fff; font-size: 7px; font-weight: 900;
+    padding: 2px 9px; border-radius: 0 0 7px 7px; text-transform: uppercase;
+    letter-spacing: .05em; white-space: nowrap;
+  }
+  .prod-img {
+    width: 100%; aspect-ratio: 1; background: var(--panel-bg);
+    display: flex; align-items: center; justify-content: center; font-size: 36px;
+  }
+  .prod-body { padding: 10px; }
+  .prod-name { font-size: 11px; font-weight: 800; color: var(--indigo); margin-bottom: 2px; line-height: 1.3; }
+  .prod-sub { font-size: 10px; color: var(--muted); font-weight: 600; margin-bottom: 8px; }
+  .prod-row { display: flex; align-items: center; justify-content: space-between; }
+  .prod-price { font-size: 13px; font-weight: 900; color: var(--panel-acc); }
+  .prod-add {
+    width: 26px; height: 26px; border-radius: 50%; border: none;
+    background: var(--panel-acc); color: #fff; font-size: 16px; font-weight: 900;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    line-height: 1;
+  }
+
+  /* ── NEXT STAGE HOOK ── */
+  .next-hook {
+    margin: 0 18px 36px;
+    border-radius: 14px; padding: 20px 18px;
+    border: 1.5px dashed var(--next-acc);
+    background: var(--next-bg);
+  }
+  .next-hook h4 { font-size: 14px; font-weight: 900; color: var(--next-acc); margin-bottom: 6px; }
+  .next-hook p { font-size: 12px; font-weight: 600; color: var(--muted); line-height: 1.55; margin-bottom: 14px; }
+  .next-btn {
+    display: flex; align-items: center; justify-content: center;
+    width: 100%; padding: 13px; background: var(--next-acc); color: #fff;
+    font-size: 13px; font-weight: 800; border-radius: 50px; border: none;
+    cursor: pointer; font-family: 'Nunito', sans-serif;
+  }
+
+  /* ── STAGE 0 SPECIAL ── */
+  .s0-visual {
+    background: var(--panel-bg); padding: 32px 18px;
+    display: flex; flex-direction: column; align-items: center; text-align: center; gap: 16px;
+  }
+  .s0-visual .emoji { font-size: 56px; line-height: 1; }
+  .s0-visual h3 { font-size: 18px; font-weight: 900; color: var(--indigo); }
+  .s0-visual p { font-size: 13px; font-weight: 600; color: var(--muted); line-height: 1.6; max-width: 280px; }
+  .s0-capture {
+    background: var(--white); border-radius: 14px; padding: 18px;
+    border: 1.5px solid var(--border); width: 100%;
+  }
+  .s0-capture .cap-lbl { font-size: 10px; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: .07em; margin-bottom: 10px; }
+  .s0-capture input {
+    width: 100%; padding: 12px 16px; border-radius: 50px;
+    border: 1.5px solid var(--border); font-family: 'Nunito', sans-serif;
+    font-size: 14px; margin-bottom: 8px; outline: none; color: var(--text);
+  }
+  .s0-capture input:focus { border-color: var(--aqua); }
+  .s0-capture button {
+    width: 100%; padding: 13px; border-radius: 50px; background: var(--aqua);
+    color: #fff; border: none; font-size: 14px; font-weight: 800;
+    cursor: pointer; font-family: 'Nunito', sans-serif;
+  }
+
+  /* ── ANNOTATION NOTES ── */
+  .note {
+    background: #FFFDE7; border: 1.5px dashed #F9A825; border-radius: 8px;
+    padding: 10px 14px; font-size: 11px; font-weight: 700; color: #5C3D00;
+    margin: 12px 18px; display: flex; gap: 8px; line-height: 1.5;
+  }
+  .note-icon { flex-shrink: 0; font-size: 13px; }
+
+  /* ── SECTION DIVIDER ── */
+  .divider { height: 1px; background: var(--border); margin: 4px 18px 20px; }
+
+  /* ── TOAST ── */
+  .toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(70px);
+    background: var(--indigo); color: #fff; padding: 10px 20px; border-radius: 50px;
+    font-size: 13px; font-weight: 700; z-index: 999; transition: transform .25s ease;
+    white-space: nowrap; max-width: 90vw; text-align: center;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  /* ── Tab strip upgrade ── */
+  .tab { padding: 20px 6px 16px; }
+  .tab-avatar {
+    width: 68px; height: 68px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 10px; border: 2.5px solid transparent;
+    transition: border-color .2s; flex-shrink: 0;
+  }
+  .tab.active .tab-avatar { border-color: var(--tab-acc); }
+  .tab-avatar svg { width: 52px; height: 52px; }
+  .tab-circle {
+    width: 48px !important; height: 48px !important;
+    font-size: 22px !important; font-weight: 900 !important;
+    margin-bottom: 8px;
+  }
+  .tab.active .tab-circle { width: 48px !important; height: 48px !important; }
+  .tab-name {
+    font-size: 13px !important; font-weight: 900 !important;
+    text-transform: uppercase !important; letter-spacing: .06em !important;
+    margin-top: 2px;
+  }
+  .tab-age { font-size: 11px !important; font-weight: 600 !important; margin-top: 3px; }
+</style>
+</head>
+<body>
+
+<div class="sb-banner">
+  doddl. Journey · Mobile Storyboard v2
+  <span>390px viewport · Yellow = storyboard annotations</span>
+</div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-hamburger"><span></span><span></span><span></span></div>
+  <div class="nav-logo"><a href="/prototypes/journey/" target="_top" style="text-decoration:none;color:inherit;">doddl<span class="dot">.</span></a></div>
+  <button class="nav-cta" onclick="t('&#128722; Shop page')">Shop</button>
+</nav>
+
+<div class="journey-switch">
+  <a class="active" href="./mobile.html">The Journey</a>
+  <a href="./sen-mobile.html">SEN Journey</a>
+</div>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-eyebrow">Every child is on a journey</div>
+  <h1>The right tool at the <em>right stage</em></h1>
+  <p>doddl products are engineered for each stage of your child's development — from first foods to full independence.</p>
+  <p class="hero-hint">↓ Select your child's stage below</p>
+</section>
+
+<!-- TABS — horizontal scroll on mobile -->
+<div class="tabs-wrap">
+  <div class="tabs" id="tabrow">
+
+    <div class="tab" id="tab-0" onclick="go(0)"
+         style="--tab-bg:#FEF5EC;--tab-acc:#D4890A;">
+      <span class="tab-new">New</span>
+      
+          <div class="tab-avatar" style="background:#FEF9F2"><svg viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="28" cy="19" r="12" fill="#FACC91"/>
+    <circle cx="24" cy="17" r="1.6" fill="#3D157D"/>
+    <circle cx="32" cy="17" r="1.6" fill="#3D157D"/>
+    <path d="M24.5 23 Q28 26.5 31.5 23" stroke="#3D157D" stroke-width="1.6" stroke-linecap="round" fill="none"/>
+    <ellipse cx="28" cy="41" rx="12" ry="7" fill="#947FB6" opacity=".7"/>
+    <ellipse cx="13" cy="44" rx="5" ry="3" fill="#947FB6" opacity=".45" transform="rotate(-25 13 44)"/>
+    <ellipse cx="43" cy="44" rx="5" ry="3" fill="#947FB6" opacity=".45" transform="rotate(25 43 44)"/>
+  </svg>
+          </div>
+          <div class="tab-circle">0</div>
+      <div class="tab-name">Preparing</div>
+      <div class="tab-age">0–6m</div>
+    </div>
+
+    <div class="tab active" id="tab-1" onclick="go(1)"
+         style="--tab-bg:#EEF8F6;--tab-acc:#1E9A88;">
+      
+          <div class="tab-avatar" style="background:#F0FAF8"><svg viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="28" cy="13" r="11" fill="#FACC91"/>
+    <circle cx="24" cy="11" r="1.5" fill="#3D157D"/>
+    <circle cx="32" cy="11" r="1.5" fill="#3D157D"/>
+    <path d="M24.5 17 Q28 20 31.5 17" stroke="#3D157D" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+    <rect x="19" y="25" width="18" height="15" rx="6" fill="#30BEAA" opacity=".8"/>
+    <line x1="19" y1="31" x2="10" y2="37" stroke="#30BEAA" stroke-width="4.5" stroke-linecap="round"/>
+    <line x1="37" y1="31" x2="46" y2="26" stroke="#30BEAA" stroke-width="4.5" stroke-linecap="round"/>
+    <ellipse cx="28" cy="45" rx="10" ry="5" fill="#947FB6" opacity=".6"/>
+  </svg>
+          </div>
+          <div class="tab-circle">1</div>
+      <div class="tab-name">First foods</div>
+      <div class="tab-age">6–12m</div>
+    </div>
+
+    <div class="tab" id="tab-2" onclick="go(2)"
+         style="--tab-bg:#F3EFF9;--tab-acc:#7B62A8;">
+      
+          <div class="tab-avatar" style="background:#F3EFF9"><svg viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="28" cy="11" r="10" fill="#FACC91"/>
+    <circle cx="25" cy="10" r="1.4" fill="#3D157D"/>
+    <circle cx="31" cy="10" r="1.4" fill="#3D157D"/>
+    <path d="M25 15.5 Q28 18 31 15.5" stroke="#3D157D" stroke-width="1.4" stroke-linecap="round" fill="none"/>
+    <rect x="20" y="22" width="16" height="14" rx="5" fill="#9ECFC6" opacity=".85"/>
+    <line x1="20" y1="27" x2="11" y2="22" stroke="#9ECFC6" stroke-width="4" stroke-linecap="round"/>
+    <line x1="36" y1="27" x2="45" y2="22" stroke="#9ECFC6" stroke-width="4" stroke-linecap="round"/>
+    <line x1="24" y1="36" x2="22" y2="50" stroke="#947FB6" stroke-width="4.5" stroke-linecap="round"/>
+    <line x1="32" y1="36" x2="34" y2="50" stroke="#947FB6" stroke-width="4.5" stroke-linecap="round"/>
+  </svg>
+          </div>
+          <div class="tab-circle">2</div>
+      <div class="tab-name">Building</div>
+      <div class="tab-age">12–18m</div>
+    </div>
+
+    <div class="tab" id="tab-3" onclick="go(3)"
+         style="--tab-bg:#E8F9F6;--tab-acc:#1E9A88;">
+      
+          <div class="tab-avatar" style="background:#E8F9F6"><svg viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="30" cy="10" r="10" fill="#FACC91"/>
+    <circle cx="27" cy="9" r="1.4" fill="#3D157D"/>
+    <circle cx="33" cy="9" r="1.4" fill="#3D157D"/>
+    <path d="M27 14 Q30 16.5 33 14" stroke="#3D157D" stroke-width="1.4" stroke-linecap="round" fill="none"/>
+    <rect x="22" y="21" width="16" height="14" rx="5" fill="#30BEAA" opacity=".85"/>
+    <line x1="22" y1="26" x2="12" y2="20" stroke="#30BEAA" stroke-width="4" stroke-linecap="round"/>
+    <line x1="38" y1="29" x2="47" y2="36" stroke="#30BEAA" stroke-width="4" stroke-linecap="round"/>
+    <line x1="26" y1="35" x2="19" y2="49" stroke="#947FB6" stroke-width="4.5" stroke-linecap="round"/>
+    <line x1="34" y1="35" x2="40" y2="49" stroke="#947FB6" stroke-width="4.5" stroke-linecap="round"/>
+  </svg>
+          </div>
+          <div class="tab-circle">3</div>
+      <div class="tab-name">Growing</div>
+      <div class="tab-age">18m–3yr</div>
+    </div>
+
+    <div class="tab" id="tab-4" onclick="go(4)"
+         style="--tab-bg:#EDE8F6;--tab-acc:#3D157D;">
+      
+          <div class="tab-avatar" style="background:#EEE8F8"><svg viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="28" cy="9" r="9" fill="#FACC91"/>
+    <circle cx="25" cy="8" r="1.3" fill="#3D157D"/>
+    <circle cx="31" cy="8" r="1.3" fill="#3D157D"/>
+    <path d="M25 13 Q28 15.5 31 13" stroke="#3D157D" stroke-width="1.3" stroke-linecap="round" fill="none"/>
+    <rect x="19" y="19" width="18" height="15" rx="5" fill="#3D157D" opacity=".7"/>
+    <line x1="19" y1="25" x2="10" y2="32" stroke="#3D157D" stroke-width="4" stroke-linecap="round" opacity=".65"/>
+    <line x1="37" y1="25" x2="46" y2="32" stroke="#3D157D" stroke-width="4" stroke-linecap="round" opacity=".65"/>
+    <line x1="23" y1="34" x2="21" y2="49" stroke="#947FB6" stroke-width="4.5" stroke-linecap="round"/>
+    <line x1="33" y1="34" x2="35" y2="49" stroke="#947FB6" stroke-width="4.5" stroke-linecap="round"/>
+    <rect x="7" y="36" width="42" height="3" rx="1.5" fill="#FACC91" opacity=".85"/>
+  </svg>
+          </div>
+          <div class="tab-circle">4</div>
+      <div class="tab-name">Little adult</div>
+      <div class="tab-age">3–5yr</div>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ══════════════════════
+     PANEL 0
+══════════════════════ -->
+<div class="panel" id="panel-0" style="--panel-bg:#FEF5EC;--panel-acc:#D4890A;">
+
+  <div class="note">
+    <span class="note-icon">📝</span>
+    <div><strong>Stage 0 — Awareness:</strong> Email capture only. No products. Remind at 5 months.</div>
+  </div>
+
+  <div class="stage-intro">
+    <div class="stage-badge">Stage 0 · 0–6 months</div>
+    <h2>Your journey <em>starts now</em></h2>
+    <p class="stage-tagline">Before the first spoon comes out, your baby is already developing the skills they'll need.</p>
+    <ul class="milestones">
+      <li>Head and neck control developing</li>
+      <li>Watching you eat with interest</li>
+      <li>Reaching and grasping objects</li>
+      <li>Sitting upright with support beginning</li>
+    </ul>
+  </div>
+
+  <div class="s0-visual">
+    <div class="emoji">🌱</div>
+    <h3>Weaning starts at 6 months</h3>
+    <p>We'll remind you at the right moment with a personalised guide to your child's first stage.</p>
+    <div class="s0-capture">
+      <div class="cap-lbl">Remind me when my baby is ready</div>
+      <input type="email" placeholder="your@email.com">
+      <button onclick="t('&#128231; Reminder set! Email at month 5')">Send me a reminder →</button>
+    </div>
+  </div>
+
+  <div class="expert-strip" style="--panel-acc:#D4890A;">
+    <div class="expert-lbl">Trusted by</div>
+    <div class="expert-q">
+      "Understanding the developmental stages before weaning makes the whole journey more confident."
+      <div class="expert-who">— Paediatric OT, doddl partner</div>
+    </div>
+    <div class="logos">
+      <div class="logo-pill">NCT</div>
+      <div class="logo-pill">OT UK</div>
+      <div class="logo-pill">Mumsnet</div>
+    </div>
+  </div>
+
+  <div class="next-hook" style="--next-bg:#EEF8F6;--next-acc:#1E9A88;">
+    <h4>Coming up: Stage 1 — First Foods</h4>
+    <p>Your baby will be ready for their first spoon sooner than you think.</p>
+    <button class="next-btn" onclick="go(1)">Preview Stage 1 →</button>
+  </div>
+</div>
+
+
+<!-- ══════════════════════
+     PANEL 1
+══════════════════════ -->
+<div class="panel active" id="panel-1" style="--panel-bg:#EEF8F6;--panel-acc:#1E9A88;">
+
+  <div class="stage-intro">
+    <div class="stage-badge">Stage 1 · 6–12 months</div>
+    <h2>First foods, <em>first wins</em></h2>
+    <p class="stage-tagline">The spoon goes in — and usually everywhere else. doddl is designed for tiny hands just figuring this out.</p>
+    <ul class="milestones">
+      <li>Sitting in a high chair with support</li>
+      <li>Reaching and grasping reliably</li>
+      <li>Bringing hand to mouth confidently</li>
+      <li>Showing real interest in what you eat</li>
+    </ul>
+    <button class="stage-btn" onclick="t('&#128722; Stage 1 collection')">Shop Stage 1 →</button>
+  </div>
+
+  <div class="feat-section">
+    <div class="section-hdr">
+      <h3>Products for <span>Stage 1</span></h3>
+      <span class="see-all" onclick="t('Full Stage 1 range')">See all →</span>
+    </div>
+    <div class="note" style="margin-top:0">
+      <span class="note-icon">📝</span>
+      <div><strong>Featured cards:</strong> Horizontal scroll on mobile. 3 products + bundle card. Swipe to browse.</div>
+    </div>
+    <div class="feat-scroll">
+      <div class="feat-card">
+        <div class="feat-img">🥄</div>
+        <div class="feat-name">Baby Spoon &amp; Fork</div>
+        <div class="feat-age">From 6 months</div>
+        <div class="feat-price">&#163;14.99</div>
+        <button class="feat-atc" onclick="t('&#128722; Baby Spoon &amp; Fork added')">Add to bag</button>
+      </div>
+      <div class="feat-card">
+        <div class="feat-img">🥣</div>
+        <div class="feat-name">Suction Bowl</div>
+        <div class="feat-age">From 6 months</div>
+        <div class="feat-price">&#163;12.99</div>
+        <button class="feat-atc" onclick="t('&#128722; Bowl added')">Add to bag</button>
+      </div>
+      <div class="feat-card bundle-card">
+        <div class="feat-img">✨</div>
+        <div class="feat-name">Stage 1 Bundle</div>
+        <div class="feat-age">Best value</div>
+        <div class="feat-price">&#163;24.99</div>
+        <button class="feat-atc bundle" onclick="t('&#128722; Bundle added!')">Best value</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="expert-strip">
+    <div class="expert-lbl">Expert view</div>
+    <div class="expert-q">
+      "doddl's ergonomic design means babies succeed from the very first try. That early confidence matters enormously."
+      <div class="expert-who">— Katie Rawlings, Paediatric OT</div>
+    </div>
+    <div class="logos">
+      <div class="logo-pill">OT UK</div>
+      <div class="logo-pill">25,000+ reviews</div>
+      <div class="logo-pill">Nursery partner</div>
+    </div>
+  </div>
+
+  <div class="prod-section">
+    <div class="section-hdr" style="margin-bottom:14px">
+      <h3>All <span>Stage 1</span> products</h3>
+      <span class="see-all" onclick="t('Full range')">View all →</span>
+    </div>
+    <div class="prod-grid">
+      <div class="prod-card" onclick="t('Product page')">
+        <div class="prod-img" style="background:var(--panel-bg)">🥄</div>
+        <div class="prod-body"><div class="prod-name">Baby Spoon &amp; Fork</div><div class="prod-sub">Dusky Rose · 6m+</div><div class="prod-row"><span class="prod-price">&#163;14.99</span><button class="prod-add" onclick="event.stopPropagation();t('&#128722; Added!')">+</button></div></div>
+      </div>
+      <div class="prod-card" onclick="t('Product page')">
+        <div class="prod-img" style="background:var(--panel-bg)">🥄</div>
+        <div class="prod-body"><div class="prod-name">Baby Spoon &amp; Fork</div><div class="prod-sub">Fresh Green · 6m+</div><div class="prod-row"><span class="prod-price">&#163;14.99</span><button class="prod-add" onclick="event.stopPropagation();t('&#128722; Added!')">+</button></div></div>
+      </div>
+      <div class="prod-card" onclick="t('Product page')">
+        <div class="prod-img" style="background:var(--panel-bg)">🥣</div>
+        <div class="prod-body"><div class="prod-name">Suction Bowl</div><div class="prod-sub">Dusky Rose · 6m+</div><div class="prod-row"><span class="prod-price">&#163;12.99</span><button class="prod-add" onclick="event.stopPropagation();t('&#128722; Added!')">+</button></div></div>
+      </div>
+      <div class="prod-card" onclick="t('Product page')">
+        <div class="prod-img" style="background:var(--panel-bg)">🥣</div>
+        <div class="prod-body"><div class="prod-name">Suction Bowl</div><div class="prod-sub">Fresh Green · 6m+</div><div class="prod-row"><span class="prod-price">&#163;12.99</span><button class="prod-add" onclick="event.stopPropagation();t('&#128722; Added!')">+</button></div></div>
+      </div>
+      <div class="prod-card best" onclick="t('Product page')" style="grid-column:1/-1">
+        <div class="best-lbl">Best value</div>
+        <div style="display:flex;align-items:center;gap:12px;padding:12px 12px 12px 12px;margin-top:4px">
+          <div style="width:64px;height:64px;border-radius:10px;background:var(--panel-bg);display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0">✨</div>
+          <div style="flex:1">
+            <div class="prod-name">Stage 1 Starter Bundle</div>
+            <div class="prod-sub">Spoon, Fork + Bowl</div>
+            <div class="prod-row"><span class="prod-price">&#163;24.99</span><button class="prod-add" style="background:var(--indigo)" onclick="event.stopPropagation();t('&#128722; Bundle added!')">+</button></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="next-hook" style="--next-bg:#F3EFF9;--next-acc:#7B62A8;">
+    <h4>Ready for Stage 2?</h4>
+    <p>When your child starts grabbing the spoon and steering it, they're ready for Stage 2 — Building Control (12–18m).</p>
+    <button class="next-btn" onclick="go(2)">Preview Stage 2 →</button>
+  </div>
+</div>
+
+
+<!-- ══════════════════════
+     PANEL 2
+══════════════════════ -->
+<div class="panel" id="panel-2" style="--panel-bg:#F3EFF9;--panel-acc:#7B62A8;">
+
+  <div class="stage-intro">
+    <div class="stage-badge">Stage 2 · 12–18 months</div>
+    <h2>Grip it, <em>own it</em></h2>
+    <p class="stage-tagline">The pincer grip arrives and suddenly your toddler wants to do everything themselves.</p>
+    <ul class="milestones">
+      <li>Pincer grip developing fast</li>
+      <li>Deliberately scooping food</li>
+      <li>Self-feeding for most of the meal</li>
+      <li>Frustrated if you try to help!</li>
+    </ul>
+    <button class="stage-btn" onclick="t('&#128722; Stage 2 collection')">Shop Stage 2 →</button>
+  </div>
+
+  <div class="feat-section">
+    <div class="section-hdr"><h3>Products for <span>Stage 2</span></h3><span class="see-all">See all →</span></div>
+    <div class="feat-scroll">
+      <div class="feat-card"><div class="feat-img">🍴</div><div class="feat-name">2-Piece Set</div><div class="feat-age">From 12 months</div><div class="feat-price">&#163;16.99</div><button class="feat-atc" onclick="t('&#128722; 2-Piece added')">Add to bag</button></div>
+      <div class="feat-card"><div class="feat-img">🍽️</div><div class="feat-name">Divided Plate</div><div class="feat-age">From 12 months</div><div class="feat-price">&#163;14.99</div><button class="feat-atc" onclick="t('&#128722; Plate added')">Add to bag</button></div>
+      <div class="feat-card bundle-card"><div class="feat-img">⭐</div><div class="feat-name">Stage 2 Bundle</div><div class="feat-age">Best value</div><div class="feat-price">&#163;27.99</div><button class="feat-atc bundle" onclick="t('&#128722; Bundle added!')">Best value</button></div>
+    </div>
+  </div>
+
+  <div class="expert-strip">
+    <div class="expert-lbl">Expert view</div>
+    <div class="expert-q">"The 12–18 month period is critical. Tools matched to grip development make a measurable difference."<div class="expert-who">— Dr. Sarah Mills, Child Development</div></div>
+    <div class="logos"><div class="logo-pill">OT UK</div><div class="logo-pill">BACP Partner</div></div>
+  </div>
+
+  <div class="prod-section">
+    <div class="section-hdr" style="margin-bottom:14px"><h3>All <span>Stage 2</span> products</h3><span class="see-all">View all →</span></div>
+    <div class="prod-grid">
+      <div class="prod-card" onclick="t('Product page')"><div class="prod-img" style="background:var(--panel-bg)">🍴</div><div class="prod-body"><div class="prod-name">2-Piece Set</div><div class="prod-sub">Dusky Rose · 12m+</div><div class="prod-row"><span class="prod-price">&#163;16.99</span><button class="prod-add" onclick="event.stopPropagation();t('&#128722; Added!')">+</button></div></div></div>
+      <div class="prod-card" onclick="t('Product page')"><div class="prod-img" style="background:var(--panel-bg)">🍴</div><div class="prod-body"><div class="prod-name">2-Piece Set</div><div class="prod-sub">Fresh Green · 12m+</div><div class="prod-row"><span class="prod-price">&#163;16.99</span><button class="prod-add" onclick="event.stopPropagation();t('&#128722; Added!')">+</button></div></div></div>
+      <div class="prod-card" onclick="t('Product page')"><div class="prod-img" style="background:var(--panel-bg)">🍽️</div><div class="prod-body"><div class="prod-name">Divided Plate</div><div class="prod-sub">Fresh Green · 12m+</div><div class="prod-row"><span class="prod-price">&#163;14.99</span><button class="prod-add" onclick="event.stopPropagation();t('&#128722; Added!')">+</button></div></div></div>
+      <div class="prod-card" onclick="t('Product page')"><div class="prod-img" style="background:var(--panel-bg)">🥣</div><div class="prod-body"><div class="prod-name">Bowl + Suction</div><div class="prod-sub">Dusky Rose · 12m+</div><div class="prod-row"><span class="prod-price">&#163;12.99</span><button class="prod-add" onclick="event.stopPropagation();t('&#128722; Added!')">+</button></div></div></div>
+      <div class="prod-card best" onclick="t('Product page')" style="grid-column:1/-1"><div class="best-lbl">Best value</div><div style="display:flex;align-items:center;gap:12px;padding:12px 12px 12px 12px;margin-top:4px"><div style="width:64px;height:64px;border-radius:10px;background:var(--panel-bg);display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0">⭐</div><div style="flex:1"><div class="prod-name">Stage 2 Bundle</div><div class="prod-sub">Set + Plate + Bowl</div><div class="prod-row"><span class="prod-price">&#163;27.99</span><button class="prod-add" style="background:var(--indigo)" onclick="event.stopPropagation();t('&#128722; Bundle added!')">+</button></div></div></div></div>
+    </div>
+  </div>
+
+  <div class="next-hook" style="--next-bg:#E8F9F6;--next-acc:#1E9A88;">
+    <h4>Ready for Stage 3?</h4>
+    <p>When your toddler is self-feeding most meals and eating alongside the family, Stage 3 is ready.</p>
+    <button class="next-btn" onclick="go(3)">Preview Stage 3 →</button>
+  </div>
+</div>
+
+
+<!-- ══════════════════════
+     PANEL 3
+══════════════════════ -->
+<div class="panel" id="panel-3" style="--panel-bg:#E8F9F6;--panel-acc:#1E9A88;">
+
+  <div class="stage-intro">
+    <div class="stage-badge">Stage 3 · 18 months – 3 years</div>
+    <h2>Self-feeding <em>mastery</em></h2>
+    <p class="stage-tagline">Real cutlery that lasts the whole toddler stage — durable, dishwasher safe, and nursery ready.</p>
+    <ul class="milestones">
+      <li>Self-feeding confidently at most meals</li>
+      <li>Using utensils correctly most of the time</li>
+      <li>Eating alongside the rest of the family</li>
+      <li>Ready for nursery mealtimes independently</li>
+    </ul>
+    <button class="stage-btn" onclick="t('&#128722; Stage 3 collection')">Shop Stage 3 →</button>
+  </div>
+
+  <div class="feat-section">
+    <div class="section-hdr"><h3>Products for <span>Stage 3</span></h3><span class="see-all">See all →</span></div>
+    <div class="feat-scroll">
+      <div class="feat-card"><div class="feat-img">🥄🍴🔪</div><div class="feat-name">3-Piece Set</div><div class="feat-age">From 18 months</div><div class="feat-price">&#163;18.99</div><button class="feat-atc" onclick="t('&#128722; 3-Piece added')">Add to bag</button></div>
+      <div class="feat-card"><div class="feat-img">🧳</div><div class="feat-name">Travel Case</div><div class="feat-age">Nursery ready</div><div class="feat-price">&#163;9.99</div><button class="feat-atc" onclick="t('&#128722; Travel Case added')">Add to bag</button></div>
+      <div class="feat-card bundle-card"><div class="feat-img">⭐</div><div class="feat-name">Stage 3 Bundle</div><div class="feat-age">Best value</div><div class="feat-price">&#163;25.99</div><button class="feat-atc bundle" onclick="t('&#128722; Bundle added!')">Best value</button></div>
+    </div>
+  </div>
+
+  <div class="expert-strip">
+    <div class="expert-lbl">Used in</div>
+    <div class="expert-q">"We switched all our nursery mealtimes to doddl two years ago. The independence difference is remarkable."<div class="expert-who">— Nursery Manager, London</div></div>
+    <div class="logos"><div class="logo-pill">500+ nurseries</div><div class="logo-pill">OT recommended</div></div>
+  </div>
+
+  <div class="prod-section">
+    <div class="section-hdr" style="margin-bottom:14px"><h3>All <span>Stage 3</span> products</h3><span class="see-all">View all →</span></div>
+    <div class="prod-grid">
+      <div class="prod-card" onclick="t('Product page')"><div class="prod-img" style="background:var(--panel-bg)">🥄🍴🔪</div><div class="prod-body"><div class="prod-name">3-Piece Set</div><div class="prod-sub">Dusky Rose · 18m+</div><div class="prod-row"><span class="prod-price">&#163;18.99</span><button class="prod-add" onclick="event.stopPropagation();t('&#128722; Added!')">+</button></div></div></div>
+      <div class="prod-card" onclick="t('Product page')"><div class="prod-img" style="background:var(--panel-bg)">🥄🍴🔪</div><div class="prod-body"><div class="prod-name">3-Piece Set</div><div class="prod-sub">Indigo · 18m+</div><div class="prod-row"><span class="prod-price">&#163;18.99</span><button class="prod-add" onclick="event.stopPropagation();t('&#128722; Added!')">+</button></div></div></div>
+      <div class="prod-card" onclick="t('Product page')"><div class="prod-img" style="background:var(--panel-bg)">🍽️</div><div class="prod-body"><div class="prod-name">Plate</div><div class="prod-sub">No suction · 18m+</div><div class="prod-row"><span class="prod-price">&#163;12.99</span><button class="prod-add" onclick="event.stopPropagation();t('&#128722; Added!')">+</button></div></div></div>
+      <div class="prod-card" onclick="t('Product page')"><div class="prod-img" style="background:var(--panel-bg)">🧳</div><div class="prod-body"><div class="prod-name">Travel Case</div><div class="prod-sub">Nursery · outings</div><div class="prod-row"><span class="prod-price">&#163;9.99</span><button class="prod-add" onclick="event.stopPropagation();t('&#128722; Added!')">+</button></div></div></div>
+      <div class="prod-card best" onclick="t('Product page')" style="grid-column:1/-1"><div class="best-lbl">Best value</div><div style="display:flex;align-items:center;gap:12px;padding:12px 12px 12px 12px;margin-top:4px"><div style="width:64px;height:64px;border-radius:10px;background:var(--panel-bg);display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0">⭐</div><div style="flex:1"><div class="prod-name">Stage 3 Bundle</div><div class="prod-sub">Set + Plate + Case</div><div class="prod-row"><span class="prod-price">&#163;25.99</span><button class="prod-add" style="background:var(--indigo)" onclick="event.stopPropagation();t('&#128722; Bundle added!')">+</button></div></div></div></div>
+    </div>
+  </div>
+
+  <div class="next-hook" style="--next-bg:#EDE8F6;--next-acc:#3D157D;">
+    <h4>Ready for Stage 4?</h4>
+    <p>When your child watches you use a knife with real intent, Stage 4 — Little Adult — is next.</p>
+    <button class="next-btn" onclick="go(4)">Preview Stage 4 →</button>
+  </div>
+</div>
+
+
+<!-- ══════════════════════
+     PANEL 4
+══════════════════════ -->
+<div class="panel" id="panel-4" style="--panel-bg:#EDE8F6;--panel-acc:#3D157D;">
+
+  <div class="stage-intro">
+    <div class="stage-badge">Stage 4 · 3–5 years</div>
+    <h2>Unleash the <em>little chef</em></h2>
+    <p class="stage-tagline">The final stage. Real cutting, real independence. The only safe knife designed for small hands.</p>
+    <ul class="milestones">
+      <li>Ready to learn how to cut food safely</li>
+      <li>Copying adult eating patterns</li>
+      <li>Fine motor control fully established</li>
+      <li>Interested in helping prepare food</li>
+    </ul>
+    <button class="stage-btn" onclick="t('&#128722; Stage 4 collection')">Shop Stage 4 →</button>
+  </div>
+
+  <div class="feat-section">
+    <div class="section-hdr"><h3>Products for <span>Stage 4</span></h3><span class="see-all">See all →</span></div>
+    <div class="feat-scroll">
+      <div class="feat-card"><div class="feat-img">🔪</div><div class="feat-name">doddl Knife</div><div class="feat-age">From 3 years</div><div class="feat-price">&#163;12.99</div><button class="feat-atc" onclick="t('&#128722; Knife added')">Add to bag</button></div>
+      <div class="feat-card"><div class="feat-img">👨‍🍳</div><div class="feat-name">Chef's Kit</div><div class="feat-age">From 3 years</div><div class="feat-price">&#163;29.99</div><button class="feat-atc" onclick="t('&#128722; Chef\'s Kit added')">Add to bag</button></div>
+      <div class="feat-card bundle-card"><div class="feat-img">🏆</div><div class="feat-name">Full Stage 4 Set</div><div class="feat-age">Best gift</div><div class="feat-price">&#163;34.99</div><button class="feat-atc bundle" onclick="t('&#128722; Full Set added!')">Best gift</button></div>
+    </div>
+  </div>
+
+  <div class="expert-strip">
+    <div class="expert-lbl">Expert view</div>
+    <div class="expert-q">"Teaching children to cut safely develops confidence that goes far beyond the dinner table."<div class="expert-who">— Primary School Chef, doddl partner</div></div>
+    <div class="logos"><div class="logo-pill">OT Approved</div><div class="logo-pill">King's Award 2023</div></div>
+  </div>
+
+  <div class="prod-section">
+    <div class="section-hdr" style="margin-bottom:14px"><h3>All <span>Stage 4</span> products</h3><span class="see-all">View all →</span></div>
+    <div class="prod-grid">
+      <div class="prod-card" onclick="t('Product page')"><div class="prod-img" style="background:var(--panel-bg)">🔪</div><div class="prod-body"><div class="prod-name">doddl Knife</div><div class="prod-sub">Fresh Green · 3yr+</div><div class="prod-row"><span class="prod-price">&#163;12.99</span><button class="prod-add" onclick="event.stopPropagation();t('&#128722; Added!')">+</button></div></div></div>
+      <div class="prod-card" onclick="t('Product page')"><div class="prod-img" style="background:var(--panel-bg)">🔪</div><div class="prod-body"><div class="prod-name">doddl Knife</div><div class="prod-sub">Dusky Rose · 3yr+</div><div class="prod-row"><span class="prod-price">&#163;12.99</span><button class="prod-add" onclick="event.stopPropagation();t('&#128722; Added!')">+</button></div></div></div>
+      <div class="prod-card" onclick="t('Product page')"><div class="prod-img" style="background:var(--panel-bg)">👨‍🍳</div><div class="prod-body"><div class="prod-name">Chef's Kit</div><div class="prod-sub">Full cooking set</div><div class="prod-row"><span class="prod-price">&#163;29.99</span><button class="prod-add" onclick="event.stopPropagation();t('&#128722; Added!')">+</button></div></div></div>
+      <div class="prod-card" onclick="t('Product page')"><div class="prod-img" style="background:var(--panel-bg)">🥄🍴🔪</div><div class="prod-body"><div class="prod-name">Complete Set</div><div class="prod-sub">All 3 pieces</div><div class="prod-row"><span class="prod-price">&#163;24.99</span><button class="prod-add" onclick="event.stopPropagation();t('&#128722; Added!')">+</button></div></div></div>
+      <div class="prod-card best" onclick="t('Product page')" style="grid-column:1/-1"><div class="best-lbl">Best gift</div><div style="display:flex;align-items:center;gap:12px;padding:12px 12px 12px 12px;margin-top:4px"><div style="width:64px;height:64px;border-radius:10px;background:var(--panel-bg);display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0">🏆</div><div style="flex:1"><div class="prod-name">Stage 4 Full Set</div><div class="prod-sub">Ultimate bundle</div><div class="prod-row"><span class="prod-price">&#163;34.99</span><button class="prod-add" style="background:var(--aqua)" onclick="event.stopPropagation();t('&#128722; Gift added!')">+</button></div></div></div></div>
+    </div>
+  </div>
+
+  <div class="next-hook" style="--next-bg:#FEF5EC;--next-acc:#D4890A;border-style:solid;">
+    <h4>Journey complete &#127881;</h4>
+    <p>Got a younger sibling on the way? Share the doddl journey — or start again from Stage 0.</p>
+    <button class="next-btn" onclick="go(0)">Share the journey →</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+function go(n) {
+  document.querySelectorAll('.tab').forEach((tab,i) => tab.classList.toggle('active', i===n));
+  document.querySelectorAll('.panel').forEach((p,i) => p.classList.toggle('active', i===n));
+  // Scroll active tab into view
+  const activeTab = document.getElementById('tab-'+n);
+  activeTab.scrollIntoView({behavior:'smooth', block:'nearest', inline:'center'});
+  window.scrollTo({top: document.querySelector('.tabs-wrap').offsetTop - 96, behavior:'smooth'});
+}
+function t(msg) {
+  const el = document.getElementById('toast');
+  el.innerHTML = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2200);
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,74 @@
+name: Deploy Scheduler
+
+# Triggers:
+#   - Push to staging branch (auto-deploy on code change)
+#   - Manual dispatch (deploy on demand without a code push)
+on:
+  push:
+    branches: [staging]
+    paths:
+      - "connectors/**"
+      - ".github/workflows/deploy-scheduler.yml"
+  workflow_dispatch:
+
+env:
+  IMAGE_NAME: doddl-scheduler
+
+jobs:
+  build-and-deploy:
+    name: Build & Deploy
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write   # Required for OIDC login to Azure
+      contents: read
+
+    steps:
+      # ── 1. Checkout ────────────────────────────────────────────────────────
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ── 2. Login to Azure (OIDC — no stored client secret) ────────────────
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      # ── 3. Login to Azure Container Registry ──────────────────────────────
+      - name: Login to ACR
+        run: az acr login --name ${{ secrets.ACR_NAME }}
+
+      # ── 4. Build & push Docker image ───────────────────────────────────────
+      - name: Build and push image
+        run: |
+          IMAGE_TAG=${{ secrets.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          IMAGE_LATEST=${{ secrets.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:latest
+
+          docker build \
+            -f connectors/Dockerfile \
+            -t "$IMAGE_TAG" \
+            -t "$IMAGE_LATEST" \
+            .
+
+          docker push "$IMAGE_TAG"
+          docker push "$IMAGE_LATEST"
+
+          echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
+
+      # ── 5. Deploy to Azure Container App ──────────────────────────────────
+      - name: Update Container App
+        run: |
+          az containerapp update \
+            --name ${{ secrets.CONTAINER_APP_NAME }} \
+            --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
+            --image "$IMAGE_TAG"
+
+      # ── 6. Confirm running ─────────────────────────────────────────────────
+      - name: Verify deployment
+        run: |
+          STATUS=$(az containerapp show \
+            --name ${{ secrets.CONTAINER_APP_NAME }} \
+            --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
+            --query "properties.runningStatus" -o tsv)
+          echo "Container App status: $STATUS"

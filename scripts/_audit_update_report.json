@@ -1,0 +1,481 @@
+[
+  {
+    "id": "30000000-0000-0000-0000-000000000001",
+    "title": "[Step 1] Create lib/constants.js, lib/team.js, lib/msal.js",
+    "update": {
+      "status": "done",
+      "progress": 100
+    },
+    "why": "All three files exist in lib/ (constants.js, team.js, msal.js)",
+    "before": {
+      "id": "30000000-0000-0000-0000-000000000001",
+      "title": "[Step 1] Create lib/constants.js, lib/team.js, lib/msal.js",
+      "status": "in_progress",
+      "progress": 0,
+      "assigned_to": "Claude",
+      "project_id": "10000000-0000-0000-0000-000000000001"
+    },
+    "after": {
+      "id": "30000000-0000-0000-0000-000000000001",
+      "title": "[Step 1] Create lib/constants.js, lib/team.js, lib/msal.js",
+      "status": "done",
+      "progress": 100
+    },
+    "skipped": null
+  },
+  {
+    "id": "30000000-0000-0000-0000-000000000002",
+    "title": "[Step 2] Extract leaf components — StatusBadge, PriorityBadge, AssigneeSelect, TagsCell, ProgressBar, InlineEdit, DateCell, OwnerAvatar",
+    "update": {
+      "status": "done",
+      "progress": 100
+    },
+    "why": "All 8 leaf components exist in components/",
+    "before": {
+      "id": "30000000-0000-0000-0000-000000000002",
+      "title": "[Step 2] Extract leaf components — StatusBadge, PriorityBadge, AssigneeSelect, TagsCell, ProgressBar, InlineEdit, DateCell, OwnerAvatar",
+      "status": "not_started",
+      "progress": 0,
+      "assigned_to": "Claude",
+      "project_id": "10000000-0000-0000-0000-000000000001"
+    },
+    "after": {
+      "id": "30000000-0000-0000-0000-000000000002",
+      "title": "[Step 2] Extract leaf components — StatusBadge, PriorityBadge, AssigneeSelect, TagsCell, ProgressBar, InlineEdit, DateCell, OwnerAvatar",
+      "status": "done",
+      "progress": 100
+    },
+    "skipped": null
+  },
+  {
+    "id": "30000000-0000-0000-0000-000000000003",
+    "title": "[Step 3] Extract CalendarPicker, TimelineCell, LoginScreen",
+    "update": {
+      "status": "done",
+      "progress": 100
+    },
+    "why": "CalendarPicker.jsx, TimelineCell.jsx, LoginScreen.jsx all exist",
+    "before": {
+      "id": "30000000-0000-0000-0000-000000000003",
+      "title": "[Step 3] Extract CalendarPicker, TimelineCell, LoginScreen",
+      "status": "not_started",
+      "progress": 0,
+      "assigned_to": "Claude",
+      "project_id": "10000000-0000-0000-0000-000000000001"
+    },
+    "after": {
+      "id": "30000000-0000-0000-0000-000000000003",
+      "title": "[Step 3] Extract CalendarPicker, TimelineCell, LoginScreen",
+      "status": "done",
+      "progress": 100
+    },
+    "skipped": null
+  },
+  {
+    "id": "30000000-0000-0000-0000-000000000004",
+    "title": "[Step 4] Extract CommentBody, MentionInput, TaskDetailPanel",
+    "update": {
+      "status": "done",
+      "progress": 100
+    },
+    "why": "CommentBody.jsx, MentionInput.jsx, TaskDetailPanel.jsx all exist",
+    "before": {
+      "id": "30000000-0000-0000-0000-000000000004",
+      "title": "[Step 4] Extract CommentBody, MentionInput, TaskDetailPanel",
+      "status": "not_started",
+      "progress": 0,
+      "assigned_to": "Claude",
+      "project_id": "10000000-0000-0000-0000-000000000001"
+    },
+    "after": {
+      "id": "30000000-0000-0000-0000-000000000004",
+      "title": "[Step 4] Extract CommentBody, MentionInput, TaskDetailPanel",
+      "status": "done",
+      "progress": 100
+    },
+    "skipped": null
+  },
+  {
+    "id": "30000000-0000-0000-0000-000000000005",
+    "title": "[Step 5] Extract ProjectTableRow, ProjectGroup, ProjectDashboard, TaskRow",
+    "update": {
+      "status": "done",
+      "progress": 100
+    },
+    "why": "All 4 components exist in components/",
+    "before": {
+      "id": "30000000-0000-0000-0000-000000000005",
+      "title": "[Step 5] Extract ProjectTableRow, ProjectGroup, ProjectDashboard, TaskRow",
+      "status": "not_started",
+      "progress": 0,
+      "assigned_to": "Claude",
+      "project_id": "10000000-0000-0000-0000-000000000001"
+    },
+    "after": {
+      "id": "30000000-0000-0000-0000-000000000005",
+      "title": "[Step 5] Extract ProjectTableRow, ProjectGroup, ProjectDashboard, TaskRow",
+      "status": "done",
+      "progress": 100
+    },
+    "skipped": null
+  },
+  {
+    "id": "30000000-0000-0000-0000-000000000006",
+    "title": "[Step 6] Extract KanbanBoard, GanttView",
+    "update": {
+      "status": "done",
+      "progress": 100
+    },
+    "why": "KanbanBoard.jsx and GanttView.jsx exist in components/",
+    "before": {
+      "id": "30000000-0000-0000-0000-000000000006",
+      "title": "[Step 6] Extract KanbanBoard, GanttView",
+      "status": "not_started",
+      "progress": 0,
+      "assigned_to": "Claude",
+      "project_id": "10000000-0000-0000-0000-000000000001"
+    },
+    "after": {
+      "id": "30000000-0000-0000-0000-000000000006",
+      "title": "[Step 6] Extract KanbanBoard, GanttView",
+      "status": "done",
+      "progress": 100
+    },
+    "skipped": null
+  },
+  {
+    "id": "30000000-0000-0000-0000-000000000007",
+    "title": "[Step 7] Extract ProjectSection",
+    "update": {
+      "status": "done",
+      "progress": 100
+    },
+    "why": "components/ProjectSection.jsx exists",
+    "before": {
+      "id": "30000000-0000-0000-0000-000000000007",
+      "title": "[Step 7] Extract ProjectSection",
+      "status": "not_started",
+      "progress": 0,
+      "assigned_to": "Claude",
+      "project_id": "10000000-0000-0000-0000-000000000001"
+    },
+    "after": {
+      "id": "30000000-0000-0000-0000-000000000007",
+      "title": "[Step 7] Extract ProjectSection",
+      "status": "done",
+      "progress": 100
+    },
+    "skipped": null
+  },
+  {
+    "id": "30000000-0000-0000-0000-000000000008",
+    "title": "[Step 8] Extract AddTaskModal, AddProjectModal",
+    "update": {
+      "status": "done",
+      "progress": 100
+    },
+    "why": "AddTaskModal.jsx and AddProjectModal.jsx exist",
+    "before": {
+      "id": "30000000-0000-0000-0000-000000000008",
+      "title": "[Step 8] Extract AddTaskModal, AddProjectModal",
+      "status": "not_started",
+      "progress": 0,
+      "assigned_to": "Claude",
+      "project_id": "10000000-0000-0000-0000-000000000001"
+    },
+    "after": {
+      "id": "30000000-0000-0000-0000-000000000008",
+      "title": "[Step 8] Extract AddTaskModal, AddProjectModal",
+      "status": "done",
+      "progress": 100
+    },
+    "skipped": null
+  },
+  {
+    "id": "30000000-0000-0000-0000-000000000009",
+    "title": "[Step 9] Extract MyWorkView (with MwTaskTable + MwSection)",
+    "update": {
+      "status": "done",
+      "progress": 100
+    },
+    "why": "MyWorkView.jsx contains MwTaskTable (line 8) and MwSection (line 56) as internal components",
+    "before": {
+      "id": "30000000-0000-0000-0000-000000000009",
+      "title": "[Step 9] Extract MyWorkView (with MwTaskTable + MwSection)",
+      "status": "not_started",
+      "progress": 0,
+      "assigned_to": "Claude",
+      "project_id": "10000000-0000-0000-0000-000000000001"
+    },
+    "after": {
+      "id": "30000000-0000-0000-0000-000000000009",
+      "title": "[Step 9] Extract MyWorkView (with MwTaskTable + MwSection)",
+      "status": "done",
+      "progress": 100
+    },
+    "skipped": null
+  },
+  {
+    "id": "30000000-0000-0000-0000-000000000010",
+    "title": "[Step 10] Reduce pages/index.js to <150-line shell + smoke test",
+    "update": {
+      "status": "in_progress",
+      "progress": 85
+    },
+    "why": "pages/index.js is 182 lines — over the <150 target. Shell extraction done but acceptance criterion not met.",
+    "before": {
+      "id": "30000000-0000-0000-0000-000000000010",
+      "title": "[Step 10] Reduce pages/index.js to <150-line shell + smoke test",
+      "status": "not_started",
+      "progress": 0,
+      "assigned_to": "Claude",
+      "project_id": "10000000-0000-0000-0000-000000000001"
+    },
+    "after": {
+      "id": "30000000-0000-0000-0000-000000000010",
+      "title": "[Step 10] Reduce pages/index.js to <150-line shell + smoke test",
+      "status": "in_progress",
+      "progress": 85
+    },
+    "skipped": null
+  },
+  {
+    "id": "30000000-0000-0000-0000-000000000011",
+    "title": "[Step 11] Add REST API scaffolding — pages/api/projects.js + pages/api/task-groups.js",
+    "update": {
+      "status": "done",
+      "progress": 100
+    },
+    "why": "Both API routes exist in pages/api/",
+    "before": {
+      "id": "30000000-0000-0000-0000-000000000011",
+      "title": "[Step 11] Add REST API scaffolding — pages/api/projects.js + pages/api/task-groups.js",
+      "status": "not_started",
+      "progress": 0,
+      "assigned_to": "Claude",
+      "project_id": "10000000-0000-0000-0000-000000000001"
+    },
+    "after": {
+      "id": "30000000-0000-0000-0000-000000000011",
+      "title": "[Step 11] Add REST API scaffolding — pages/api/projects.js + pages/api/task-groups.js",
+      "status": "done",
+      "progress": 100
+    },
+    "skipped": null
+  },
+  {
+    "id": "30000000-0000-0000-0000-000000000012",
+    "title": "Upgrade Next.js 14.1.0 → 14.2.x (security fix)",
+    "update": null,
+    "why": "package.json still pins next@14.1.0 — not started, leave unchanged",
+    "before": {
+      "id": "30000000-0000-0000-0000-000000000012",
+      "title": "Upgrade Next.js 14.1.0 → 14.2.x (security fix)",
+      "status": "not_started",
+      "progress": 0,
+      "assigned_to": "Claude",
+      "project_id": "10000000-0000-0000-0000-000000000001"
+    },
+    "after": {
+      "id": "30000000-0000-0000-0000-000000000012",
+      "title": "Upgrade Next.js 14.1.0 → 14.2.x (security fix)",
+      "status": "not_started",
+      "progress": 0,
+      "assigned_to": "Claude",
+      "project_id": "10000000-0000-0000-0000-000000000001"
+    },
+    "skipped": "left unchanged (not started)"
+  },
+  {
+    "id": "30000000-0000-0000-0000-000000000013",
+    "title": "Build lib/agentAuth.js — agent authentication middleware",
+    "update": {
+      "status": "done",
+      "progress": 100
+    },
+    "why": "lib/agentAuth.js exists (173 lines) with auth + rate limit + audit logging",
+    "before": {
+      "id": "30000000-0000-0000-0000-000000000013",
+      "title": "Build lib/agentAuth.js — agent authentication middleware",
+      "status": "not_started",
+      "progress": 0,
+      "assigned_to": "Claude",
+      "project_id": "10000000-0000-0000-0000-000000000001"
+    },
+    "after": {
+      "id": "30000000-0000-0000-0000-000000000013",
+      "title": "Build lib/agentAuth.js — agent authentication middleware",
+      "status": "done",
+      "progress": 100
+    },
+    "skipped": null
+  },
+  {
+    "id": "30000000-0000-0000-0000-000000000015",
+    "title": "Build pages/api/agent/tasks.js",
+    "update": {
+      "status": "done",
+      "progress": 100
+    },
+    "why": "pages/api/agent/tasks.js exists",
+    "before": {
+      "id": "30000000-0000-0000-0000-000000000015",
+      "title": "Build pages/api/agent/tasks.js",
+      "status": "not_started",
+      "progress": 0,
+      "assigned_to": "Claude",
+      "project_id": "10000000-0000-0000-0000-000000000001"
+    },
+    "after": {
+      "id": "30000000-0000-0000-0000-000000000015",
+      "title": "Build pages/api/agent/tasks.js",
+      "status": "done",
+      "progress": 100
+    },
+    "skipped": null
+  },
+  {
+    "id": "30000000-0000-0000-0000-000000000016",
+    "title": "Build pages/api/agent/artefacts.js",
+    "update": {
+      "status": "done",
+      "progress": 100
+    },
+    "why": "pages/api/agent/artefacts.js exists",
+    "before": {
+      "id": "30000000-0000-0000-0000-000000000016",
+      "title": "Build pages/api/agent/artefacts.js",
+      "status": "not_started",
+      "progress": 0,
+      "assigned_to": "Claude",
+      "project_id": "10000000-0000-0000-0000-000000000001"
+    },
+    "after": {
+      "id": "30000000-0000-0000-0000-000000000016",
+      "title": "Build pages/api/agent/artefacts.js",
+      "status": "done",
+      "progress": 100
+    },
+    "skipped": null
+  },
+  {
+    "id": "30000000-0000-0000-0000-000000000017",
+    "title": "Implement rate limiting on agent routes",
+    "update": {
+      "status": "done",
+      "progress": 100
+    },
+    "why": "agentAuth.js enforces RATE_LIMIT_PER_MINUTE=60 with 429 response on exceed",
+    "before": {
+      "id": "30000000-0000-0000-0000-000000000017",
+      "title": "Implement rate limiting on agent routes",
+      "status": "not_started",
+      "progress": 0,
+      "assigned_to": "Claude",
+      "project_id": "10000000-0000-0000-0000-000000000001"
+    },
+    "after": {
+      "id": "30000000-0000-0000-0000-000000000017",
+      "title": "Implement rate limiting on agent routes",
+      "status": "done",
+      "progress": 100
+    },
+    "skipped": null
+  },
+  {
+    "id": "30000000-0000-0000-0000-000000000020",
+    "title": "Build lib/artefactTypes.js",
+    "update": {
+      "status": "done",
+      "progress": 100
+    },
+    "why": "lib/artefactTypes.js exists (68 lines)",
+    "before": {
+      "id": "30000000-0000-0000-0000-000000000020",
+      "title": "Build lib/artefactTypes.js",
+      "status": "not_started",
+      "progress": 0,
+      "assigned_to": "Claude",
+      "project_id": "10000000-0000-0000-0000-000000000001"
+    },
+    "after": {
+      "id": "30000000-0000-0000-0000-000000000020",
+      "title": "Build lib/artefactTypes.js",
+      "status": "done",
+      "progress": 100
+    },
+    "skipped": null
+  },
+  {
+    "id": "30000000-0000-0000-0000-000000000021",
+    "title": "Build components/ApprovalTaskPanel.jsx",
+    "update": {
+      "status": "done",
+      "progress": 100
+    },
+    "why": "components/ApprovalTaskPanel.jsx exists with approve/reject/revision flow",
+    "before": {
+      "id": "30000000-0000-0000-0000-000000000021",
+      "title": "Build components/ApprovalTaskPanel.jsx",
+      "status": "not_started",
+      "progress": 0,
+      "assigned_to": "Claude",
+      "project_id": "10000000-0000-0000-0000-000000000001"
+    },
+    "after": {
+      "id": "30000000-0000-0000-0000-000000000021",
+      "title": "Build components/ApprovalTaskPanel.jsx",
+      "status": "done",
+      "progress": 100
+    },
+    "skipped": null
+  },
+  {
+    "id": "30000000-0000-0000-0000-000000000022",
+    "title": "Implement immutable decision recording logic",
+    "update": {
+      "status": "in_progress",
+      "progress": 70
+    },
+    "why": "Server-side enforced in pages/api/agent/tasks.js (returns 409 if decision already recorded), but UI path via ApprovalTaskPanel + anon RLS can still overwrite — no DB-level constraint/trigger yet",
+    "before": {
+      "id": "30000000-0000-0000-0000-000000000022",
+      "title": "Implement immutable decision recording logic",
+      "status": "not_started",
+      "progress": 0,
+      "assigned_to": "Claude",
+      "project_id": "10000000-0000-0000-0000-000000000001"
+    },
+    "after": {
+      "id": "30000000-0000-0000-0000-000000000022",
+      "title": "Implement immutable decision recording logic",
+      "status": "in_progress",
+      "progress": 70
+    },
+    "skipped": null
+  },
+  {
+    "id": "30000000-0000-0000-0000-000000000023",
+    "title": "Write RLS migration SQL — three role-based policy levels",
+    "update": {
+      "status": "done",
+      "progress": 100
+    },
+    "why": "lib/migrations/04-rls-policies.sql exists with Level 1 (anon humans), Level 2 (service_role agents), Level 3 (admin)",
+    "before": {
+      "id": "30000000-0000-0000-0000-000000000023",
+      "title": "Write RLS migration SQL — three role-based policy levels",
+      "status": "not_started",
+      "progress": 0,
+      "assigned_to": "Claude",
+      "project_id": "10000000-0000-0000-0000-000000000001"
+    },
+    "after": {
+      "id": "30000000-0000-0000-0000-000000000023",
+      "title": "Write RLS migration SQL — three role-based policy levels",
+      "status": "done",
+      "progress": 100
+    },
+    "skipped": null
+  }
+]

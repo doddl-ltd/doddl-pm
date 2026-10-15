@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<base href="/prototypes/journey/">
+<title>doddl · Prototype Navigation · Staging</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --c-ns:#2CB67D; --c-np:#A8D8A8; --c-ev:#E09A3A; --c-ke:#4A4580; --c-or:#D45D5D;
+    --c-hp:#3D157D; --gbg:#F4F3F8; --gl:#DDDBE8; --w:#fff; --t:#1a1630; --tm:#777; --f:'Nunito',sans-serif;
+  }
+  body{font-family:var(--f);background:var(--gbg);color:var(--t);min-height:100vh;}
+
+  /* TOP BAR */
+  .tb{background:#1a1630;padding:10px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200;}
+  .tb-logo{font-size:16px;font-weight:800;color:#fff;letter-spacing:-.02em;text-decoration:none;}
+  .tb-logo span{color:#30BEAA;}
+  .tb-ttl{font-size:11px;font-weight:700;color:rgba(255,255,255,.45);letter-spacing:.08em;text-transform:uppercase;}
+  .tb-badge{font-size:10px;font-weight:800;background:rgba(48,190,170,.2);color:#9ECFC6;border-radius:4px;padding:3px 8px;}
+
+  /* KEY */
+  .key{background:var(--w);border-bottom:1px solid var(--gl);padding:9px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;}
+  .kl{font-size:11px;font-weight:800;color:var(--tm);text-transform:uppercase;letter-spacing:.06em;}
+  .kis{display:flex;gap:14px;flex-wrap:wrap;align-items:center;}
+  .ki{display:flex;align-items:center;gap:5px;font-size:11px;font-weight:700;}
+  .kd{width:11px;height:11px;border-radius:3px;flex-shrink:0;}
+  .kd-ns{background:var(--c-ns);} .kd-np{background:var(--c-np);border:1px solid #8aba8a;}
+  .kd-ev{background:var(--c-ev);} .kd-ke{background:var(--c-ke);} .kd-or{background:var(--c-or);}
+
+  /* PAGE */
+  .pg{padding:28px 20px 80px;max-width:1500px;margin:0 auto;}
+
+  /* HOMEPAGE BOX */
+  .hpr{display:flex;justify-content:center;}
+  .hpb{background:var(--c-hp);color:#fff;border-radius:12px;padding:14px 32px;text-align:center;font-weight:800;font-size:14px;line-height:1.3;text-decoration:none;display:block;min-width:260px;transition:opacity .15s,box-shadow .15s;}
+  .hpb:hover{opacity:.88;box-shadow:0 4px 18px rgba(61,21,125,.35);}
+  .hpb .s{font-size:11px;font-weight:600;opacity:.65;margin-top:3px;}
+  .cv{display:flex;justify-content:center;height:28px;}
+  .cv::after{content:'';display:block;width:1.5px;height:100%;background:var(--gl);}
+
+  /* MAIN COLUMNS */
+  .cols{display:grid;grid-template-columns:repeat(6,1fr);gap:0;position:relative;}
+  .cols::before{content:'';position:absolute;top:0;left:calc(100%/12);right:calc(100%/12);height:1.5px;background:var(--gl);z-index:1;}
+  .col{padding:0 6px;display:flex;flex-direction:column;align-items:stretch;position:relative;}
+  .col::before{content:'';display:block;width:1.5px;height:28px;background:var(--gl);margin:0 auto;flex-shrink:0;}
+
+  /* COL HEADERS */
+  .ch{border-radius:10px;padding:11px 12px;margin-bottom:8px;font-size:12px;font-weight:800;color:#fff;text-align:center;line-height:1.3;text-decoration:none;display:block;transition:opacity .15s;cursor:default;}
+  a.ch{cursor:pointer;} a.ch:hover{opacity:.85;}
+  .ch .s{font-size:10px;font-weight:600;opacity:.72;margin-top:2px;}
+  .h-ke{background:var(--c-ke);} .h-ev{background:var(--c-ev);} .h-ns{background:var(--c-ns);} .h-k2{background:#6a6490;}
+
+  /* CARDS */
+  .cd{border-radius:7px;padding:8px 10px;margin-bottom:5px;font-size:11px;font-weight:700;line-height:1.35;text-decoration:none;color:var(--t);display:block;border:1.5px solid transparent;transition:box-shadow .15s;}
+  a.cd:hover{box-shadow:0 3px 10px rgba(0,0,0,.12);}
+  .cd .s{font-size:10px;font-weight:600;color:var(--tm);margin-top:2px;}
+  .c-ke{background:#ECEAF4;border-color:#CAC7E0;} .c-ke .s{color:var(--c-ke);}
+  .c-ev{background:#FEF3E2;border-color:#E8C87A;} .c-ev .s{color:#a06820;}
+  .c-ns{background:#E8F8F0;border-color:#A8D8A8;} .c-ns .s{color:#2a8050;}
+  .c-or{background:#FDEAEA;border-color:#E8AABA;} .c-or .s{color:#a03030;}
+  .co{font-size:10px;font-style:italic;color:var(--tm);text-align:center;margin-bottom:6px;}
+
+  /* SHOW/HIDE */
+  .ov{display:none;} .ov.open{display:block;}
+  .tog{background:none;border:1.5px solid var(--gl);border-radius:6px;padding:5px 8px;font-size:10px;font-weight:800;color:var(--tm);cursor:pointer;font-family:var(--f);margin-top:3px;width:100%;text-align:center;transition:background .15s;}
+  .tog:hover{background:var(--w);color:var(--t);}
+
+  /* SEPARATOR */
+  .sep{margin:36px 0 0;border:none;border-top:2px dashed var(--gl);}
+  .sepl{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--tm);text-align:center;margin:10px 0 18px;}
+
+  /* BLOG GRID */
+  .bg{display:grid;grid-template-columns:repeat(5,1fr);gap:0;}
+  .bg2{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:0;margin-top:8px;}
+  .bc{padding:0 6px;}
+  .bh{border-radius:8px;padding:9px 10px;margin-bottom:8px;font-size:11px;font-weight:800;text-align:center;line-height:1.3;color:#fff;}
+  .bh .s{font-size:9px;font-weight:600;opacity:.75;margin-top:2px;}
+  .bh-r0{background:#E85D7A;} .bh-rt{background:#D44060;}
+  .bh-t0{background:#5B9BD5;} .bh-t1{background:#3A7EC0;} .bh-t2{background:#2A5FA0;}
+  .bh-tg{background:#5570A0;} .bh-pl{background:#9B6BC0;} .bh-nw{background:#6a6490;}
+  .bcd{border-radius:6px;padding:6px 9px;margin-bottom:4px;font-size:10px;font-weight:700;line-height:1.4;text-decoration:none;color:var(--t);display:block;background:var(--w);border:1px solid var(--gl);transition:box-shadow .15s;}
+  a.bcd:hover{box-shadow:0 2px 8px rgba(0,0,0,.1);}
+
+  /* 2-col blog sub-grid */
+  .bg2c{display:grid;grid-template-columns:1fr 1fr;gap:0 8px;}
+
+  /* TRANSACTIONAL */
+  .txn{display:flex;justify-content:flex-end;gap:12px;margin-top:24px;flex-wrap:wrap;}
+  .tc{background:#E8F4FF;border:1.5px solid #B0D0F0;border-radius:10px;padding:11px 16px;font-size:11px;font-weight:700;color:#1a3a6a;line-height:1.4;min-width:160px;}
+  .tc .s{font-size:10px;font-weight:600;color:#4a70a0;margin-top:3px;}
+
+  /* FOOTER */
+  .footer-strip {
+    background: #1a1630;
+    padding: 14px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 11px;
+    color: rgba(255,255,255,0.4);
+    font-weight: 600;
+    margin-top: 48px;
+  }
+  .footer-strip .fl { font-size: 15px; font-weight: 800; color: rgba(255,255,255,0.8); letter-spacing: -0.02em; text-decoration: none; }
+  .footer-strip .fl span { color: #30BEAA; }
+
+  /* ACCORDION */
+  .acc-btn {
+    display: block; width: 100%; text-align: left;
+    border: none; border-radius: 7px; padding: 8px 10px;
+    margin-bottom: 4px; font-size: 11px; font-weight: 800;
+    color: #fff; cursor: pointer; font-family: var(--f);
+    line-height: 1.3; position: relative;
+    transition: opacity .15s, border-radius .15s;
+  }
+  .acc-btn::after { content: '+'; position: absolute; right: 10px; top: 50%; transform: translateY(-50%); font-size: 14px; font-weight: 800; opacity: .8; }
+  .acc-btn.open { border-radius: 7px 7px 0 0; opacity: .95; }
+  .acc-btn.open::after { content: '−'; }
+  .acc-btn:hover { opacity: .88; }
+  .acc-sub { display: block; font-size: 9px; font-weight: 600; opacity: .75; margin-top: 2px; }
+  .acc-body {
+    display: none; background: var(--w); border: 1px solid var(--gl);
+    border-top: none; border-radius: 0 0 7px 7px;
+    padding: 6px 8px; margin-bottom: 4px;
+    max-height: 320px; overflow-y: auto;
+  }
+  .acc-body.open { display: block; }
+  .acc-body .bcd { font-size: 10px; padding: 5px 8px; }
+
+  /* ── DODDL SITE FOOTER ─────────────────────────── */
+  .site-footer { background: #fff; border-top: 1px solid #eee; padding: 48px 40px 0; font-family: var(--f); }
+  .site-footer-top { display: grid; grid-template-columns: 280px 1fr 1fr 1fr 1fr; gap: 40px; margin-bottom: 40px; }
+  .sf-brand .sf-logo { font-size: 28px; font-weight: 900; color: #3D157D; letter-spacing: -0.03em; margin-bottom: 20px; display: block; text-decoration: none; }
+  .sf-brand .sf-logo span { color: #30BEAA; }
+  .sf-email-head { font-size: 15px; font-weight: 800; color: #1a1630; margin-bottom: 6px; }
+  .sf-email-sub { font-size: 12px; color: #888; line-height: 1.5; margin-bottom: 14px; }
+  .sf-email-row { display: flex; border: 1.5px solid #ddd; border-radius: 6px; overflow: hidden; }
+  .sf-email-row input { flex: 1; border: none; padding: 9px 12px; font-size: 12px; font-family: var(--f); color: #333; outline: none; }
+  .sf-email-row button { background: #3D157D; color: #fff; border: none; padding: 9px 14px; font-size: 13px; cursor: pointer; font-weight: 800; }
+  .sf-col-head { font-size: 13px; font-weight: 800; color: #1a1630; margin-bottom: 14px; }
+  .sf-col ul { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+  .sf-col ul li a { font-size: 12px; color: #555; text-decoration: none; transition: color .15s; }
+  .sf-col ul li a:hover { color: #3D157D; }
+  .site-footer-mid { border-top: 1px solid #eee; padding: 20px 0; display: flex; align-items: center; justify-content: space-between; }
+  .sf-socials { display: flex; gap: 14px; }
+  .sf-socials a { font-size: 18px; text-decoration: none; }
+  .sf-lang { font-size: 12px; color: #555; display: flex; align-items: center; gap: 6px; }
+  .site-footer-bottom { border-top: 1px solid #eee; padding: 14px 0 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+  .sf-copy { font-size: 11px; color: #999; }
+  .sf-copy a { color: #999; text-decoration: none; margin-right: 12px; }
+  .sf-copy a:hover { color: #3D157D; }
+  .sf-payments { display: flex; gap: 6px; flex-wrap: wrap; }
+  .sf-pay { background: #f4f4f4; border: 1px solid #ddd; border-radius: 4px; padding: 3px 7px; font-size: 10px; font-weight: 700; color: #555; }
+</style>
+</head>
+<body>
+
+<div class="tb">
+  <a href="/prototypes/journey/" class="tb-logo">doddl<span>.</span></a>
+  <span class="tb-ttl">Complete Site Map · Prototype Navigation · Staging</span>
+  <span class="tb-badge">STAGING</span>
+</div>
+
+<div class="key">
+  <span class="kl">Key</span>
+  <div class="kis">
+    <span class="ki"><span class="kd kd-ns"></span>New section</span>
+    <span class="ki"><span class="kd kd-np"></span>New page needed</span>
+    <span class="ki"><span class="kd kd-ev"></span>Exists — evolve</span>
+    <span class="ki"><span class="kd kd-ke"></span>Exists — keep</span>
+    <span class="ki"><span class="kd kd-or"></span>Orphaned — decide</span>
+  </div>
+</div>
+
+<div class="pg">
+
+  <!-- HOMEPAGE -->
+  <div class="hpr">
+    <a class="hpb" href="./homepage.html">
+      Homepage / doddl.com entry point
+      <div class="s">Top of funnel · campaign + organic search</div>
+    </a>
+  </div>
+  <div class="cv"></div>
+
+  <!-- MAIN 6 COLUMNS -->
+  <div class="cols">
+
+    <!-- SHOP BY STAGE -->
+    <div class="col">
+      <a class="ch h-ns" href="./desktop.html">Shop by Stage<div class="s">Age-based discovery</div></a>
+      <a class="cd c-ns" href="./desktop.html">Stage 0<div class="s">/prototypes/journey/desktop.html#stage-0 · new</div></a>
+      <a class="cd c-ns" href="./desktop.html">Stage 1<div class="s">/prototypes/journey/desktop.html#stage-1 · new</div></a>
+      <a class="cd c-ns" href="./desktop.html">Stage 2<div class="s">/prototypes/journey/desktop.html#stage-2 · new</div></a>
+      <a class="cd c-ns" href="./desktop.html">Stage 3<div class="s">/prototypes/journey/desktop.html#stage-3 · new</div></a>
+      <a class="cd c-ns" href="./desktop.html">Stage 4<div class="s">/prototypes/journey/desktop.html#stage-4 · new</div></a>
+    </div>
+
+    <!-- SHOP BY CATEGORY -->
+    <div class="col">
+      <a class="ch h-ev" href="./shop-by-category.html">Shop by Category<div class="s">Product type discovery</div></a>
+      <a class="cd c-ev" href="https://doddl.com/discover-baby-cutlery" target="_blank">Baby cutlery<div class="s">/discover-baby-cutlery</div></a>
+      <a class="cd c-ev" href="https://doddl.com/discover-toddler-cutlery" target="_blank">Toddler cutlery<div class="s">/discover-toddler-cutlery</div></a>
+      <a class="cd c-ev" href="https://doddl.com/discover-plates-bowls" target="_blank">Plates &amp; bowls<div class="s">/discover-plates-bowls</div></a>
+      <a class="cd c-ev" href="https://doddl.com/collections/gifting" target="_blank">Bundles &amp; kits<div class="s">/collections/gifting</div></a>
+      <span class="cd c-ns">Bibs<div class="s">/prototypes/journey/bibs.html · new</div></span>
+      <div class="ov" id="oc1">
+        <a class="cd c-ke" href="https://doddl.com/collections/shop-all" target="_blank">Shop all<div class="s">/collections/shop-all</div></a>
+        <a class="cd c-ke" href="https://doddl.com/collections/bestsellers" target="_blank">Bestsellers<div class="s">/collections/bestsellers</div></a>
+        <a class="cd c-ke" href="https://doddl.com/collections/gifts" target="_blank">Gifts<div class="s">/collections/gifts</div></a>
+        <span class="cd c-or">Baby cutlery (dupe)<div class="s">/infant-cutlery-6-month</div></span>
+      </div>
+      <button class="tog" onclick="tog('oc1',this,4)">+ Show 4 more</button>
+    </div>
+
+    <!-- SEN JOURNEY -->
+    <div class="col">
+      <a class="ch h-ns" href="./sen-desktop.html">SEN Journey<div class="s">Special needs pathway</div></a>
+      <a class="cd c-ns" href="./sen-desktop.html">Just starting out<div class="s">/prototypes/journey/sen-desktop.html#stage-0</div></a>
+      <a class="cd c-ns" href="./sen-desktop.html">Finding their grip<div class="s">/prototypes/journey/sen-desktop.html#stage-1</div></a>
+      <a class="cd c-ns" href="./sen-desktop.html">Building confidence<div class="s">/prototypes/journey/sen-desktop.html#stage-2</div></a>
+      <a class="cd c-ns" href="./sen-desktop.html">Eating independently<div class="s">/prototypes/journey/sen-desktop.html#stage-3</div></a>
+    </div>
+
+    <!-- BUNDLE BOX -->
+    <div class="col">
+      <a class="ch h-ns" href="./bundle-box.html">Bundle Box<div class="s">Curated launch bundle</div></a>
+      <span class="cd c-ns">Bundle hub<div class="s">/prototypes/journey/bundle-box.html</div></span>
+      <span class="cd c-ns">Stage 1 bundle<div class="s">/prototypes/bundle-box/stage-1.html · new</div></span>
+      <span class="cd c-ns">Stage 2 bundle<div class="s">/prototypes/bundle-box/stage-2.html · new</div></span>
+      <span class="cd c-ns">Stage 3 bundle<div class="s">/prototypes/bundle-box/stage-3.html · new</div></span>
+      <span class="cd c-ns">Stage 4 bundle<div class="s">/prototypes/bundle-box/stage-4.html · new</div></span>
+    </div>
+
+    <!-- RESEARCH & DEV -->
+    <div class="col">
+      <div class="ch h-ns">Research &amp; Dev<div class="s">Methodology · evidence</div></div>
+      <span class="cd c-ns">Research hub<div class="s">/prototypes/journey/research.html · new</div></span>
+      <a class="cd c-ke" href="https://doddl.com/pages/what-the-experts-think" target="_blank">What the experts think<div class="s">/pages/what-the-experts-think</div></a>
+      <a class="cd c-ke" href="https://doddl.com/pages/sustainability" target="_blank">Sustainability<div class="s">/pages/sustainability</div></a>
+      <span class="cd c-ke">Commitment to future<div class="s">/pages/our-commitment-to-future · new</div></span>
+    </div>
+
+    <!-- TIPS & ADVICE -->
+    <div class="col" style="grid-column: span 1;">
+      <div class="ch h-k2">Tips &amp; Advice<div class="s">Editorial · guides</div></div>
+      <button class="acc-btn" style="background:#4A4580;" onclick="acc(this)">
+        Weaning Recipes — Stage 0–1
+        <span class="acc-sub">/blogs/weaning-recipes-for-babies · 13 posts</span>
+      </button>
+      <div class="acc-body">
+        <a class="bcd" href="https://doddl.com/blogs/weaning-recipes-for-babies/blueberry-oaty-bars-recipe" target="_blank">Blueberry oaty bars</a>
+        <a class="bcd" href="https://doddl.com/blogs/weaning-recipes-for-babies/apple-pie-chia-pudding" target="_blank">Apple pie chia pudding</a>
+        <a class="bcd" href="https://doddl.com/blogs/weaning-recipes-for-babies/apple-pie-flax-muffins" target="_blank">Apple pie flax muffins</a>
+        <a class="bcd" href="https://doddl.com/blogs/weaning-recipes-for-babies/3-ingredient-oat-cookies" target="_blank">3-ingredient oat cookies</a>
+        <a class="bcd" href="https://doddl.com/blogs/weaning-recipes-for-babies/spiced-baked-oats" target="_blank">Spiced baked oats</a>
+        <a class="bcd" href="https://doddl.com/blogs/weaning-recipes-for-babies/tomato-and-spinach-pasta" target="_blank">Tomato &amp; spinach pasta</a>
+        <a class="bcd" href="https://doddl.com/blogs/weaning-recipes-for-babies/mango-and-coconut-yoghurt-bark" target="_blank">Mango coconut yoghurt bark</a>
+        <a class="bcd" href="https://doddl.com/blogs/weaning-recipes-for-babies/red-pepper-muffins" target="_blank">Red pepper muffins</a>
+        <a class="bcd" href="https://doddl.com/blogs/weaning-recipes-for-babies/porridge-fingers" target="_blank">Porridge fingers</a>
+        <a class="bcd" href="https://doddl.com/blogs/weaning-recipes-for-babies/cheese-and-broccoli-muffins" target="_blank">Cheese &amp; broccoli muffins</a>
+        <a class="bcd" href="https://doddl.com/blogs/weaning-recipes-for-babies/apple-oat-pancakes" target="_blank">Apple oat pancakes</a>
+        <a class="bcd" href="https://doddl.com/blogs/weaning-recipes-for-babies/creamy-pea-and-mint-pasta" target="_blank">Creamy pea &amp; mint pasta</a>
+        <a class="bcd" href="https://doddl.com/blogs/weaning-recipes-for-babies/one-pot-beef-orzo-delight" target="_blank">One pot beef orzo</a>
+      </div>
+      <button class="acc-btn" style="background:#4A4580;" onclick="acc(this)">
+        Toddler Recipes — Stage 1–4
+        <span class="acc-sub">/blogs/toddler-food-recipes · 31 posts</span>
+      </button>
+      <div class="acc-body">
+        <a class="bcd" href="https://doddl.com/blogs/toddler-food-recipes/healthy-eating-easy-midweek-family-recipes" target="_blank">Easy midweek family recipes</a>
+        <a class="bcd" href="https://doddl.com/blogs/toddler-food-recipes/pancake-ideas-for-toddlers" target="_blank">Pancake ideas for toddlers</a>
+        <a class="bcd" href="https://doddl.com/blogs/toddler-food-recipes/guest-recipe-loaded-veggie-mac-cheese" target="_blank">Loaded veggie mac &amp; cheese</a>
+        <a class="bcd" href="https://doddl.com/blogs/toddler-food-recipes/avocado-breakfast-nest" target="_blank">Avocado breakfast nest</a>
+        <a class="bcd" href="https://doddl.com/blogs/toddler-food-recipes/cocoa-oatmeal" target="_blank">Cocoa oatmeal</a>
+        <a class="bcd" href="https://doddl.com/blogs/toddler-food-recipes/chicken-or-the-egg" target="_blank">Chicken or the egg</a>
+        <a class="bcd" href="https://doddl.com/blogs/toddler-food-recipes/waffle-breakfast-sundae" target="_blank">Waffle breakfast sundae</a>
+        <a class="bcd" href="https://doddl.com/blogs/toddler-food-recipes/raspberry-almond-sushi" target="_blank">Raspberry almond sushi</a>
+        <a class="bcd" href="https://doddl.com/blogs/toddler-food-recipes/roaring-rotini-fun-pasta-recipe" target="_blank">Roaring rotini pasta</a>
+        <a class="bcd" href="https://doddl.com/blogs/toddler-food-recipes/cheesy-kale-crisps" target="_blank">Cheesy kale crisps</a>
+        <a class="bcd" href="https://doddl.com/blogs/toddler-food-recipes/easy-pea-and-carrot-paella-bonanza-with-prawns" target="_blank">Pea &amp; carrot paella</a>
+        <a class="bcd" href="https://doddl.com/blogs/toddler-food-recipes/broccoli-cheese-and-rice-muffins-for-little-ones" target="_blank">Broccoli cheese &amp; rice muffins</a>
+        <a class="bcd" href="https://doddl.com/blogs/toddler-food-recipes/sunday-evening-pasta-recipe" target="_blank">Sunday evening pasta</a>
+        <a class="bcd" href="https://doddl.com/blogs/toddler-food-recipes/scary-spider-courgette-pizza-bites" target="_blank">Scary spider pizza bites</a>
+        <a class="bcd" href="https://doddl.com/blogs/toddler-food-recipes/raspberry-and-coconut-mini-loaves" target="_blank">Raspberry coconut mini loaves</a>
+        <a class="bcd" href="https://doddl.com/blogs/toddler-food-recipes/berry-christmas-recipe" target="_blank">Berry Christmas recipe</a>
+        <a class="bcd" href="https://doddl.com/blogs/toddler-food-recipes/krispmas-puddings" target="_blank">Krispmas puddings</a>
+        <a class="bcd" href="https://doddl.com/blogs/toddler-food-recipes/vegetable-paella" target="_blank">Vegetable paella</a>
+        <a class="bcd" href="https://doddl.com/blogs/toddler-food-recipes/creamy-mushroom-pasta" target="_blank">Creamy mushroom pasta</a>
+        <a class="bcd" href="https://doddl.com/blogs/toddler-food-recipes/2-ingredient-pizza-dough" target="_blank">2-ingredient pizza dough</a>
+        <a class="bcd" href="https://doddl.com/blogs/toddler-food-recipes/hot-cross-bun-porridge" target="_blank">Hot cross bun porridge</a>
+        <a class="bcd" href="https://doddl.com/blogs/toddler-food-recipes/summer-vegetable-pesto-pasta" target="_blank">Summer veg pesto pasta</a>
+        <a class="bcd" href="https://doddl.com/blogs/toddler-food-recipes/pumpkin-spice-energy-balls" target="_blank">Pumpkin spice energy balls</a>
+        <a class="bcd" href="https://doddl.com/blogs/toddler-food-recipes/french-toast-bites" target="_blank">French toast bites</a>
+        <a class="bcd" href="https://doddl.com/blogs/toddler-food-recipes/mini-egg-frittatas" target="_blank">Mini egg frittatas</a>
+        <a class="bcd" href="https://doddl.com/blogs/toddler-food-recipes/spinach-and-cheese-turnovers" target="_blank">Spinach &amp; cheese turnovers</a>
+        <a class="bcd" href="https://doddl.com/blogs/toddler-food-recipes/banana-oat-cookies" target="_blank">Banana oat cookies</a>
+        <a class="bcd" href="https://doddl.com/blogs/toddler-food-recipes/rainbow-rice-salad" target="_blank">Rainbow rice salad</a>
+        <a class="bcd" href="https://doddl.com/blogs/toddler-food-recipes/sweet-potato-fishcakes" target="_blank">Sweet potato fishcakes</a>
+        <a class="bcd" href="https://doddl.com/blogs/toddler-food-recipes/hidden-veg-tomato-sauce" target="_blank">Hidden veg tomato sauce</a>
+      </div>
+      <button class="acc-btn" style="background:#4A4580;" onclick="acc(this)">
+        Tips — Stage 0–1
+        <span class="acc-sub">Weaning · introducing solids · 16 posts</span>
+      </button>
+      <div class="acc-body">
+        <a class="bcd" href="https://doddl.com/blogs/tips-and-advice/how-to-wean-a-baby" target="_blank">How to wean a baby</a>
+        <a class="bcd" href="https://doddl.com/blogs/tips-and-advice/tips-on-introducing-solid-foods-to-your-baby" target="_blank">Introducing solid foods to baby</a>
+        <a class="bcd" href="https://doddl.com/blogs/tips-and-advice/keeping-track-of-your-weaning-journey" target="_blank">Keeping track of your weaning journey</a>
+        <a class="bcd" href="https://doddl.com/blogs/tips-and-advice/guest-blog-5-reasons-to-choose-baby-led-weaning" target="_blank">5 reasons to choose baby-led weaning</a>
+        <a class="bcd" href="https://doddl.com/blogs/tips-and-advice/weaning-and-worried-about-your-baby-choking" target="_blank">Worried about baby choking?</a>
+        <a class="bcd" href="https://doddl.com/blogs/tips-and-advice/navigating-babys-food-journey-milk-to-solids" target="_blank">Baby's food journey: milk to solids</a>
+        <a class="bcd" href="https://doddl.com/blogs/tips-and-advice/simple-weaning-journey-markers" target="_blank">Simple weaning journey markers</a>
+        <a class="bcd" href="https://doddl.com/blogs/tips-and-advice/mealtime-milestones" target="_blank">Mealtime milestones</a>
+        <a class="bcd" href="https://doddl.com/blogs/tips-and-advice/weaning-myths" target="_blank">Weaning myths</a>
+        <a class="bcd" href="https://doddl.com/blogs/tips-and-advice/top-4-tips-to-encourage-spoon-feeding-during-weaning" target="_blank">Top 4 tips: encourage spoon feeding</a>
+        <a class="bcd" href="https://doddl.com/blogs/tips-and-advice/the-next-stage-real-food-tastes-textures-and-flavours" target="_blank">Real food: tastes, textures &amp; flavours</a>
+        <a class="bcd" href="https://doddl.com/blogs/tips-and-advice/cows-milk-protein-allergy" target="_blank">Cow's milk protein allergy</a>
+        <a class="bcd" href="https://doddl.com/blogs/tips-and-advice/your-toddlers-appetite-guest-blog" target="_blank">Your toddler's appetite</a>
+        <a class="bcd" href="https://doddl.com/blogs/tips-and-advice/some-tips-for-handling-food-and-toddlers" target="_blank">Tips for handling food &amp; toddlers</a>
+        <a class="bcd" href="https://doddl.com/blogs/tips-and-advice/introducing-doddl-baby-cutlery" target="_blank">Introducing doddl baby cutlery</a>
+        <a class="bcd" href="https://doddl.com/blogs/tips-and-advice/how-to-introduce-doddl-toddler-cutlery" target="_blank">How to introduce doddl cutlery</a>
+      </div>
+      <button class="acc-btn" style="background:#4A4580;" onclick="acc(this)">
+        Tips — Stage 1–2
+        <span class="acc-sub">Motor skills · cutlery · self-feeding · 13 posts</span>
+      </button>
+      <div class="acc-body">
+        <a class="bcd" href="https://doddl.com/blogs/tips-and-advice/how-little-hands-develop-from-palmar-to-pincer" target="_blank">How little hands develop: palmar to pincer</a>
+        <a class="bcd" href="https://doddl.com/blogs/tips-and-advice/fine-motor-skills-activities" target="_blank">Fine motor skills activities</a>
+        <a class="bcd" href="https://doddl.com/blogs/tips-and-advice/five-fun-activities-motor-skill-development" target="_blank">5 fun motor skill activities</a>
+        <a class="bcd" href="https://doddl.com/blogs/tips-and-advice/utensil-use-milestones" target="_blank">Utensil use milestones</a>
+        <a class="bcd" href="https://doddl.com/blogs/tips-and-advice/why-doddl-cutlery-helps-encourage-self-feeding" target="_blank">Why doddl helps self-feeding</a>
+        <a class="bcd" href="https://doddl.com/blogs/tips-and-advice/how-to-teach-a-toddler-to-feed-themselves" target="_blank">How to teach a toddler to feed themselves</a>
+        <a class="bcd" href="https://doddl.com/blogs/tips-and-advice/hints-and-tips-to-get-your-little-one-set-up-for-mealtime-success" target="_blank">Setting up for mealtime success</a>
+        <a class="bcd" href="https://doddl.com/blogs/tips-and-advice/creating-the-right-environment-for-successful-mealtimes" target="_blank">Right mealtime environment</a>
+        <a class="bcd" href="https://doddl.com/blogs/tips-and-advice/play-dough-and-doddl" target="_blank">Play dough &amp; doddl</a>
+        <a class="bcd" href="https://doddl.com/blogs/tips-and-advice/activities-to-entertain-a-toddler" target="_blank">Activities to entertain a toddler</a>
+        <a class="bcd" href="https://doddl.com/blogs/tips-and-advice/tooth-care-tips-toddlers" target="_blank">Tooth care tips for toddlers</a>
+        <a class="bcd" href="https://doddl.com/blogs/tips-and-advice/toddlers-food-intake-my-toddler-isnt-eating-enough-what-should-i-do" target="_blank">My toddler isn't eating enough</a>
+        <a class="bcd" href="https://doddl.com/blogs/tips-and-advice/encouraging-independent-eating-while-reducing-mess" target="_blank">Encouraging independence &amp; reducing mess</a>
+      </div>
+      <button class="acc-btn" style="background:#4A4580;" onclick="acc(this)">
+        Tips — Stage 2–4
+        <span class="acc-sub">Fussy eating · knife · independence · 20 posts</span>
+      </button>
+      <div class="acc-body">
+        <a class="bcd" href="https://doddl.com/blogs/tips-and-advice/fussy-picky-choosy-eater" target="_blank">Fussy, picky, choosy eater?</a>
+        <a class="bcd" href="https://doddl.com/blogs/tips-and-advice/fussy-eating-how-do-i-get-my-fussy-eater-child-to-eat-new-foods" target="_blank">Getting fussy eaters to try new foods</a>
+        <a class="bcd" href="https://doddl.com/blogs/tips-and-advice/everything-you-need-to-know-about-fussy-eating-in-children" target="_blank">Everything about fussy eating</a>
+        <a class="bcd" href="https://doddl.com/blogs/tips-and-advice/how-to-teach-a-toddler-to-use-a-knife" target="_blank">How to teach a toddler to use a knife</a>
+        <a class="bcd" href="https://doddl.com/blogs/tips-and-advice/how-to-introduce-the-doddl-toddler-knife" target="_blank">How to introduce the doddl knife</a>
+        <a class="bcd" href="https://doddl.com/blogs/tips-and-advice/why-the-doddl-toddler-knife-is-unlike-any-other" target="_blank">Why doddl knife is unlike any other</a>
+        <a class="bcd" href="https://doddl.com/blogs/tips-and-advice/creative-ways-to-encourage-picky-toddlers-to-eat-nutritious-meals" target="_blank">Creative ways to encourage picky toddlers</a>
+        <a class="bcd" href="https://doddl.com/blogs/tips-and-advice/navigating-food-challenges-with-your-toddler" target="_blank">Navigating food challenges</a>
+        <a class="bcd" href="https://doddl.com/blogs/tips-and-advice/feeding-toddlers-common-mistakes" target="_blank">Feeding toddlers: common mistakes</a>
+        <a class="bcd" href="https://doddl.com/blogs/tips-and-advice/top-5-tips-to-stop-your-toddler-throwing-food" target="_blank">Stop toddler throwing food</a>
+        <a class="bcd" href="https://doddl.com/blogs/tips-and-advice/good-toddler-eating-habits" target="_blank">Good toddler eating habits</a>
+        <a class="bcd" href="https://doddl.com/blogs/tips-and-advice/healthier-packed-lunches-your-kids-will-love" target="_blank">Healthier packed lunches</a>
+        <a class="bcd" href="https://doddl.com/blogs/tips-and-advice/the-impact-of-sugar-understanding-the-effects-of-sugar-on-toddlers-and-how-to-manage-it" target="_blank">Impact of sugar on toddlers</a>
+        <a class="bcd" href="https://doddl.com/blogs/tips-and-advice/toddler-nutrients" target="_blank">Toddler nutrients</a>
+        <a class="bcd" href="https://doddl.com/blogs/tips-and-advice/tips-for-nutritious-eating-and-daily-routines" target="_blank">Nutritious eating &amp; daily routines</a>
+        <a class="bcd" href="https://doddl.com/blogs/tips-and-advice/the-doddl-plate" target="_blank">The doddl plate</a>
+        <a class="bcd" href="https://doddl.com/blogs/tips-and-advice/how-to-introduce-the-doddl-toddler-plate" target="_blank">How to introduce the doddl plate</a>
+        <a class="bcd" href="https://doddl.com/blogs/tips-and-advice/kid-friendly-picnic-ideas-making-outdoor-meals-memorable" target="_blank">Kid-friendly picnic ideas</a>
+        <a class="bcd" href="https://doddl.com/blogs/tips-and-advice/from-toddler-tastes-to-family-feasts-growing-bonds-at-the-dinner-table" target="_blank">From toddler tastes to family feasts</a>
+        <a class="bcd" href="https://doddl.com/blogs/tips-and-advice/encouraging-independent-eating-while-reducing-mess" target="_blank">Encouraging independent eating</a>
+      </div>
+      <button class="acc-btn" style="background:#4A4580;" onclick="acc(this)">
+        Tips — General &amp; All Stages
+        <span class="acc-sub">Family mealtimes · wellbeing · brand</span>
+      </button>
+      <div class="acc-body">
+        <a class="bcd" href="https://doddl.com/blogs/tips-and-advice/the-importance-of-family-meal-times" target="_blank">Importance of family meal times</a>
+        <a class="bcd" href="https://doddl.com/blogs/tips-and-advice/make-mealtimes-about-the-experience-not-just-the-food" target="_blank">Mealtimes: experience not just food</a>
+        <a class="bcd" href="https://doddl.com/blogs/tips-and-advice/the-link-between-mealtimes-and-sleeping" target="_blank">Mealtimes &amp; sleeping</a>
+        <a class="bcd" href="https://doddl.com/blogs/tips-and-advice/ways-to-keep-babies-and-toddlers-busy-in-the-kitchen" target="_blank">Keeping toddlers busy in kitchen</a>
+        <a class="bcd" href="https://doddl.com/blogs/tips-and-advice/top-tips-for-enjoyable-christmas-mealtimes" target="_blank">Enjoyable Christmas mealtimes</a>
+        <a class="bcd" href="https://doddl.com/blogs/tips-and-advice/getting-your-children-involved-in-food-preparation" target="_blank">Getting children involved in food prep</a>
+        <a class="bcd" href="https://doddl.com/blogs/tips-and-advice/our-tips-for-cooking-with-kids" target="_blank">Tips for cooking with kids</a>
+        <a class="bcd" href="https://doddl.com/blogs/tips-and-advice/planting-vegetables-with-children" target="_blank">Planting vegetables with children</a>
+        <a class="bcd" href="https://doddl.com/blogs/tips-and-advice/travelling-with-toddlers" target="_blank">Travelling with toddlers</a>
+        <a class="bcd" href="https://doddl.com/blogs/tips-and-advice/the-importance-of-eating-out-with-your-children" target="_blank">Eating out with children</a>
+        <a class="bcd" href="https://doddl.com/blogs/tips-and-advice/eating-out-with-kids-on-holiday" target="_blank">Eating out with kids on holiday</a>
+        <a class="bcd" href="https://doddl.com/blogs/tips-and-advice/from-toddler-tastes-to-family-feasts-growing-bonds-at-the-dinner-table" target="_blank">From toddler tastes to family feasts</a>
+        <a class="bcd" href="https://doddl.com/blogs/tips-and-advice/mental-health" target="_blank">Mental health &amp; mealtimes</a>
+        <a class="bcd" href="https://doddl.com/blogs/tips-and-advice/looking-after-your-mental-wellbeing" target="_blank">Looking after your mental wellbeing</a>
+        <a class="bcd" href="https://doddl.com/blogs/tips-and-advice/mental-health-my-story" target="_blank">Mental health: my story</a>
+        <a class="bcd" href="https://doddl.com/blogs/tips-and-advice/its-not-one-baby-its-three-identical-triplets" target="_blank">Feeding identical triplets</a>
+        <a class="bcd" href="https://doddl.com/blogs/tips-and-advice/tips-to-avoid-the-dreaded-milestone-comparison" target="_blank">Avoiding milestone comparison</a>
+        <a class="bcd" href="https://doddl.com/blogs/tips-and-advice/what-to-do-if-mealtimes-even-more-challenging" target="_blank">When mealtimes are extra challenging</a>
+        <a class="bcd" href="https://doddl.com/blogs/tips-and-advice/doddl-family-mealtime-research" target="_blank">doddl family mealtime research</a>
+        <a class="bcd" href="https://doddl.com/blogs/tips-and-advice/doddl-at-the-centre-for-early-childhood" target="_blank">doddl at Centre for Early Childhood</a>
+        <a class="bcd" href="https://doddl.com/blogs/tips-and-advice/cat-doddl-inventor" target="_blank">Cat — doddl inventor story</a>
+        <a class="bcd" href="https://doddl.com/blogs/tips-and-advice/designing-the-first-range-of-innovative-toddler-cutlery" target="_blank">Designing the first cutlery range</a>
+        <a class="bcd" href="https://doddl.com/blogs/tips-and-advice/thank-you-weaning-week-gold" target="_blank">Thank you — Weaning Week Gold</a>
+        <a class="bcd" href="https://doddl.com/blogs/tips-and-advice/baby-essentials-award-for-doddl" target="_blank">Baby Essentials Award</a>
+        <a class="bcd" href="https://doddl.com/blogs/tips-and-advice/kings-award-for-enterprise" target="_blank">King's Award for Enterprise</a>
+        <a class="bcd" href="https://doddl.com/blogs/tips-and-advice/doddl-wins-baby-innovation-award" target="_blank">Baby Innovation Award</a>
+      </div>
+      <button class="acc-btn" style="background:#4A4580;" onclick="acc(this)">
+        Products We Love
+        <span class="acc-sub">/blogs/products-we-love · 5 posts</span>
+      </button>
+      <div class="acc-body">
+        <a class="bcd" href="https://doddl.com/blogs/products-we-love/christmas-gifts-for-babies" target="_blank">Christmas gifts for babies</a>
+        <a class="bcd" href="https://doddl.com/blogs/products-we-love/christmas-gifts-for-toddlers" target="_blank">Christmas gifts for toddlers</a>
+        <a class="bcd" href="https://doddl.com/blogs/products-we-love/playtime-with-purpose-how-to-play-with-your-baby-by-etta-loves" target="_blank">Playtime with purpose — Etta Loves</a>
+        <a class="bcd" href="https://doddl.com/blogs/products-we-love/products-we-love-brush-baby-the-toothcare-brand-that-grows-with-your-child" target="_blank">Brush-Baby toothcare</a>
+        <a class="bcd" href="https://doddl.com/blogs/products-we-love/babys-first-christmas-gift-ideas-and-toddler-gifts" target="_blank">Baby's first Christmas gifts</a>
+      </div>
+      <button class="acc-btn" style="background:#4A4580;" onclick="acc(this)">
+        Awards &amp; News
+        <span class="acc-sub">/blogs/awards-and-doddl-news</span>
+      </button>
+      <div class="acc-body">
+        <a class="bcd" href="https://doddl.com/blogs/awards-and-doddl-news" target="_blank">Awards &amp; news hub →</a>
+        <span class="bcd" style="background:#E8F8F0;border:1px solid #A8D8A8;color:#2a8050;">Consolidate award posts here — new page needed</span>
+      </div>
+    </div>
+
+  
+      <!-- NAV PROTOTYPE -->
+      <div class="col">
+        <a class="ch h-k2" href="../nav/desktop.html">Navigation<div class="s">Mega menu · Mobile drawer</div></a>
+        <a class="cd c-ke" href="../nav/desktop.html">Desktop mega menu<div class="s">/prototypes/nav/desktop.html</div></a>
+        <a class="cd c-ke" href="../nav/desktop.html#mobile">Mobile hamburger drawer<div class="s">/prototypes/nav/desktop.html#mobile</div></a>
+      </div>
+  </div><!-- /cols -->
+
+  <div class="txn">
+    <div class="tc">Product detail page (PDP)<div class="s">Add to bag · colour / variant selection</div></div>
+    <div class="tc">Bag / Checkout<div class="s">Payment · order confirmation</div></div>
+  </div>
+
+  
+</div><!-- /pg -->
+<div style="height:48px;"></div>
+
+<script>
+
+function acc(btn) {
+  const body = btn.nextElementSibling;
+  const isOpen = btn.classList.contains('open');
+  btn.classList.toggle('open', !isOpen);
+  body.classList.toggle('open', !isOpen);
+}
+
+function tog(id, btn, n) {
+  const el = document.getElementById(id);
+  const open = el.classList.toggle('open');
+  btn.textContent = open ? '− Show less' : '+ Show ' + n + ' more';
+}
+function togGrid(id, btn, n) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const hidden = el.style.display === 'none' || el.style.display === '';
+  if (hidden) {
+    el.style.display = 'contents';
+    btn.textContent = '− Show less';
+  } else {
+    el.style.display = 'none';
+    btn.textContent = '+ Show ' + n + ' more';
+  }
+}
+document.addEventListener('DOMContentLoaded', () => {
+  const tg = document.getElementById('oc-tg');
+  if (tg) tg.style.display = 'none';
+});
+</script>
+
+
+<!-- ── DODDL SITE FOOTER ──────────────────────────────────────────── -->
+<footer class="site-footer">
+  <div class="site-footer-top">
+    <div class="sf-brand">
+      <a href="https://doddl.com" target="_blank" class="sf-logo">*doddl<span>.</span></a>
+      <div class="sf-email-head">Sign up for 10% off</div>
+      <div class="sf-email-sub">Join our mailing list to be the first to hear about all things doddl</div>
+      <div class="sf-email-row">
+        <input type="email" placeholder="E-mail" />
+        <button>›</button>
+      </div>
+    </div>
+    <div class="sf-col">
+      <div class="sf-col-head">Shop</div>
+      <ul>
+        <li><a href="https://doddl.com/collections/shop-all" target="_blank">Shop All</a></li>
+        <li><a href="https://doddl.com/collections/bestsellers" target="_blank">Bestsellers</a></li>
+        <li><a href="https://doddl.com/collections/weaning-sets" target="_blank">Weaning Sets</a></li>
+        <li><a href="https://doddl.com/collections/toddler-cutlery" target="_blank">Toddler Cutlery</a></li>
+        <li><a href="https://doddl.com/collections/baby-cutlery" target="_blank">Baby Cutlery</a></li>
+        <li><a href="https://doddl.com/collections/bowls-plates" target="_blank">Bowls &amp; Plates</a></li>
+        <li><a href="https://doddl.com/collections/starter-kits" target="_blank">Starter Kits</a></li>
+      </ul>
+    </div>
+    <div class="sf-col">
+      <div class="sf-col-head">Brand</div>
+      <ul>
+        <li><a href="https://doddl.com/pages/about-doddl" target="_blank">About doddl</a></li>
+        <li><a href="https://doddl.com/pages/what-the-experts-think" target="_blank">Experts Views</a></li>
+        <li><a href="https://doddl.com/pages/sustainability" target="_blank">Sustainability</a></li>
+        <li><a href="https://doddl.com/pages/our-commitment-to-the-future" target="_blank">Our Commitment</a></li>
+        <li><a href="https://doddl.com/pages/our-partnerships" target="_blank">Our Partnerships</a></li>
+        <li><a href="https://doddl.com/pages/trade" target="_blank">Trade</a></li>
+        <li><a href="https://doddl.com/pages/boots" target="_blank">Boots</a></li>
+        <li><a href="https://doddl.com/pages/international-retailers" target="_blank">International Retailers</a></li>
+      </ul>
+    </div>
+    <div class="sf-col">
+      <div class="sf-col-head">Discovery</div>
+      <ul>
+        <li><a href="https://doddl.com/blogs/tips-and-advice" target="_blank">Tips and Advice for Parents</a></li>
+        <li><a href="https://doddl.com/blogs/weaning-recipes-for-babies" target="_blank">Baby Weaning Recipes</a></li>
+        <li><a href="https://doddl.com/blogs/products-we-love" target="_blank">Products we love</a></li>
+        <li><a href="https://doddl.com/blogs/toddler-food-recipes" target="_blank">Toddler Recipe Collection</a></li>
+      </ul>
+    </div>
+    <div class="sf-col">
+      <div class="sf-col-head">Customer Care</div>
+      <ul>
+        <li><a href="https://doddl.com/account" target="_blank">My Account</a></li>
+        <li><a href="https://doddl.com/pages/faqs" target="_blank">FAQs</a></li>
+        <li><a href="https://doddl.com/pages/contact-us" target="_blank">Contact Us</a></li>
+        <li><a href="https://doddl.com/pages/delivery-returns" target="_blank">Delivery &amp; Returns</a></li>
+        <li><a href="https://doddl.com/policies/privacy-policy" target="_blank">Privacy Policy</a></li>
+        <li><a href="https://doddl.com/policies/terms-of-service" target="_blank">Terms of Service</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="site-footer-mid">
+    <div class="sf-socials">
+      <a href="https://facebook.com/doddl" target="_blank" title="Facebook">📘</a>
+      <a href="https://instagram.com/doddl" target="_blank" title="Instagram">📷</a>
+      <a href="https://tiktok.com/@doddl" target="_blank" title="TikTok">🎵</a>
+    </div>
+    <div class="sf-lang">🇬🇧 English</div>
+  </div>
+  <div class="site-footer-bottom">
+    <div class="sf-copy">
+      © 2026, Doddl Ltd. Powered by Shopify &nbsp;·&nbsp;
+      <a href="https://doddl.com/policies/refund-policy" target="_blank">Refund policy</a>
+      <a href="https://doddl.com/policies/privacy-policy" target="_blank">Privacy policy</a>
+      <a href="https://doddl.com/policies/terms-of-service" target="_blank">Terms of service</a>
+      <a href="https://doddl.com/policies/shipping-policy" target="_blank">Shipping policy</a>
+      <a href="https://doddl.com/pages/contact-us" target="_blank">Contact information</a>
+    </div>
+    <div class="sf-payments">
+      <span class="sf-pay">Amex</span>
+      <span class="sf-pay">Apple Pay</span>
+      <span class="sf-pay">Google Pay</span>
+      <span class="sf-pay">Diners</span>
+      <span class="sf-pay">Discover</span>
+      <span class="sf-pay">Maestro</span>
+      <span class="sf-pay">Mastercard</span>
+      <span class="sf-pay">PayPal</span>
+      <span class="sf-pay">Shop Pay</span>
+      <span class="sf-pay">Union Pay</span>
+      <span class="sf-pay">Visa</span>
+    </div>
+  </div>
+</footer>
+
+<div class="footer-strip">
+  <a href="/prototypes/journey/" class="fl">doddl<span>.</span></a>
+  <span>Site Map · Prototype Navigation · Staging · © doddl 2026</span>
+  <span>Prototype — not for public distribution</span>
+</div>
+</body>
+</html>
+<!-- patch marker -->

@@ -1,5 +1,30 @@
 .env.local
 .next/
 node_modules/
+connectors/node_modules/
 .DS_Store
 .claude/settings.local.json
+
+# Terraform secrets — never committed
+infra/terraform/**/*.tfvars
+!infra/terraform/**/*.tfvars.example
+infra/terraform/**/.terraform/
+infra/terraform/**/*.tfstate
+infra/terraform/**/*.tfstate.*
+infra/terraform/**/crash.log
+
+# Tool binaries
+bin/terraform.exe
+
+# Python
+connectors/__pycache__/
+connectors/**/__pycache__/
+connectors/**/*.pyc
+
+# Backfill logs and data exports — not source, not meant to be tracked
+backfill_log.txt
+backfill_shopify.txt
+backfill_shopify2.txt
+exports/
+*.log
+__pycache__/

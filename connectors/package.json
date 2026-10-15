@@ -1,0 +1,14 @@
+{
+  "name": "doddl-connectors",
+  "version": "0.1.0",
+  "private": true,
+  "description": "doddl AI OS connector runtime — fetches credentials from Azure Key Vault",
+  "main": "lib/secrets.js",
+  "dependencies": {
+    "@azure/identity": "^4.3.0",
+    "@azure/keyvault-secrets": "^4.8.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

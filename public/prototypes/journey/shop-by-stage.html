@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>doddl · Shop by Stage</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; height: 100%; }
+    body {
+      font-family: 'Nunito', system-ui, sans-serif;
+      background: #FAFAF8;
+      color: #26215C;
+    }
+    header.bar {
+      position: sticky; top: 0; z-index: 10;
+      height: 56px;
+      background: #fff;
+      border-bottom: 1px solid #EDE9F6;
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+    }
+    .bar .left { flex: 1; }
+    .bar .center { flex: 1; display: flex; align-items: center; justify-content: center; gap: 10px; }
+    .bar .right { flex: 1; display: flex; flex-direction: column; align-items: flex-end; gap: 3px; }
+    .bar a.back {
+      font-weight: 700; color: #3D157D; text-decoration: none; font-size: 14px;
+    }
+    .bar a.back:hover { text-decoration: underline; }
+    .bar .logo {
+      font-family: 'Nunito', sans-serif; font-weight: 900; color: #3D157D;
+      font-size: 22px; line-height: 1;
+    }
+    .bar .logo .dot { color: #30BEAA; }
+    .bar .label { font-size: 12px; font-weight: 700; }
+    .toggle { display: flex; gap: 6px; }
+    .toggle button {
+      font-family: 'Nunito', sans-serif;
+      border-radius: 50px;
+      padding: 7px 18px;
+      font-weight: 800;
+      font-size: 12px;
+      background: transparent;
+      color: #888;
+      border: 1px solid #ddd;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .toggle button.active {
+      background: #26215C;
+      color: #fff;
+      border-color: #26215C;
+    }
+    .meta { font-size: 10px; color: #aaa; }
+
+    .stage {
+      width: 100%;
+      height: calc(100vh - 56px);
+      background: #FAFAF8;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      overflow: auto;
+    }
+    .stage iframe.desktop {
+      width: 100%; height: 100%; border: 0; background: #fff;
+    }
+    .mobile-frame {
+      margin: 12px 0;
+      width: 430px;
+      max-width: 430px;
+      height: calc(100vh - 80px);
+      border: 8px solid #26215C;
+      border-radius: 20px;
+      background: #26215C;
+      overflow: hidden;
+      box-shadow: 0 8px 30px rgba(38,33,92,0.15);
+    }
+    .mobile-frame iframe {
+      width: 100%; height: 100%; border: 0; background: #fff;
+      border-radius: 12px;
+    }
+  </style>
+</head>
+<body>
+  <header class="bar">
+    <div class="left"><a class="back" href="./index.html">← Back</a></div>
+    <div class="center">
+      <div class="logo">doddl<span class="dot">.</span></div>
+      <div class="label" style="color: #947FB6;">Shop by Stage</div>
+    </div>
+    <div class="right">
+      <div class="toggle">
+        <button id="btnDesktop" class="active" type="button">Desktop</button>
+        <button id="btnMobile" type="button">Mobile</button>
+      </div>
+      <div class="meta" id="meta">Desktop: 1440px</div>
+    </div>
+  </header>
+  <div class="stage" id="stage">
+    <iframe class="desktop" src="./desktop.html"></iframe>
+  </div>
+  <script>
+    (function () {
+      var DESKTOP_SRC = './desktop.html';
+      var MOBILE_SRC = './mobile.html';
+      var stage = document.getElementById('stage');
+      var meta = document.getElementById('meta');
+      var btnD = document.getElementById('btnDesktop');
+      var btnM = document.getElementById('btnMobile');
+      function setMode(mode) {
+        if (mode === 'desktop') {
+          stage.innerHTML = '<iframe class="desktop" src="' + DESKTOP_SRC + '"></iframe>';
+          btnD.classList.add('active'); btnM.classList.remove('active');
+          meta.textContent = 'Desktop: 1440px';
+        } else {
+          stage.innerHTML = '<div class="mobile-frame"><iframe src="' + MOBILE_SRC + '"></iframe></div>';
+          btnD.classList.remove('active'); btnM.classList.add('active');
+          meta.textContent = 'Mobile: 390px';
+        }
+      }
+      btnD.addEventListener('click', function () { setMode('desktop'); });
+      btnM.addEventListener('click', function () { setMode('mobile'); });
+    })();
+  </script>
+</body>
+</html>

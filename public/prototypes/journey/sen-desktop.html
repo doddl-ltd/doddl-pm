@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>doddl. — Every Child's Journey · SEN Storyboard Desktop</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --indigo:   #3D157D;
+    --aqua:     #30BEAA;
+    --lt-aqua:  #9ECFC6;
+    --lt-orange:#FACC91;
+    --lt-indigo:#947FB6;
+    --grey:     #EAEAEA;
+    --white:    #FFFFFF;
+    --bg:       #FDFCFA;
+    --text:     #1C1C1C;
+    --muted:    #6A6A6A;
+    --border:   #E8E4DC;
+
+    /* Stage palette — warmer, softer than main journey */
+    --s1-bg:  #FEF9F2; --s1-mid: #FACC91; --s1-acc: #C47D20;
+    --s2-bg:  #F2FAF8; --s2-mid: #9ECFC6; --s2-acc: #2A9A88;
+    --s3-bg:  #F5F0FB; --s3-mid: #C8B8E8; --s3-acc: #6B46A8;
+    --s4-bg:  #EEF9F6; --s4-mid: #9ECFC6; --s4-acc: #30BEAA;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Nunito', sans-serif; background: var(--bg); color: var(--text); }
+
+  /* ── STORYBOARD BANNER ── */
+  .sb-banner {
+    background: #2A1050; color: #fff;
+    padding: 7px 16px; font-size: 11px; font-weight: 700;
+    letter-spacing: .07em; text-transform: uppercase;
+    text-align: center; position: sticky; top: 0; z-index: 100;
+  }
+  .sb-banner span { opacity: .5; font-weight: 400; margin-left: 10px;
+    text-transform: none; letter-spacing: 0; font-size: 11px; }
+
+  /* ── NAV ── */
+  nav {
+    background: var(--white); border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 56px; height: 66px;
+    position: sticky; top: 28px; z-index: 90;
+  }
+  .nav-logo { font-size: 26px; font-weight: 900; color: var(--indigo); letter-spacing: -.01em; }
+  .nav-logo .dot { color: var(--aqua); }
+  .nav-links { display: flex; gap: 28px; font-size: 13px; font-weight: 700; color: var(--muted); }
+  .nav-links a { text-decoration: none; color: inherit; cursor: pointer; transition: color .15s; }
+  .nav-links a:hover { color: var(--indigo); }
+  .nav-links a.active { color: var(--indigo); border-bottom: 2px solid var(--aqua); padding-bottom: 2px; }
+  .nav-cta {
+    background: var(--indigo); color: #fff; font-size: 13px; font-weight: 800;
+    padding: 10px 24px; border-radius: 50px; cursor: pointer; border: none;
+    font-family: 'Nunito', sans-serif; transition: opacity .15s;
+  }
+
+  /* ── HERO — warmer, more human than main journey ── */
+  .hero {
+    background: var(--indigo); color: #fff;
+    padding: 80px 56px 64px; text-align: center;
+    position: relative; overflow: hidden;
+  }
+  /* soft warm orbs — different feel from main journey */
+  .hero::before {
+    content: ''; position: absolute;
+    width: 400px; height: 400px; border-radius: 50%;
+    background: rgba(250,204,145,.12);
+    top: -100px; left: -80px; pointer-events: none;
+  }
+  .hero::after {
+    content: ''; position: absolute;
+    width: 300px; height: 300px; border-radius: 50%;
+    background: rgba(48,190,170,.15);
+    bottom: -60px; right: -40px; pointer-events: none;
+  }
+  .hero-eyebrow {
+    font-size: 11px; font-weight: 800; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--lt-orange); margin-bottom: 20px;
+    position: relative;
+  }
+  .hero h1 {
+    font-size: clamp(28px, 3.6vw, 48px); font-weight: 900; line-height: 1.1;
+    margin-bottom: 20px; max-width: 720px;
+    margin-left: auto; margin-right: auto; position: relative;
+  }
+  .hero h1 em { font-style: normal; color: var(--aqua); }
+  .hero-sub {
+    font-size: 17px; font-weight: 600; color: rgba(255,255,255,.72);
+    max-width: 560px; margin: 0 auto 16px; line-height: 1.7; position: relative;
+  }
+  .hero-note {
+    font-size: 13px; color: rgba(255,255,255,.45); font-weight: 600;
+    position: relative; margin-bottom: 32px;
+  }
+
+  /* OT trust signal in hero */
+  .hero-trust {
+    display: inline-flex; align-items: center; gap: 10px;
+    background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.2);
+    border-radius: 50px; padding: 10px 20px; font-size: 13px; font-weight: 700;
+    color: rgba(255,255,255,.85); position: relative;
+  }
+  .hero-trust .ot-dot {
+    width: 8px; height: 8px; border-radius: 50%; background: var(--aqua);
+  }
+
+  /* ── STAGE TABS ── */
+  .tabs-wrap {
+    background: var(--white); border-bottom: 1.5px solid var(--border);
+    position: sticky; top: 94px; z-index: 80;
+    box-shadow: 0 2px 16px rgba(0,0,0,.05);
+  }
+  .tabs {
+    display: flex; max-width: 1200px; margin: 0 auto; padding: 0 56px;
+  }
+  .tab {
+    flex: 1; display: flex; flex-direction: column; align-items: center;
+    padding: 18px 12px 14px; cursor: pointer;
+    border-bottom: 3px solid transparent; transition: all .18s;
+    user-select: none; position: relative;
+  }
+  .tab:hover:not(.active) { background: var(--bg); }
+  .tab.active { border-bottom-color: var(--tab-acc); background: var(--bg); }
+  .tab-icon {
+    width: 36px; height: 36px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; margin-bottom: 7px;
+    background: var(--tab-bg); transition: all .18s;
+  }
+  .tab.active .tab-icon { background: var(--tab-acc); }
+  .tab-name {
+    font-size: 11px; font-weight: 800; text-transform: uppercase;
+    letter-spacing: .06em; color: var(--muted); margin-bottom: 2px;
+    text-align: center; line-height: 1.3; transition: color .18s;
+  }
+  .tab.active .tab-name { color: var(--tab-acc); }
+  .tab-hint { font-size: 10px; color: var(--muted); opacity: .6; text-align: center; }
+
+  /* ── CONTENT AREA ── */
+  .content { max-width: 1200px; margin: 0 auto; padding: 0 56px; }
+
+  /* ── PANELS ── */
+  .panel { display: none; }
+  .panel.active { display: block; animation: fadein .25s ease; }
+  @keyframes fadein { from { opacity:0; transform:translateY(5px); } to { opacity:1; transform:translateY(0); } }
+
+  /* ── STAGE HERO SPLIT ── */
+  .stage-hero {
+    display: grid; grid-template-columns: 1fr 1.4fr;
+    background: var(--panel-bg); border-radius: 0 0 20px 20px;
+    overflow: hidden; margin-bottom: 32px;
+  }
+  .stage-info { padding: 48px 40px; display: flex; flex-direction: column; justify-content: center; }
+  .stage-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .1em;
+    color: var(--panel-acc); background: rgba(255,255,255,.85);
+    border: 1.5px solid var(--panel-acc);
+    padding: 5px 14px; border-radius: 50px; margin-bottom: 20px; width: fit-content;
+  }
+  .stage-info h2 {
+    font-size: 30px; font-weight: 900; line-height: 1.12;
+    margin-bottom: 10px; color: var(--indigo);
+  }
+  .stage-info h2 em { font-style: normal; color: var(--panel-acc); }
+  .stage-tagline {
+    font-size: 14px; font-weight: 600; color: var(--muted);
+    margin-bottom: 22px; line-height: 1.65;
+  }
+
+  /* signs not milestones */
+  .signs-label {
+    font-size: 10px; font-weight: 800; text-transform: uppercase;
+    letter-spacing: .09em; color: var(--muted); margin-bottom: 10px;
+  }
+  .signs { list-style: none; margin-bottom: 24px; }
+  .signs li {
+    font-size: 13px; font-weight: 700; padding: 9px 0;
+    border-bottom: 1px solid rgba(0,0,0,.06);
+    display: flex; align-items: flex-start; gap: 10px; line-height: 1.4;
+  }
+  .signs li::before {
+    content: ''; width: 7px; height: 7px; border-radius: 50%;
+    background: var(--panel-acc); flex-shrink: 0; margin-top: 4px;
+  }
+
+  /* celebration note */
+  .celebration {
+    background: rgba(48,190,170,.08); border-left: 3px solid var(--aqua);
+    border-radius: 0 8px 8px 0; padding: 12px 16px; margin-bottom: 24px;
+    font-size: 13px; font-weight: 700; color: var(--indigo); line-height: 1.55;
+  }
+  .celebration em { font-style: normal; color: var(--aqua); }
+
+  .stage-btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--indigo); color: #fff; font-size: 13px; font-weight: 800;
+    padding: 13px 26px; border-radius: 50px; cursor: pointer; border: none;
+    font-family: 'Nunito', sans-serif; transition: all .18s; width: fit-content;
+  }
+  .stage-btn:hover { opacity: .88; transform: translateY(-1px); }
+
+  /* family story panel */
+  .family-panel {
+    padding: 36px 32px; display: flex; flex-direction: column;
+    justify-content: center; gap: 20px;
+  }
+  .family-label {
+    font-size: 10px; font-weight: 800; text-transform: uppercase;
+    letter-spacing: .1em; color: var(--muted);
+  }
+  .family-quote {
+    background: var(--white); border-radius: 16px; padding: 22px 24px;
+    border: 1.5px solid var(--border);
+  }
+  .fq-text {
+    font-size: 14px; font-weight: 700; color: var(--text);
+    line-height: 1.65; margin-bottom: 14px; font-style: italic;
+  }
+  .fq-meta { display: flex; align-items: center; gap: 10px; }
+  .fq-avatar {
+    width: 36px; height: 36px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; flex-shrink: 0;
+  }
+  .fq-name { font-size: 12px; font-weight: 800; color: var(--indigo); }
+  .fq-child { font-size: 11px; color: var(--muted); font-weight: 600; }
+
+  /* UGC images placeholder */
+  .ugc-row { display: flex; gap: 10px; }
+  .ugc-img {
+    flex: 1; aspect-ratio: 1; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 32px; background: var(--panel-bg);
+    border: 1.5px solid var(--border);
+    font-weight: 700; color: var(--muted);
+  }
+
+  /* ── OT STRIP — more prominent than main journey ── */
+  .ot-strip {
+    background: var(--indigo); border-radius: 16px;
+    padding: 28px 36px; margin-bottom: 32px;
+    display: grid; grid-template-columns: auto 1fr auto;
+    gap: 32px; align-items: center;
+  }
+  .ot-icon {
+    width: 56px; height: 56px; border-radius: 50%;
+    background: rgba(255,255,255,.12);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px; flex-shrink: 0;
+  }
+  .ot-content {}
+  .ot-label {
+    font-size: 10px; font-weight: 800; text-transform: uppercase;
+    letter-spacing: .1em; color: var(--aqua); margin-bottom: 6px;
+  }
+  .ot-quote {
+    font-size: 14px; font-weight: 700; color: #fff;
+    line-height: 1.6; font-style: italic; margin-bottom: 6px;
+  }
+  .ot-who { font-size: 12px; font-weight: 800; color: rgba(255,255,255,.6); }
+  .ot-logos { display: flex; flex-direction: column; gap: 8px; align-items: flex-end; }
+  .ot-logo {
+    background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.2);
+    border-radius: 7px; padding: 6px 14px; font-size: 10px; font-weight: 800;
+    text-transform: uppercase; letter-spacing: .05em; color: rgba(255,255,255,.75);
+    white-space: nowrap;
+  }
+
+  /* ── PRODUCT SECTION ── */
+  .prod-section { margin-bottom: 40px; }
+  .prod-header {
+    display: flex; align-items: flex-end; justify-content: space-between;
+    margin-bottom: 8px;
+  }
+  .prod-header h3 { font-size: 20px; font-weight: 900; color: var(--indigo); }
+  .prod-header h3 span { color: var(--panel-acc); }
+  .prod-sub-label {
+    font-size: 13px; font-weight: 600; color: var(--muted); margin-bottom: 18px;
+    line-height: 1.5;
+  }
+  .view-all { font-size: 12px; font-weight: 800; color: var(--panel-acc); cursor: pointer; text-decoration: underline; }
+  .prod-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; }
+  .prod-card {
+    background: var(--white); border-radius: 16px; overflow: hidden;
+    border: 1.5px solid var(--border); cursor: pointer; transition: all .18s;
+  }
+  .prod-card:hover { border-color: var(--panel-acc); transform: translateY(-3px); box-shadow: 0 8px 28px rgba(0,0,0,.09); }
+  .prod-card.best { border-color: var(--panel-acc); border-width: 2px; position: relative; }
+  .best-label {
+    position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+    background: var(--panel-acc); color: #fff; font-size: 8px; font-weight: 900;
+    padding: 3px 10px; border-radius: 0 0 8px 8px; text-transform: uppercase;
+    letter-spacing: .05em; white-space: nowrap;
+  }
+  .prod-img {
+    width: 100%; aspect-ratio: 1; background: var(--panel-bg);
+    display: flex; align-items: center; justify-content: center; font-size: 42px;
+  }
+  .prod-body { padding: 12px; }
+  .prod-name { font-size: 12px; font-weight: 800; color: var(--indigo); margin-bottom: 2px; line-height: 1.3; }
+  .prod-why { font-size: 10px; color: var(--panel-acc); font-weight: 700; margin-bottom: 6px; line-height: 1.4; }
+  .prod-row { display: flex; align-items: center; justify-content: space-between; }
+  .prod-price { font-size: 14px; font-weight: 900; color: var(--panel-acc); }
+  .prod-add {
+    width: 28px; height: 28px; border-radius: 50%; border: none;
+    background: var(--panel-acc); color: #fff; font-size: 17px; font-weight: 900;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    transition: transform .15s; line-height: 1;
+  }
+  .prod-add:hover { transform: scale(1.12); }
+
+  /* ── NEXT STAGE HOOK — celebratory not prescriptive ── */
+  .next-hook {
+    border-radius: 16px; padding: 32px 40px;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 24px; margin-bottom: 48px;
+    border: 1.5px solid var(--next-acc);
+    background: var(--next-bg);
+  }
+  .next-hook h4 { font-size: 16px; font-weight: 900; color: var(--next-acc); margin-bottom: 6px; }
+  .next-hook p { font-size: 13px; font-weight: 600; color: var(--muted); max-width: 440px; line-height: 1.6; }
+  .next-btn {
+    padding: 12px 28px; color: #fff; font-size: 13px; font-weight: 800;
+    border-radius: 50px; border: none; cursor: pointer; white-space: nowrap;
+    font-family: 'Nunito', sans-serif; background: var(--next-acc);
+    transition: all .18s; flex-shrink: 0;
+  }
+  .next-btn:hover { opacity: .88; transform: translateY(-1px); }
+
+  /* ── ANNOTATION NOTES ── */
+  .note {
+    background: #FFFDE7; border: 1.5px dashed #F9A825; border-radius: 8px;
+    padding: 10px 14px; font-size: 11px; font-weight: 700; color: #5C3D00;
+    margin-bottom: 14px; display: flex; gap: 8px; line-height: 1.5;
+  }
+  .note-icon { flex-shrink: 0; font-size: 13px; margin-top: 1px; }
+
+  /* ── TOAST ── */
+  .toast {
+    position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(80px);
+    background: var(--indigo); color: #fff; padding: 11px 22px; border-radius: 50px;
+    font-size: 13px; font-weight: 700; z-index: 999; transition: transform .28s ease;
+    white-space: nowrap;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  /* ── SENSITIVE BANNER — top of page ── */
+  .sensitive-bar {
+    background: #FEF9F2; border-bottom: 1px solid #FACC91;
+    padding: 10px 56px; display: flex; align-items: center; gap: 12px;
+  }
+  .sensitive-bar p {
+    font-size: 12px; font-weight: 700; color: #7A4500; line-height: 1.5;
+  }
+  .sensitive-bar p a {
+    color: var(--indigo); text-decoration: underline; cursor: pointer;
+  }
+  .sensitive-icon { font-size: 18px; flex-shrink: 0; }
+
+  @media (max-width: 900px) {
+    nav, .content, .sensitive-bar { padding-left: 20px; padding-right: 20px; }
+    .tabs { padding: 0 8px; }
+    .stage-hero { grid-template-columns: 1fr; }
+    .prod-grid { grid-template-columns: repeat(2, 1fr); }
+    .ot-strip { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="sb-banner">
+  doddl · SEN Journey · Storyboard Desktop v1
+  <span>Sensitive content — language reviewed for tone. Yellow = annotations.</span>
+</div>
+
+<!-- SENSITIVE INFO BAR -->
+<div class="sensitive-bar">
+  <span class="sensitive-icon">💛</span>
+  <p>This page is designed for families of children with additional needs, including dyspraxia, cerebral palsy, hypermobility and other motor challenges. <a onclick="t('→ Links to OT partner page')">Recommended by occupational therapists.</a></p>
+</div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo"><a href="/prototypes/journey/" target="_top" style="text-decoration:none;color:inherit;">doddl<span class="dot">.</span></a></div>
+  <div class="nav-links">
+    <a href="/prototypes/journey/shop-by-stage.html" target="_top">Shop by Stage</a><a href="/prototypes/journey/shop-by-category.html" target="_top">Shop by Category</a><a class="active" href="/prototypes/journey/sen-journey.html" target="_top">SEN Journey</a><a href="/prototypes/journey/bundle-box.html" target="_top">Bundle Box</a><a>Research &amp; Dev</a><a>Tips &amp; Advice</a>
+  </div>
+  <button class="nav-cta">Shop now</button>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-eyebrow">Every child gets there in their own time</div>
+  <h1>Tools that work <em>at your child's pace</em> — not anyone else's</h1>
+  <p class="hero-sub">doddl was designed for children who find mealtimes hard. Engineered with occupational therapists. Built for the children who need it most.</p>
+  <p class="hero-note">No ages. No comparisons. No "by now they should". Just the right tool at the right moment.</p>
+  <div class="hero-trust">
+    <span class="ot-dot"></span>
+    Recommended by occupational therapists across the UK
+  </div>
+</section>
+
+<!-- STAGE TABS -->
+<div class="tabs-wrap">
+  <div class="tabs">
+    <div class="tab active" id="tab-0" onclick="go(0)"
+         style="--tab-bg:#FEF0DC;--tab-acc:#C47D20;">
+      <div class="tab-icon">🌱</div>
+      <div class="tab-name">Just starting out</div>
+      <div class="tab-hint">First steps</div>
+    </div>
+    <div class="tab" id="tab-1" onclick="go(1)"
+         style="--tab-bg:#DCF0EC;--tab-acc:#2A9A88;">
+      <div class="tab-icon">✋</div>
+      <div class="tab-name">Establishing their grip</div>
+      <div class="tab-hint">Getting there</div>
+    </div>
+    <div class="tab" id="tab-2" onclick="go(2)"
+         style="--tab-bg:#EDE4F8;--tab-acc:#6B46A8;">
+      <div class="tab-icon">⭐</div>
+      <div class="tab-name">Building confidence</div>
+      <div class="tab-hint">Good days and harder days</div>
+    </div>
+    <div class="tab" id="tab-3" onclick="go(3)"
+         style="--tab-bg:#DCF5EF;--tab-acc:#30BEAA;">
+      <div class="tab-icon">🎉</div>
+      <div class="tab-name">Eating independently</div>
+      <div class="tab-hint">Huge. Whatever age.</div>
+    </div>
+  </div>
+</div>
+
+<div class="content">
+
+<!-- ═══════════════════════════════════
+     PANEL 0 — JUST STARTING OUT
+═══════════════════════════════════ -->
+<div class="panel active" id="panel-0"
+     style="--panel-bg:#FEF9F2;--panel-acc:#C47D20;">
+
+  <div class="note" style="margin-top:16px">
+    <span class="note-icon">📝</span>
+    <div><strong>Stage 1 — No age label anywhere on this panel.</strong> Signs are framed as observations, not tests. Family quote is a placeholder — replace with real UGC from SEN community. OT quote must be from a named, approved practitioner. Celebration note runs on every panel — reinforces that progress is progress at any pace.</div>
+  </div>
+
+  <div class="stage-hero">
+    <div class="stage-info">
+      <div class="stage-badge">Just starting out</div>
+      <h2>Every journey <em>begins somewhere</em></h2>
+      <p class="stage-tagline">You would love your child to start learning how to use cutlery. They might not be able to hold a spoon yet, and that's completely fine. This is where we begin — together. We would recommend 'just starting out' products if all the following applies to your child:</p>
+
+      <div class="signs-label">Signs your child might be here</div>
+      <ul class="signs">
+        <li>Your child has no experience of using cutlery</li>
+        <li>Your child has limited hand eye coordination</li>
+        <li>Your child may need some support to sit at mealtimes</li>
+        <li>Your child has involuntary movements</li>
+      </ul>
+
+      <div class="celebration">
+        <em>Every single one of these is worth celebrating.</em> The interest is there — and that's everything. The rest follows.
+      </div>
+
+      <button class="stage-btn" onclick="t('🛒 Goes to Just Starting Out product collection')">
+        Find the right products for your child
+      </button>
+    </div>
+
+    <div class="family-panel" style="background: var(--panel-bg);">
+      <div class="family-label">Real families, real moments</div>
+
+      <div class="note" style="margin-bottom:0">
+        <span class="note-icon">📝</span>
+        <div><strong>UGC placeholder:</strong> Source from SEN parent community. Authentic, unglamorous, real kitchen moments. No competing brands visible.</div>
+      </div>
+
+      <div class="ugc-row">
+        <div class="ugc-img">📸<br><small style="font-size:9px">UGC 1</small></div>
+        <div class="ugc-img">📸<br><small style="font-size:9px">UGC 2</small></div>
+        <div class="ugc-img">📸<br><small style="font-size:9px">UGC 3</small></div>
+      </div>
+
+      <div class="family-quote">
+        <div class="fq-text">"I just wanted to drop you a line to thank you for your amazingly designed cutlery! My little boy is 26 months old and has Autism, and whilst he loves his food, he has never been able to use cutlery by himself before. In fact he often refused to eat from cutlery at all, even when fed. This morning, the first time he used his doddl spoon, Alex fed himself for the first time ever. I can't tell you how much it means to see our boy hitting a milestone like this, after trying to help with his independent feeding for so long. doddl is a life changer! Thank you so much - we've recommended you to all our friends at ASD tots groups and have bought 3 more sets to keep at grandparents and day care! Thank you, your design is improving the lives of kids like Alex and parents like me!"</div>
+        <div class="fq-meta">
+          <div class="fq-avatar" style="background:#FEF0DC;">🧡</div>
+          <div>
+            <div class="fq-name">Emma, mum to Archie</div>
+            <div class="fq-child">Archie, dyspraxia — "Just starting out" stage</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="ot-strip">
+    <div class="ot-icon">🩺</div>
+    <div class="ot-content">
+      <div class="ot-label">Occupational Therapist recommendation</div>
+      <div class="ot-quote">"As a pediatric occupational therapist and feeding specialist, I am always looking at new and innovative feeding products and came across the doddl utensil set. It's an incredible design! The handle is a perfect combination of chunky yet light and short which promotes a comfortable and functional grasp for his little hands."</div>
+      <div class="ot-who">Vanessa Eisch - Occupational Therapist</div>
+    </div>
+    <div class="ot-logos">
+      <div class="ot-logo">OT UK</div>
+      <div class="ot-logo">RCOT member</div>
+      <div class="ot-logo">SEN approved</div>
+    </div>
+  </div>
+
+  <div class="prod-section">
+    <div class="prod-header">
+      <div>
+        <h3>Tools for <span>just starting out</span></h3>
+      </div>
+      <span class="view-all">View full range →</span>
+    </div>
+    <p class="prod-sub-label">Lightweight, easy to grip tools designed for children who are beginning to explore tastes and textures. The rounded utensil ends are gentle in their mouths, and safe to use during the 'face-bumping' stage whilst hand-eye coordination is establishing.</p>
+    <div class="prod-grid">
+      <div class="prod-card" onclick="t('Product page')">
+        <div class="prod-img" style="background:var(--panel-bg)">🥄</div>
+        <div class="prod-body">
+          <div class="prod-name">Baby Spoon &amp; Fork</div>
+          <div class="prod-why">Easy-grip handle, perfect weight for developing hands</div>
+          <div class="prod-row"><span class="prod-price">&#163;14.99</span><button class="prod-add" onclick="event.stopPropagation();t('🛒 Added!')">+</button></div>
+        </div>
+      </div>
+      <div class="prod-card" onclick="t('Product page')">
+        <div class="prod-img" style="background:var(--panel-bg)">🥣</div>
+        <div class="prod-body">
+          <div class="prod-name">Suction Bowl</div>
+          <div class="prod-why">Stays put so your child can focus on the spoon, not the bowl</div>
+          <div class="prod-row"><span class="prod-price">&#163;12.99</span><button class="prod-add" onclick="event.stopPropagation();t('🛒 Added!')">+</button></div>
+        </div>
+      </div>
+      <div class="prod-card" onclick="t('Product page')">
+        <div class="prod-img" style="background:var(--panel-bg)">🥣</div>
+        <div class="prod-body">
+          <div class="prod-name">Suction Bowl</div>
+          <div class="prod-why">Available in Fresh Green — a calmer colour for sensory-sensitive mealtimes</div>
+          <div class="prod-row"><span class="prod-price">&#163;12.99</span><button class="prod-add" onclick="event.stopPropagation();t('🛒 Added!')">+</button></div>
+        </div>
+      </div>
+      <div class="prod-card" onclick="t('Product page')">
+        <div class="prod-img" style="background:var(--panel-bg)">🥄</div>
+        <div class="prod-body">
+          <div class="prod-name">Baby Spoon &amp; Fork</div>
+          <div class="prod-why">Dusky Rose — warm, familiar, less clinical feeling at the table</div>
+          <div class="prod-row"><span class="prod-price">&#163;14.99</span><button class="prod-add" onclick="event.stopPropagation();t('🛒 Added!')">+</button></div>
+        </div>
+      </div>
+      <div class="prod-card best" onclick="t('Product page')">
+        <div class="best-label">OT recommended</div>
+        <div class="prod-img" style="background:var(--panel-bg)">✨</div>
+        <div class="prod-body">
+          <div class="prod-name">Starting Out Bundle</div>
+          <div class="prod-why">Everything you need in one. The set our OT partners recommend first.</div>
+          <div class="prod-row"><span class="prod-price">&#163;24.99</span><button class="prod-add" style="background:var(--indigo)" onclick="event.stopPropagation();t('🛒 Bundle added!')">+</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="next-hook" style="--next-bg:#F2FAF8;--next-acc:#2A9A88;">
+    <div>
+      <h4>When you start to see a grip — that's the next moment</h4>
+      <p>When your child can hold the utensils, and move some food successfully to their mouth, you may wish to look at the next stage 'Establishing their grip'</p>
+    </div>
+    <button class="next-btn" onclick="go(1)">See what comes next →</button>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════
+     PANEL 1 — FINDING THEIR GRIP
+═══════════════════════════════════ -->
+<div class="panel" id="panel-1"
+     style="--panel-bg:#F2FAF8;--panel-acc:#2A9A88;">
+
+  <div class="stage-hero">
+    <div class="stage-info">
+      <div class="stage-badge">Finding their grip</div>
+      <h2>They're <em>holding on</em> — and that's huge</h2>
+      <p class="stage-tagline">Your child is beginning to grip and guide. It might be inconsistent. It might take ten attempts to get a spoonful in. That's not failure — that's exactly what progress looks like at this stage - a desire to keep practising and celebrate the small wins. We would recommend doddl in this stage if the following apply:</p>
+
+      <div class="signs-label">Signs your child might be here</div>
+      <ul class="signs">
+        <li>Your child can move food to their mouth</li>
+        <li>Your child has some experience of handling cutlery</li>
+        <li>Your child's appetite is growing</li>
+        <li>Your child is showing signs of wanting to self feed</li>
+      </ul>
+
+      <div class="celebration">
+        The frustration means they <em>want</em> to do it themselves. That drive is everything. doddl is built to make those attempts successful more often.
+      </div>
+
+      <button class="stage-btn" onclick="t('🛒 Finding Their Grip collection')">
+        Find the right tools →
+      </button>
+    </div>
+
+    <div class="family-panel" style="background: var(--panel-bg);">
+      <div class="family-label">Real families, real moments</div>
+      <div class="ugc-row">
+        <div class="ugc-img">📸<br><small style="font-size:9px">UGC 1</small></div>
+        <div class="ugc-img">📸<br><small style="font-size:9px">UGC 2</small></div>
+        <div class="ugc-img">📸<br><small style="font-size:9px">UGC 3</small></div>
+      </div>
+      <div class="family-quote">
+        <div class="fq-text">"Ada has Down Syndrome and believe me when I say, I've tried every kind of cutlery set out there...until doddl came to our rescue! In just 4 days, you could see the progress she had made! This has been a complete game changer for us. Ada Grace is so much happier, and as a sceptical parent of most things (you'd be surprised at how many products really aren't made with SEN children in mind), I can honestly say doddl have certainly achieved this. I'm so pleased to finally find something on which has made such an incredible difference to our daily routine."</div>
+        <div class="fq-meta">
+          <div class="fq-avatar" style="background:#DCF0EC;">💚</div>
+          <div>
+            <div class="fq-name">Rachel, mum to Mia</div>
+            <div class="fq-child">Mia, hypermobility — "Finding their grip" stage</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="ot-strip">
+    <div class="ot-icon">🩺</div>
+    <div class="ot-content">
+      <div class="ot-label">Occupational Therapist recommendation</div>
+      <div class="ot-quote">"I absolutely love doddl because they are ergonomically designed to foster independent feeding while building motor skills. Each utensil has grip zones strategically placed making it much easier to maintain control and manoeuvre the utensils."</div>
+      <div class="ot-who">Christine Pollack - Paediatric Occupational Therapist</div>
+    </div>
+    <div class="ot-logos">
+      <div class="ot-logo">OT UK</div>
+      <div class="ot-logo">EDS Society</div>
+      <div class="ot-logo">RCOT member</div>
+    </div>
+  </div>
+
+  <div class="prod-section">
+    <div class="prod-header">
+      <h3>Tools for <span>finding their grip</span></h3>
+      <span class="view-all">View full range →</span>
+    </div>
+    <p class="prod-sub-label">The compact, rounded handles are shaped to make gripping feel natural and comfortable — not forced. The shorter length brings food closer to the mouth, so the focus stays on the meal, not the effort of using the cutlery.</p>
+    <div class="prod-grid">
+      <div class="prod-card" onclick="t('Product page')"><div class="prod-img" style="background:var(--panel-bg)">🍴</div><div class="prod-body"><div class="prod-name">2-Piece Set</div><div class="prod-why">Spoon and fork together — the right tools for building grip</div><div class="prod-row"><span class="prod-price">&#163;16.99</span><button class="prod-add" onclick="event.stopPropagation();t('🛒 Added!')">+</button></div></div></div>
+      <div class="prod-card" onclick="t('Product page')"><div class="prod-img" style="background:var(--panel-bg)">🥣</div><div class="prod-body"><div class="prod-name">Bowl + Suction</div><div class="prod-why">Stability while grip is still developing</div><div class="prod-row"><span class="prod-price">&#163;12.99</span><button class="prod-add" onclick="event.stopPropagation();t('🛒 Added!')">+</button></div></div></div>
+      <div class="prod-card" onclick="t('Product page')"><div class="prod-img" style="background:var(--panel-bg)">🍽️</div><div class="prod-body"><div class="prod-name">Divided Plate</div><div class="prod-why">Separate sections reduce visual overwhelm at mealtimes</div><div class="prod-row"><span class="prod-price">&#163;14.99</span><button class="prod-add" onclick="event.stopPropagation();t('🛒 Added!')">+</button></div></div></div>
+      <div class="prod-card" onclick="t('Product page')"><div class="prod-img" style="background:var(--panel-bg)">🍴</div><div class="prod-body"><div class="prod-name">2-Piece Set</div><div class="prod-why">Fresh Green — calmer colour for sensory-sensitive children</div><div class="prod-row"><span class="prod-price">&#163;16.99</span><button class="prod-add" onclick="event.stopPropagation();t('🛒 Added!')">+</button></div></div></div>
+      <div class="prod-card best" onclick="t('Product page')"><div class="best-label">OT recommended</div><div class="prod-img" style="background:var(--panel-bg)">✨</div><div class="prod-body"><div class="prod-name">Grip Builder Bundle</div><div class="prod-why">The set our OT partners reach for at this stage.</div><div class="prod-row"><span class="prod-price">&#163;27.99</span><button class="prod-add" style="background:var(--indigo)" onclick="event.stopPropagation();t('🛒 Bundle added!')">+</button></div></div></div>
+    </div>
+  </div>
+
+  <div class="next-hook" style="--next-bg:#F5F0FB;--next-acc:#6B46A8;">
+    <div>
+      <h4>Confidence comes in its own time</h4>
+      <p>Once your child is regularly having successful mealtimes, and able to effectively scoop with the spoon and stab with the fork and no longer requires a suction bowl or plate, that's the sign they are ready to move onto 'building confidence' It doesn't happen overnight. And it doesn't need to.</p>
+    </div>
+    <button class="next-btn" onclick="go(2)">See what comes next →</button>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════
+     PANEL 2 — BUILDING CONFIDENCE
+═══════════════════════════════════ -->
+<div class="panel" id="panel-2"
+     style="--panel-bg:#F5F0FB;--panel-acc:#6B46A8;">
+
+  <div class="stage-hero">
+    <div class="stage-info">
+      <div class="stage-badge">Building confidence</div>
+      <h2>More good days <em>than hard ones</em></h2>
+      <p class="stage-tagline">Learning to self-feed is coming on leaps and bounds. There may still be difficult mealtimes - that's normal, even expected. The tools at this stage are embracing their developing skills and making the good days more consistent, not eliminating the hard ones. Signs your child may be ready for 'building confidence':</p>
+
+      <div class="signs-label">Signs your child might be here</div>
+      <ul class="signs">
+        <li>Self-feeding for part of their meal most days</li>
+        <li>Better days becoming more frequent than harder ones</li>
+        <li>Able to use a spoon and/or a fork effectively</li>
+        <li>Starting to show an interest in chopping their own food</li>
+      </ul>
+
+      <div class="celebration">
+        The hard days don't erase the good ones. <em>Every meal they feed themselves — even one spoonful — is real progress.</em> Write it down if it helps.
+      </div>
+
+      <button class="stage-btn" onclick="t('🛒 Building Confidence collection')">
+        Find the right tools →
+      </button>
+    </div>
+
+    <div class="family-panel" style="background: var(--panel-bg);">
+      <div class="family-label">Real families, real moments</div>
+      <div class="ugc-row">
+        <div class="ugc-img">📸<br><small style="font-size:9px">UGC 1</small></div>
+        <div class="ugc-img">📸<br><small style="font-size:9px">UGC 2</small></div>
+        <div class="ugc-img">📸<br><small style="font-size:9px">UGC 3</small></div>
+      </div>
+      <div class="family-quote">
+        <div class="fq-text">"Ada has Down Syndrome and believe me when I say, I've tried every kind of cutlery set out there...until doddl came to our rescue! In just 4 days, you could see the progress she had made! This has been a complete game changer for us. Ada Grace is so much happier, and as a sceptical parent of most things, I can honestly say doddl have certainly achieved this. I'm so pleased to finally find something which has made such an incredible difference to our daily routine."</div>
+        <div class="fq-meta">
+          <div class="fq-avatar" style="background:#EDE4F8;">💜</div>
+          <div>
+            <div class="fq-name">James, dad to Oliver</div>
+            <div class="fq-child">Oliver, cerebral palsy — "Building confidence" stage</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="ot-strip">
+    <div class="ot-icon">🩺</div>
+    <div class="ot-content">
+      <div class="ot-label">Occupational Therapist recommendation</div>
+      <div class="ot-quote">"doddl cutlery is fantastic for supporting young children with independent eating, grasping those tricky cutlery skills and allowing little ones to get stuck in exploring the wonderful world of food"</div>
+      <div class="ot-who">Lucy Upton - Specialist Paediatric Dietician</div>
+    </div>
+    <div class="ot-logos">
+      <div class="ot-logo">OT UK</div>
+      <div class="ot-logo">DCD specialist</div>
+      <div class="ot-logo">RCOT member</div>
+    </div>
+  </div>
+
+  <div class="prod-section">
+    <div class="prod-header">
+      <h3>Tools for <span>building confidence</span></h3>
+      <span class="view-all">View full range →</span>
+    </div>
+    <p class="prod-sub-label">At this stage consistency is everything. The same tool, every meal, helps your child build muscle memory to help them get there.</p>
+    <div class="prod-grid">
+      <div class="prod-card" onclick="t('Product page')"><div class="prod-img" style="background:var(--panel-bg)">🥄🍴🔪</div><div class="prod-body"><div class="prod-name">3-Piece Set</div><div class="prod-why">The full set — same grip, every meal, every day</div><div class="prod-row"><span class="prod-price">&#163;18.99</span><button class="prod-add" onclick="event.stopPropagation();t('🛒 Added!')">+</button></div></div></div>
+      <div class="prod-card" onclick="t('Product page')"><div class="prod-img" style="background:var(--panel-bg)">🍽️</div><div class="prod-body"><div class="prod-name">Plate</div><div class="prod-why">Wide, stable base — less toppling, less frustration</div><div class="prod-row"><span class="prod-price">&#163;12.99</span><button class="prod-add" onclick="event.stopPropagation();t('🛒 Added!')">+</button></div></div></div>
+      <div class="prod-card" onclick="t('Product page')"><div class="prod-img" style="background:var(--panel-bg)">🧳</div><div class="prod-body"><div class="prod-name">Travel Case</div><div class="prod-why">Same tools at nursery, school, grandparents — consistency everywhere</div><div class="prod-row"><span class="prod-price">&#163;9.99</span><button class="prod-add" onclick="event.stopPropagation();t('🛒 Added!')">+</button></div></div></div>
+      <div class="prod-card" onclick="t('Product page')"><div class="prod-img" style="background:var(--panel-bg)">🥄🍴🔪</div><div class="prod-body"><div class="prod-name">3-Piece Set</div><div class="prod-why">Indigo — a richer colour for older children who want grown-up tools</div><div class="prod-row"><span class="prod-price">&#163;18.99</span><button class="prod-add" onclick="event.stopPropagation();t('🛒 Added!')">+</button></div></div></div>
+      <div class="prod-card best" onclick="t('Product page')"><div class="best-label">OT recommended</div><div class="prod-img" style="background:var(--panel-bg)">✨</div><div class="prod-body"><div class="prod-name">Confidence Bundle</div><div class="prod-why">Set + plate + travel case. One consistent kit for everywhere.</div><div class="prod-row"><span class="prod-price">&#163;35.99</span><button class="prod-add" style="background:var(--indigo)" onclick="event.stopPropagation();t('🛒 Bundle added!')">+</button></div></div></div>
+    </div>
+  </div>
+
+  <div class="next-hook" style="--next-bg:#EEF9F6;--next-acc:#30BEAA;">
+    <div>
+      <h4>Independence — when it arrives, you'll know</h4>
+      <p>There isn't a checklist for this one. When your child sits down and just…starts eating — without so much help, without the tools slipping, with much less frustration — that's the moment. And it will come.</p>
+    </div>
+    <button class="next-btn" onclick="go(3)">See what comes next →</button>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════
+     PANEL 3 — EATING INDEPENDENTLY
+═══════════════════════════════════ -->
+<div class="panel" id="panel-3"
+     style="--panel-bg:#EEF9F6;--panel-acc:#30BEAA;">
+
+  <div class="note" style="margin-top:16px">
+    <span class="note-icon">📝</span>
+    <div><strong>Final stage — celebratory tone, not triumphant.</strong> We celebrate this loudly, but gently. Some families will be emotional reaching this point. The language should hold space for that. "Whatever age this happens" is the most important phrase on the page.</div>
+  </div>
+
+  <div class="stage-hero">
+    <div class="stage-info">
+      <div class="stage-badge">Eating independently 🎉</div>
+      <h2>They did it. <em>Whatever age. However long it took.</em></h2>
+      <p class="stage-tagline">Your child is feeding themselves. Not sometimes — consistently, confidently, their own way. This is a milestone that many families were told might not come. And it came.</p>
+
+      <div class="signs-label">Signs your child is here</div>
+      <ul class="signs">
+        <li>Self-feeding most or all of every meal</li>
+        <li>Comfortable with the tools — they feel natural now</li>
+        <li>Ready to try new foods, new textures, new challenges</li>
+        <li>Mealtimes have changed for the whole family</li>
+      </ul>
+
+      <div class="celebration">
+        <em>This took longer, required more patience, and meant more than most people around you will ever understand.</em> You got here. Your child got here. That matters enormously.
+      </div>
+
+      <button class="stage-btn" style="background: var(--aqua)" onclick="t('🛒 Independence stage collection')">
+        Celebrate with the right tools →
+      </button>
+    </div>
+
+    <div class="family-panel" style="background: var(--panel-bg);">
+      <div class="family-label">Real families, real moments</div>
+      <div class="ugc-row">
+        <div class="ugc-img">📸<br><small style="font-size:9px">UGC 1</small></div>
+        <div class="ugc-img">📸<br><small style="font-size:9px">UGC 2</small></div>
+        <div class="ugc-img">📸<br><small style="font-size:9px">UGC 3</small></div>
+      </div>
+      <div class="family-quote">
+        <div class="fq-text">"We were told Theo might never feed himself independently. He's 6 now. He sits at the table and eats his dinner while we eat ours. I don't have words for what that means. doddl was part of how we got here."</div>
+        <div class="fq-meta">
+          <div class="fq-avatar" style="background:#DCF5EF;">💙</div>
+          <div>
+            <div class="fq-name">Sarah, mum to Theo</div>
+            <div class="fq-child">Theo, cerebral palsy — eating independently</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="ot-strip">
+    <div class="ot-icon">🩺</div>
+    <div class="ot-content">
+      <div class="ot-label">Occupational Therapist — on what independence means</div>
+      <div class="ot-quote">"Independent feeding is one of the most significant functional milestones in a child's development. For children with motor challenges, achieving this — at any age — represents months or years of work by the child, their family, and their therapy team. It deserves to be celebrated as the enormous achievement it is."</div>
+      <div class="ot-who">— Kate Burrows, Lead Paediatric OT, specialist in motor development</div>
+    </div>
+    <div class="ot-logos">
+      <div class="ot-logo">OT UK</div>
+      <div class="ot-logo">RCOT member</div>
+      <div class="ot-logo">NHS partner</div>
+    </div>
+  </div>
+
+  <div class="prod-section">
+    <div class="prod-header">
+      <h3>Tools for <span>eating independently</span></h3>
+      <span class="view-all">View full range →</span>
+    </div>
+    <p class="prod-sub-label">They've earned real tools. The doddl knife is the only safe knife designed for children with developing motor control — the next step in a full set of proper cutlery they can be proud of.</p>
+    <div class="prod-grid">
+      <div class="prod-card" onclick="t('Product page')"><div class="prod-img" style="background:var(--panel-bg)">🔪</div><div class="prod-body"><div class="prod-name">doddl Knife</div><div class="prod-why">Safe blade, ergonomic handle — the next step toward real cutlery</div><div class="prod-row"><span class="prod-price">&#163;12.99</span><button class="prod-add" onclick="event.stopPropagation();t('🛒 Added!')">+</button></div></div></div>
+      <div class="prod-card" onclick="t('Product page')"><div class="prod-img" style="background:var(--panel-bg)">🥄🍴🔪</div><div class="prod-body"><div class="prod-name">Complete Set</div><div class="prod-why">The full doddl family — everything they need at the table</div><div class="prod-row"><span class="prod-price">&#163;24.99</span><button class="prod-add" onclick="event.stopPropagation();t('🛒 Added!')">+</button></div></div></div>
+      <div class="prod-card" onclick="t('Product page')"><div class="prod-img" style="background:var(--panel-bg)">👨‍🍳</div><div class="prod-body"><div class="prod-name">Chef's Kit</div><div class="prod-why">For children who want to go further — help prepare, not just eat</div><div class="prod-row"><span class="prod-price">&#163;29.99</span><button class="prod-add" onclick="event.stopPropagation();t('🛒 Added!')">+</button></div></div></div>
+      <div class="prod-card" onclick="t('Product page')"><div class="prod-img" style="background:var(--panel-bg)">🧳</div><div class="prod-body"><div class="prod-name">Travel Case</div><div class="prod-why">Take the tools everywhere — school, restaurants, family visits</div><div class="prod-row"><span class="prod-price">&#163;9.99</span><button class="prod-add" onclick="event.stopPropagation();t('🛒 Added!')">+</button></div></div></div>
+      <div class="prod-card best" onclick="t('Product page')"><div class="best-label">Celebration bundle</div><div class="prod-img" style="background:var(--panel-bg)">🏆</div><div class="prod-body"><div class="prod-name">Independence Bundle</div><div class="prod-why">The full set, beautifully packaged. They've earned this.</div><div class="prod-row"><span class="prod-price">&#163;39.99</span><button class="prod-add" style="background:var(--indigo)" onclick="event.stopPropagation();t('🛒 Bundle added!')">+</button></div></div></div>
+    </div>
+  </div>
+
+  <!-- FINAL HOOK — share / community -->
+  <div class="next-hook" style="--next-bg:#FEF9F2;--next-acc:#C47D20; border-style: solid;">
+    <div>
+      <h4>Your story could help another family find their way here 💛</h4>
+      <p>Families at the start of this journey are looking for proof that it's possible. If you're comfortable sharing your experience — a photo, a quote, a moment — it could be the thing that gives another parent hope. We'd love to feature your story.</p>
+    </div>
+    <button class="next-btn" style="background: var(--indigo)" onclick="t('→ Share your story form')">Share your story →</button>
+  </div>
+
+</div>
+</div><!-- /content -->
+
+<div class="toast" id="toast"></div>
+
+<script>
+function go(n) {
+  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', i===n));
+  document.querySelectorAll('.panel').forEach((p,i) => p.classList.toggle('active', i===n));
+  document.querySelector('.tabs-wrap').scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+function t(msg) {
+  const el = document.getElementById('toast');
+  el.innerHTML = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2400);
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,14 @@
+# Copy to terraform.tfvars — never commit terraform.tfvars
+# Production values — apply only after staging apply is verified.
+
+azure_tenant_id = "YOUR_TENANT_ID"
+
+connector_sp_object_ids = [
+  "CONNECTOR_SP_OBJECT_ID"
+]
+
+admin_object_ids = [
+  "JON_FAWCETT_OBJECT_ID"
+]
+
+log_analytics_workspace_id = ""

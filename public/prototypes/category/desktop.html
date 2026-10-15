@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>doddl. — Shop by Category · Storyboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --indigo: #3D157D;
+    --dark:   #26215C;
+    --aqua:   #30BEAA;
+    --lt-aqua:#9ECFC6;
+    --orange: #FACC91;
+    --white:  #FFFFFF;
+    --bg:     #FAFAF8;
+    --text:   #1A1A1A;
+    --muted:  #666;
+    --border: #E0DDD5;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);}
+
+  /* BANNER */
+  .sb-banner{background:#26215C;color:#fff;text-align:center;padding:7px 16px;font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;display:flex;align-items:center;justify-content:center;gap:16px;}
+  .sb-banner span{background:#F9A825;color:#3D157D;padding:2px 8px;border-radius:4px;font-size:10px;text-transform:none;letter-spacing:0;font-weight:700;}
+
+  /* ANNOUNCE */
+  .announce-bar{background:#26215C;color:#fff;text-align:center;padding:10px;font-size:13px;font-weight:600;}
+
+  /* NAV */
+  nav{background:#fff;border-bottom:1px solid #EDE9F6;display:flex;align-items:center;padding:0 48px;height:70px;position:sticky;top:0;z-index:100;gap:0;}
+  .nav-logo{font-size:28px;font-weight:900;color:var(--indigo);letter-spacing:-.5px;margin-right:40px;flex-shrink:0;}
+  .nav-logo .dot{color:var(--aqua);}
+  .nav-links{display:flex;gap:28px;flex:1;justify-content:center;}
+  .nav-links a{font-size:14px;font-weight:700;color:#1A1A2E;cursor:pointer;text-decoration:none;white-space:nowrap;}
+  .nav-links a.active{color:var(--indigo);border-bottom:2px solid var(--indigo);padding-bottom:2px;}
+  .nav-links a:hover{color:var(--indigo);}
+  .nav-cta{background:var(--dark);color:#fff;font-size:13px;font-weight:800;padding:10px 24px;border-radius:50px;cursor:pointer;border:none;font-family:'Nunito',sans-serif;white-space:nowrap;}
+
+  /* HERO */
+  .hero{background:var(--indigo);padding:56px 56px 52px;text-align:center;position:relative;overflow:hidden;}
+  .hero::before{content:'';position:absolute;width:500px;height:500px;border-radius:50%;background:rgba(48,190,170,.1);top:-200px;right:-100px;}
+  .hero::after{content:'';position:absolute;width:300px;height:300px;border-radius:50%;background:rgba(148,127,182,.12);bottom:-100px;left:-50px;}
+  .hero-eyebrow{font-size:12px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--aqua);margin-bottom:18px;}
+  .hero h1{font-size:clamp(32px,4vw,52px);font-weight:900;color:#fff;line-height:1.08;margin-bottom:18px;}
+  .hero h1 em{font-style:normal;color:var(--aqua);}
+  .hero p{font-size:16px;font-weight:600;color:rgba(255,255,255,.7);max-width:560px;margin:0 auto 20px;line-height:1.65;}
+  .hero-hint{font-size:14px;font-weight:600;color:rgba(255,255,255,.45);}
+
+  /* TABS */
+  .tabs-wrap{background:#fff;border-bottom:2px solid #EDE9F6;position:sticky;top:70px;z-index:90;box-shadow:0 3px 16px rgba(0,0,0,.07);}
+  .tabs{display:flex;max-width:1200px;margin:0 auto;padding:0 40px;}
+  .tab{flex:1;display:flex;flex-direction:column;align-items:center;padding:20px 6px 16px;cursor:pointer;border-bottom:3px solid transparent;transition:all .18s;user-select:none;position:relative;}
+  .tab:hover:not(.active){background:#faf9fe;}
+  .tab.active{border-bottom-color:var(--tab-acc);}
+  .tab-avatar{width:68px;height:68px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 10px;border:2.5px solid transparent;transition:border-color .2s;flex-shrink:0;}
+  .tab.active .tab-avatar{border-color:var(--tab-acc);}
+  .tab-avatar svg{width:52px;height:52px;}
+  .tab-circle{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:900;margin-bottom:8px;background:var(--tab-bg);color:var(--tab-acc);transition:all .18s;}
+  .tab.active .tab-circle{background:var(--tab-acc);color:#fff;}
+  .tab-name{font-size:13px;font-weight:900;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-top:2px;text-align:center;}
+  .tab.active .tab-name{color:var(--tab-acc);}
+  .tab-sub{font-size:11px;font-weight:600;color:var(--muted);opacity:.6;margin-top:3px;text-align:center;}
+
+  /* CONTENT */
+  .content{max-width:1200px;margin:0 auto;padding:0 40px;}
+  .panel{display:none;}
+  .panel.active{display:block;}
+
+  /* STAGE HERO (left/right split) */
+  .stage-hero{display:grid;grid-template-columns:1fr 1.6fr;gap:0;background:var(--panel-bg);border-radius:0 0 16px 16px;overflow:hidden;margin-bottom:32px;}
+  .stage-info{padding:48px 40px;display:flex;flex-direction:column;gap:20px;}
+  .stage-badge{display:inline-flex;align-items:center;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--panel-acc);background:rgba(255,255,255,.85);border:1.5px solid var(--panel-acc);padding:5px 14px;border-radius:50px;width:fit-content;}
+  .stage-info h2{font-size:30px;font-weight:900;line-height:1.1;color:var(--indigo);}
+  .stage-info h2 em{font-style:normal;color:var(--panel-acc);}
+  .stage-tagline{font-size:15px;font-weight:600;color:var(--muted);line-height:1.7;}
+  .milestones{list-style:none;display:flex;flex-direction:column;gap:0;}
+  .milestones li{font-size:13px;font-weight:700;padding:9px 0;border-bottom:1px solid rgba(0,0,0,.06);display:flex;align-items:flex-start;gap:10px;line-height:1.4;}
+  .milestones li:last-child{border-bottom:none;}
+  .milestones li::before{content:'';width:8px;height:8px;border-radius:50%;background:var(--panel-acc);flex-shrink:0;margin-top:4px;}
+  .stage-btn{display:inline-flex;align-items:center;gap:8px;background:var(--dark);color:#fff;font-size:14px;font-weight:800;padding:13px 26px;border-radius:50px;cursor:pointer;border:none;font-family:'Nunito',sans-serif;transition:opacity .15s;width:fit-content;}
+  .stage-btn:hover{opacity:.88;}
+
+  /* FEAT WRAP (right panel) */
+  .feat-wrap{padding:40px 40px 40px 32px;display:flex;flex-direction:column;gap:16px;}
+  .feat-label{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);}
+  .feat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+  .feat-card{background:#fff;border-radius:14px;padding:20px 16px 16px;display:flex;flex-direction:column;align-items:center;gap:8px;border:1.5px solid var(--border);cursor:pointer;transition:all .15s;}
+  .feat-card:hover{border-color:var(--panel-acc);transform:translateY(-2px);}
+  .feat-img{width:80px;height:80px;border-radius:10px;background:var(--panel-bg);display:flex;align-items:center;justify-content:center;font-size:36px;margin-bottom:4px;}
+  .feat-name{font-size:13px;font-weight:800;color:var(--indigo);text-align:center;}
+  .feat-age{font-size:11px;font-weight:600;color:var(--muted);text-align:center;}
+  .feat-price{font-size:15px;font-weight:900;color:var(--text);}
+  .feat-atc{width:100%;padding:9px;border-radius:50px;background:var(--dark);color:#fff;font-size:12px;font-weight:800;cursor:pointer;border:none;font-family:'Nunito',sans-serif;transition:opacity .15s;}
+  .feat-atc.best{background:var(--aqua);color:var(--dark);}
+  .feat-atc:hover{opacity:.88;}
+
+  /* EXPERTS */
+  .experts{background:#fff;border-radius:14px;padding:28px 32px;margin-bottom:28px;display:grid;grid-template-columns:auto 1fr auto;gap:24px;align-items:center;border:1.5px solid var(--border);}
+  .experts-lbl{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);white-space:nowrap;}
+  .expert-q{font-size:14px;font-weight:700;color:var(--text);font-style:italic;line-height:1.65;}
+  .expert-who{font-size:12px;font-weight:800;color:var(--panel-acc);margin-top:6px;font-style:normal;}
+  .logos{display:flex;gap:10px;}
+  .logo-pill{background:var(--panel-bg);color:var(--panel-acc);font-size:11px;font-weight:800;padding:6px 14px;border-radius:50px;border:1px solid var(--panel-acc);white-space:nowrap;}
+
+  /* PRODUCT GRID */
+  .cat-section{margin-bottom:48px;}
+  .cat-header{display:flex;align-items:baseline;gap:12px;margin-bottom:20px;}
+  .cat-header h3{font-size:20px;font-weight:900;color:var(--indigo);}
+  .cat-header h3 span{color:var(--panel-acc);}
+  .cat-header a{font-size:13px;font-weight:700;color:var(--panel-acc);text-decoration:none;margin-left:auto;}
+  .note-box{background:#FFFDE7;border:1.5px dashed #F9A825;border-radius:8px;padding:10px 14px;font-size:11px;font-weight:700;color:#5C3D00;margin-bottom:14px;display:flex;gap:8px;}
+  .prod-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:16px;}
+  .prod-card{background:#fff;border-radius:14px;overflow:hidden;border:1.5px solid var(--border);cursor:pointer;transition:all .15s;display:flex;flex-direction:column;}
+  .prod-card:hover{border-color:var(--panel-acc);transform:translateY(-2px);}
+  .prod-card.best{border-color:var(--panel-acc);position:relative;}
+  .best-badge{position:absolute;top:10px;right:10px;background:var(--panel-acc);color:#fff;font-size:9px;font-weight:900;padding:3px 8px;border-radius:20px;text-transform:uppercase;letter-spacing:.05em;}
+  .prod-img{height:120px;background:var(--panel-bg);display:flex;align-items:center;justify-content:center;font-size:42px;}
+  .prod-body{padding:14px;display:flex;flex-direction:column;gap:4px;flex:1;}
+  .prod-name{font-size:13px;font-weight:800;color:var(--indigo);}
+  .prod-sub{font-size:11px;font-weight:600;color:var(--muted);}
+  .prod-price{font-size:15px;font-weight:900;color:var(--text);margin-top:4px;}
+  .prod-btn{margin-top:auto;padding:8px;background:var(--dark);color:#fff;font-size:11px;font-weight:800;border-radius:50px;cursor:pointer;border:none;font-family:'Nunito',sans-serif;width:100%;}
+
+  /* NEXT HOOK */
+  .next-hook{background:var(--panel-bg);border-radius:14px;padding:28px 32px;margin-bottom:48px;display:flex;align-items:center;justify-content:space-between;gap:24px;border:1.5px solid var(--panel-acc);}
+  .next-hook-text h4{font-size:16px;font-weight:900;color:var(--indigo);margin-bottom:4px;}
+  .next-hook-text p{font-size:13px;font-weight:600;color:var(--muted);}
+  .next-hook-btn{background:var(--panel-acc);color:#fff;font-size:13px;font-weight:800;padding:11px 24px;border-radius:50px;cursor:pointer;border:none;font-family:'Nunito',sans-serif;white-space:nowrap;transition:opacity .15s;}
+  .next-hook-btn:hover{opacity:.88;}
+</style>
+</head>
+<body>
+
+<div class="sb-banner">doddl &middot; Shop by Category &middot; Storyboard <span>Yellow = annotations, not live copy</span></div>
+<div class="announce-bar">FREE UK Shipping on orders over &pound;20 &nbsp;&middot;&nbsp; Use code JOURNEY10 for 10% off your first order</div>
+
+<nav>
+  <div class="nav-logo"><a href="/prototypes/journey/" target="_top" style="text-decoration:none;color:inherit;">doddl<span class="dot">.</span></a></div>
+  <div class="nav-links">
+    <a href="/prototypes/journey/shop-by-stage.html" target="_top">Shop by Stage</a><a class="active" href="/prototypes/journey/shop-by-category.html" target="_top">Shop by Category</a><a href="/prototypes/journey/sen-journey.html" target="_top">SEN Journey</a><a href="/prototypes/journey/bundle-box.html" target="_top">Bundle Box</a><a>Research &amp; Dev</a><a>Tips &amp; Advice</a>
+  </div>
+  <button class="nav-cta">Shop now</button>
+</nav>
+
+<section class="hero">
+  <div class="hero-eyebrow">Shop by Category</div>
+  <h1>The right product,<br><em>right now</em></h1>
+  <p>Know what you&rsquo;re looking for? Browse the full doddl range by category &mdash; cutlery, plates, bibs, and bundles all in one place.</p>
+  <p class="hero-hint">&darr; Select a category below</p>
+</section>
+
+<div class="tabs-wrap">
+  <div class="tabs">
+
+    <div class="tab active" id="tab-0" onclick="go(0)"
+         style="--tab-bg:#FDEAEA;--tab-acc:#C93A55;">
+      <div class="tab-avatar" style="background:#FDEAEA;">
+        <svg viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <ellipse cx="17" cy="13" rx="7" ry="8" fill="#FACC91" opacity=".95"/>
+          <rect x="14.5" y="21" width="5" height="21" rx="2.5" fill="#FACC91"/>
+          <line x1="33" y1="7" x2="33" y2="17" stroke="#9ECFC6" stroke-width="3" stroke-linecap="round"/>
+          <line x1="37" y1="7" x2="37" y2="17" stroke="#9ECFC6" stroke-width="3" stroke-linecap="round"/>
+          <line x1="41" y1="7" x2="41" y2="17" stroke="#9ECFC6" stroke-width="3" stroke-linecap="round"/>
+          <rect x="34.5" y="17" width="5" height="21" rx="2.5" fill="#9ECFC6"/>
+        </svg>
+      </div>
+      <div class="tab-circle">🥄</div>
+      <div class="tab-name">Baby Cutlery</div>
+      <div class="tab-sub">Stage 0–1</div>
+    </div>
+
+    <div class="tab" id="tab-1" onclick="go(1)"
+         style="--tab-bg:#DCF0EC;--tab-acc:#2A9A88;">
+      <div class="tab-avatar" style="background:#DCF0EC;">
+        <svg viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <ellipse cx="14" cy="12" rx="5.5" ry="7" fill="#FACC91" opacity=".9"/>
+          <rect x="11.5" y="19" width="5" height="22" rx="2.5" fill="#FACC91"/>
+          <line x1="27" y1="7" x2="27" y2="17" stroke="#30BEAA" stroke-width="3" stroke-linecap="round"/>
+          <line x1="31" y1="7" x2="31" y2="17" stroke="#30BEAA" stroke-width="3" stroke-linecap="round"/>
+          <line x1="35" y1="7" x2="35" y2="17" stroke="#30BEAA" stroke-width="3" stroke-linecap="round"/>
+          <rect x="28.5" y="17" width="5" height="22" rx="2.5" fill="#30BEAA"/>
+          <rect x="42" y="7" width="4" height="34" rx="2" fill="#947FB6"/>
+          <rect x="40" y="7" width="8" height="4" rx="2" fill="#947FB6" opacity=".7"/>
+        </svg>
+      </div>
+      <div class="tab-circle">🍴</div>
+      <div class="tab-name">Toddler Cutlery</div>
+      <div class="tab-sub">Stage 1–4</div>
+    </div>
+
+    <div class="tab" id="tab-2" onclick="go(2)"
+         style="--tab-bg:#FEF0DC;--tab-acc:#C47D20;">
+      <div class="tab-avatar" style="background:#FEF0DC;">
+        <svg viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <ellipse cx="28" cy="34" rx="21" ry="12" fill="#FACC91" opacity=".85"/>
+          <path d="M7 34 Q7 52 28 54 Q49 52 49 34" fill="#FACC91" opacity=".5"/>
+          <ellipse cx="28" cy="34" rx="21" ry="6" fill="#F9A825" opacity=".5"/>
+          <rect x="24" y="14" width="8" height="18" rx="3" fill="#FACC91" opacity=".8"/>
+          <ellipse cx="28" cy="14" rx="10" ry="4" fill="#F9A825" opacity=".6"/>
+        </svg>
+      </div>
+      <div class="tab-circle">🥣</div>
+      <div class="tab-name">Plates &amp; Bowls</div>
+      <div class="tab-sub">Stage 0–4</div>
+    </div>
+
+    <div class="tab" id="tab-3" onclick="go(3)"
+         style="--tab-bg:#EDE4F8;--tab-acc:#6B46A8;">
+      <div class="tab-avatar" style="background:#EDE4F8;">
+        <svg viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="28" cy="18" r="12" fill="#C8B8E8" opacity=".8"/>
+          <path d="M10 26 Q8 50 28 52 Q48 50 46 26" fill="#947FB6" opacity=".65"/>
+          <circle cx="28" cy="18" r="8" fill="#fff" opacity=".6"/>
+          <path d="M20 26 Q20 38 28 40 Q36 38 36 26" fill="#fff" opacity=".4"/>
+        </svg>
+      </div>
+      <div class="tab-circle">🧷</div>
+      <div class="tab-name">Bibs</div>
+      <div class="tab-sub">Stage 0–4</div>
+    </div>
+
+    <div class="tab" id="tab-4" onclick="go(4)"
+         style="--tab-bg:#EEE8F8;--tab-acc:#3D157D;">
+      <div class="tab-avatar" style="background:#EEE8F8;">
+        <svg viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="8" y="26" width="40" height="22" rx="4" fill="#3D157D" opacity=".6"/>
+          <rect x="8" y="19" width="40" height="10" rx="3" fill="#3D157D" opacity=".85"/>
+          <line x1="28" y1="19" x2="28" y2="48" stroke="#FACC91" stroke-width="3.5" opacity=".9"/>
+          <line x1="8" y1="24" x2="48" y2="24" stroke="#FACC91" stroke-width="3.5" opacity=".9"/>
+          <path d="M22 19 Q28 10 34 19" stroke="#FACC91" stroke-width="3" fill="none" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div class="tab-circle">🎁</div>
+      <div class="tab-name">Bundles &amp; Kits</div>
+      <div class="tab-sub">Best value</div>
+    </div>
+
+  </div>
+</div>
+
+<div class="content">
+
+<!-- ════ PANEL 0: BABY CUTLERY ════ -->
+<div class="panel active" id="panel-0"
+     style="--panel-bg:#FDEAEA;--panel-acc:#C93A55;">
+  <div class="stage-hero">
+    <div class="stage-info">
+      <div class="stage-badge">Baby Cutlery &middot; Stage 0&ndash;1</div>
+      <h2>First tools, <em>first wins</em></h2>
+      <p class="stage-tagline">Engineered for tiny hands just starting out. The right weight, the right length, the right grip &mdash; designed for exactly where your baby is right now, not where they&rsquo;ll be in six months.</p>
+      <ul class="milestones">
+        <li>Short handle &mdash; the correct length for 0&ndash;12 month hand span</li>
+        <li>Soft ergonomic tip &mdash; safe for new teeth and sensitive gums</li>
+        <li>Short handles avoid the gag risk presented by long handles and are weighted for the strength your baby actually has right now</li>
+        <li>Dishwasher safe &mdash; practical at every meal</li>
+      </ul>
+      <button class="stage-btn">Shop Baby Cutlery &rarr;</button>
+    </div>
+    <div class="feat-wrap">
+      <div class="feat-label">Featured in Baby Cutlery</div>
+      <div class="feat-row">
+        <div class="feat-card">
+          <div class="feat-img">🥄</div>
+          <div class="feat-name">Baby Spoon &amp; Fork</div>
+          <div class="feat-age">From 6 months</div>
+          <div class="feat-price">&pound;14.99</div>
+          <button class="feat-atc">Add to bag</button>
+        </div>
+        <div class="feat-card">
+          <div class="feat-img">🥣</div>
+          <div class="feat-name">Suction Bowl</div>
+          <div class="feat-age">From 6 months</div>
+          <div class="feat-price">&pound;12.99</div>
+          <button class="feat-atc">Add to bag</button>
+        </div>
+        <div class="feat-card">
+          <div class="feat-img">✨</div>
+          <div class="feat-name">Stage 1 Bundle</div>
+          <div class="feat-age">Best value</div>
+          <div class="feat-price">&pound;24.99</div>
+          <button class="feat-atc best">Best value</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="experts">
+    <div class="experts-lbl">Expert view</div>
+    <div class="expert-q">
+      &ldquo;doddl&rsquo;s ergonomic design means babies succeed from the very first try. That early confidence matters enormously for development.&rdquo;
+      <div class="expert-who">&mdash; Katie Rawlings, Paediatric OT</div>
+    </div>
+    <div class="logos">
+      <div class="logo-pill">OT UK</div>
+      <div class="logo-pill">25,000+ reviews</div>
+      <div class="logo-pill">Nursery partner</div>
+    </div>
+  </div>
+
+  <div class="cat-section">
+    <div class="cat-header">
+      <h3>All <span>Baby Cutlery</span></h3>
+      <a href="#">View full range &rarr;</a>
+    </div>
+    <div class="note-box">📝 5 product grid: up to 5 per category. &ldquo;Best value&rdquo; bundle always in position 5. Colours pulled from Shopify product images in live build.</div>
+    <div class="prod-grid">
+      <div class="prod-card"><div class="prod-img">🥄</div><div class="prod-body"><div class="prod-name">Baby Spoon &amp; Fork</div><div class="prod-sub">Dusky Rose &middot; 6m+</div><div class="prod-price">&pound;14.99</div><button class="prod-btn">+</button></div></div>
+      <div class="prod-card"><div class="prod-img">🥄</div><div class="prod-body"><div class="prod-name">Baby Spoon &amp; Fork</div><div class="prod-sub">Fresh Green &middot; 6m+</div><div class="prod-price">&pound;14.99</div><button class="prod-btn">+</button></div></div>
+      <div class="prod-card"><div class="prod-img">🥣</div><div class="prod-body"><div class="prod-name">Suction Bowl</div><div class="prod-sub">Dusky Rose &middot; 6m+</div><div class="prod-price">&pound;12.99</div><button class="prod-btn">+</button></div></div>
+      <div class="prod-card"><div class="prod-img">🧳</div><div class="prod-body"><div class="prod-name">Baby Travel Case</div><div class="prod-sub">All colours &middot; 6m+</div><div class="prod-price">&pound;9.99</div><button class="prod-btn">+</button></div></div>
+      <div class="prod-card best"><div class="best-badge">Best value</div><div class="prod-img">✨</div><div class="prod-body"><div class="prod-name">Stage 1 Starter Bundle</div><div class="prod-sub">Spoon, Fork + Bowl</div><div class="prod-price">&pound;24.99</div><button class="prod-btn" style="background:var(--panel-acc)">+</button></div></div>
+    </div>
+  </div>
+
+  <div class="next-hook">
+    <div class="next-hook-text">
+      <h4>Ready for bigger cutlery?</h4>
+      <p>When the pincer grip arrives and self-feeding becomes the goal, step up to Toddler Cutlery &mdash; sized for growing hands.</p>
+    </div>
+    <button class="next-hook-btn" onclick="go(1)">Browse Toddler Cutlery &rarr;</button>
+  </div>
+</div>
+
+<!-- ════ PANEL 1: TODDLER CUTLERY ════ -->
+<div class="panel" id="panel-1"
+     style="--panel-bg:#EEF8F6;--panel-acc:#2A9A88;">
+  <div class="stage-hero">
+    <div class="stage-info">
+      <div class="stage-badge">Toddler Cutlery &middot; Stage 1&ndash;4</div>
+      <h2>Tools that <em>grow with them</em></h2>
+      <p class="stage-tagline">As the pincer grip develops and self-feeding becomes the goal, the right cutlery makes every meal a win. Sized for toddler hands, designed for independence &mdash; from 12 months to the family table.</p>
+      <ul class="milestones">
+        <li>Engineered for the developing pincer grip &mdash; 12 months onwards</li>
+        <li>Weighted for control &mdash; not too light, not too heavy</li>
+        <li>Fork and knife in every full set &mdash; complete mealtime coverage</li>
+        <li>Same ergonomic design trusted by occupational therapists</li>
+      </ul>
+      <button class="stage-btn">Shop Toddler Cutlery &rarr;</button>
+    </div>
+    <div class="feat-wrap">
+      <div class="feat-label">Featured in Toddler Cutlery</div>
+      <div class="feat-row">
+        <div class="feat-card">
+          <div class="feat-img">🍴</div>
+          <div class="feat-name">2-Piece Set</div>
+          <div class="feat-age">From 12 months</div>
+          <div class="feat-price">&pound;16.99</div>
+          <button class="feat-atc">Add to bag</button>
+        </div>
+        <div class="feat-card">
+          <div class="feat-img">🥄🍴🔪</div>
+          <div class="feat-name">3-Piece Set</div>
+          <div class="feat-age">From 18 months</div>
+          <div class="feat-price">&pound;18.99</div>
+          <button class="feat-atc">Add to bag</button>
+        </div>
+        <div class="feat-card">
+          <div class="feat-img">⭐</div>
+          <div class="feat-name">Stage 3 Bundle</div>
+          <div class="feat-age">Best value</div>
+          <div class="feat-price">&pound;25.99</div>
+          <button class="feat-atc best">Best value</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="experts">
+    <div class="experts-lbl">Expert view</div>
+    <div class="expert-q">
+      &ldquo;The 12&ndash;18 month period is critical for fine motor development. Tools matched to grip development make a measurable difference in how quickly children become independent at mealtimes.&rdquo;
+      <div class="expert-who">&mdash; Dr. Sarah Mills, Child Development Specialist</div>
+    </div>
+    <div class="logos">
+      <div class="logo-pill">OT UK</div>
+      <div class="logo-pill">BACP Partner</div>
+      <div class="logo-pill">Award 2024</div>
+    </div>
+  </div>
+
+  <div class="cat-section">
+    <div class="cat-header"><h3>All <span>Toddler Cutlery</span></h3><a href="#">View full range &rarr;</a></div>
+    <div class="note-box">📝 5 product grid &mdash; colours pulled from Shopify in live build.</div>
+    <div class="prod-grid">
+      <div class="prod-card"><div class="prod-img">🍴</div><div class="prod-body"><div class="prod-name">2-Piece Set</div><div class="prod-sub">Dusky Rose &middot; 12m+</div><div class="prod-price">&pound;16.99</div><button class="prod-btn">+</button></div></div>
+      <div class="prod-card"><div class="prod-img">🍴</div><div class="prod-body"><div class="prod-name">2-Piece Set</div><div class="prod-sub">Fresh Green &middot; 12m+</div><div class="prod-price">&pound;16.99</div><button class="prod-btn">+</button></div></div>
+      <div class="prod-card"><div class="prod-img">🥄🍴🔪</div><div class="prod-body"><div class="prod-name">3-Piece Set</div><div class="prod-sub">Dusky Rose &middot; 18m+</div><div class="prod-price">&pound;18.99</div><button class="prod-btn">+</button></div></div>
+      <div class="prod-card"><div class="prod-img">🥄🍴🔪</div><div class="prod-body"><div class="prod-name">3-Piece Set</div><div class="prod-sub">Indigo &middot; 18m+</div><div class="prod-price">&pound;18.99</div><button class="prod-btn">+</button></div></div>
+      <div class="prod-card best"><div class="best-badge">Best value</div><div class="prod-img">⭐</div><div class="prod-body"><div class="prod-name">Stage 3 Bundle</div><div class="prod-sub">Set + Plate + Case</div><div class="prod-price">&pound;25.99</div><button class="prod-btn" style="background:var(--panel-acc)">+</button></div></div>
+    </div>
+  </div>
+
+  <div class="next-hook">
+    <div class="next-hook-text">
+      <h4>Need a plate to go with it?</h4>
+      <p>Our 2-in-1 plates and bowls have suction that removes when your child is ready. The perfect partner to toddler cutlery.</p>
+    </div>
+    <button class="next-hook-btn" onclick="go(2)">Browse Plates &amp; Bowls &rarr;</button>
+  </div>
+</div>
+
+<!-- ════ PANEL 2: PLATES & BOWLS ════ -->
+<div class="panel" id="panel-2"
+     style="--panel-bg:#FEF9F2;--panel-acc:#C47D20;">
+  <div class="stage-hero">
+    <div class="stage-info">
+      <div class="stage-badge">Plates &amp; Bowls &middot; Stage 0&ndash;4</div>
+      <h2>Stays where <em>you put it</em></h2>
+      <p class="stage-tagline">A plate that chases itself around the table is a mealtime battle you don&rsquo;t need. Our 2-in-1 suction plates and bowls lock in place &mdash; then the base removes in one motion when your child is ready to go without.</p>
+      <ul class="milestones">
+        <li>Suction base holds fast through the whole meal</li>
+        <li>2-in-1 &mdash; pop the base off when your child is ready</li>
+        <li>Deep edges stop food escaping off the sides</li>
+        <li>BPA-free, dishwasher safe, same safety standard throughout</li>
+      </ul>
+      <button class="stage-btn">Shop Plates &amp; Bowls &rarr;</button>
+    </div>
+    <div class="feat-wrap">
+      <div class="feat-label">Featured in Plates &amp; Bowls</div>
+      <div class="feat-row">
+        <div class="feat-card">
+          <div class="feat-img">🥣</div>
+          <div class="feat-name">2-in-1 Bowl</div>
+          <div class="feat-age">Stage 0–3</div>
+          <div class="feat-price">&pound;22.99</div>
+          <button class="feat-atc">Add to bag</button>
+        </div>
+        <div class="feat-card">
+          <div class="feat-img">🍽️</div>
+          <div class="feat-name">2-in-1 Plate</div>
+          <div class="feat-age">Stage 1–4</div>
+          <div class="feat-price">&pound;22.99</div>
+          <button class="feat-atc">Add to bag</button>
+        </div>
+        <div class="feat-card">
+          <div class="feat-img">⭐</div>
+          <div class="feat-name">Bowl + Plate Bundle</div>
+          <div class="feat-age">Best value</div>
+          <div class="feat-price">&pound;38.99</div>
+          <button class="feat-atc best">Best value</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="experts">
+    <div class="experts-lbl">Expert view</div>
+    <div class="expert-q">
+      &ldquo;Stability matters more than parents realise. When a baby doesn&rsquo;t have to concentrate on stopping the bowl moving, all that energy goes into the spoon. That&rsquo;s a significant difference.&rdquo;
+      <div class="expert-who">&mdash; Dr. Emma Clarke, Paediatric OT</div>
+    </div>
+    <div class="logos">
+      <div class="logo-pill">OT recommended</div>
+      <div class="logo-pill">BPA-free</div>
+      <div class="logo-pill">Dishwasher safe</div>
+    </div>
+  </div>
+
+  <div class="cat-section">
+    <div class="cat-header"><h3>All <span>Plates &amp; Bowls</span></h3><a href="#">View full range &rarr;</a></div>
+    <div class="note-box">📝 5 product grid &mdash; colours pulled from Shopify in live build.</div>
+    <div class="prod-grid">
+      <div class="prod-card"><div class="prod-img">🥣</div><div class="prod-body"><div class="prod-name">2-in-1 Bowl</div><div class="prod-sub">Dusky Rose &middot; 0m+</div><div class="prod-price">&pound;22.99</div><button class="prod-btn">+</button></div></div>
+      <div class="prod-card"><div class="prod-img">🥣</div><div class="prod-body"><div class="prod-name">2-in-1 Bowl</div><div class="prod-sub">Fresh Green &middot; 0m+</div><div class="prod-price">&pound;22.99</div><button class="prod-btn">+</button></div></div>
+      <div class="prod-card"><div class="prod-img">🍽️</div><div class="prod-body"><div class="prod-name">2-in-1 Plate</div><div class="prod-sub">Dusky Rose &middot; 12m+</div><div class="prod-price">&pound;22.99</div><button class="prod-btn">+</button></div></div>
+      <div class="prod-card"><div class="prod-img">🍽️</div><div class="prod-body"><div class="prod-name">Divided Plate</div><div class="prod-sub">No suction &middot; 18m+</div><div class="prod-price">&pound;14.99</div><button class="prod-btn">+</button></div></div>
+      <div class="prod-card best"><div class="best-badge">Best value</div><div class="prod-img">⭐</div><div class="prod-body"><div class="prod-name">Bowl + Plate Bundle</div><div class="prod-sub">Both 2-in-1 pieces</div><div class="prod-price">&pound;38.99</div><button class="prod-btn" style="background:var(--panel-acc)">+</button></div></div>
+    </div>
+  </div>
+
+  <div class="next-hook">
+    <div class="next-hook-text">
+      <h4>Keep mealtimes clean</h4>
+      <p>Our bibs are soft, quick-dry, and actually stay on. The natural next step after getting the plate sorted.</p>
+    </div>
+    <button class="next-hook-btn" onclick="go(3)">Browse Bibs &rarr;</button>
+  </div>
+</div>
+
+<!-- ════ PANEL 3: BIBS ════ -->
+<div class="panel" id="panel-3"
+     style="--panel-bg:#EDE4F8;--panel-acc:#6B46A8;">
+  <div class="stage-hero">
+    <div class="stage-info">
+      <div class="stage-badge">Bibs &middot; Stage 0&ndash;4</div>
+      <h2>Worn well, <em>washed easy</em></h2>
+      <p class="stage-tagline">Mealtimes are messy. Bibs shouldn&rsquo;t add friction &mdash; they should take it away. Soft, quick-dry, and designed to actually stay on through the whole meal.</p>
+      <ul class="milestones">
+        <li>Soft fabric &mdash; comfortable for sensitive skin from birth</li>
+        <li>Secure fastening that stays through even the most active meals</li>
+        <li>Quick-dry after washing &mdash; ready for the next meal</li>
+        <li>Machine washable at 40&deg; &mdash; built for real life</li>
+      </ul>
+      <button class="stage-btn">Shop Bibs &rarr;</button>
+    </div>
+    <div class="feat-wrap">
+      <div class="feat-label">Featured in Bibs</div>
+      <div class="feat-row">
+        <div class="feat-card">
+          <div class="feat-img">🧷</div>
+          <div class="feat-name">Feeding Bib</div>
+          <div class="feat-age">From 0 months</div>
+          <div class="feat-price">&pound;8.99</div>
+          <button class="feat-atc">Add to bag</button>
+        </div>
+        <div class="feat-card">
+          <div class="feat-img">🧷</div>
+          <div class="feat-name">Long-sleeve Bib</div>
+          <div class="feat-age">From 6 months</div>
+          <div class="feat-price">&pound;12.99</div>
+          <button class="feat-atc">Add to bag</button>
+        </div>
+        <div class="feat-card">
+          <div class="feat-img">⭐</div>
+          <div class="feat-name">Bib Bundle</div>
+          <div class="feat-age">Best value</div>
+          <div class="feat-price">&pound;19.99</div>
+          <button class="feat-atc best">Best value</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="experts">
+    <div class="experts-lbl">Expert view</div>
+    <div class="expert-q">
+      &ldquo;Sensory sensitivity around the neck and chest is very common in young children. The softness of the fabric and the security of the fastening both matter more than most parents realise.&rdquo;
+      <div class="expert-who">&mdash; Claire Thompson, Paediatric OT</div>
+    </div>
+    <div class="logos">
+      <div class="logo-pill">OT recommended</div>
+      <div class="logo-pill">Skin-safe fabric</div>
+      <div class="logo-pill">OEKO-TEX</div>
+    </div>
+  </div>
+
+  <div class="cat-section">
+    <div class="cat-header"><h3>All <span>Bibs</span></h3><a href="#">View full range &rarr;</a></div>
+    <div class="note-box">📝 5 product grid &mdash; placeholder products. Update with actual bib range SKUs before review.</div>
+    <div class="prod-grid">
+      <div class="prod-card"><div class="prod-img">🧷</div><div class="prod-body"><div class="prod-name">Feeding Bib</div><div class="prod-sub">Dusky Rose &middot; 0m+</div><div class="prod-price">&pound;8.99</div><button class="prod-btn">+</button></div></div>
+      <div class="prod-card"><div class="prod-img">🧷</div><div class="prod-body"><div class="prod-name">Feeding Bib</div><div class="prod-sub">Fresh Green &middot; 0m+</div><div class="prod-price">&pound;8.99</div><button class="prod-btn">+</button></div></div>
+      <div class="prod-card"><div class="prod-img">🧷</div><div class="prod-body"><div class="prod-name">Long-sleeve Bib</div><div class="prod-sub">Dusky Rose &middot; 6m+</div><div class="prod-price">&pound;12.99</div><button class="prod-btn">+</button></div></div>
+      <div class="prod-card"><div class="prod-img">🧷</div><div class="prod-body"><div class="prod-name">Long-sleeve Bib</div><div class="prod-sub">Indigo &middot; 6m+</div><div class="prod-price">&pound;12.99</div><button class="prod-btn">+</button></div></div>
+      <div class="prod-card best"><div class="best-badge">Best value</div><div class="prod-img">⭐</div><div class="prod-body"><div class="prod-name">Bib Bundle x4</div><div class="prod-sub">Mixed colours</div><div class="prod-price">&pound;28.99</div><button class="prod-btn" style="background:var(--panel-acc)">+</button></div></div>
+    </div>
+  </div>
+
+  <div class="next-hook">
+    <div class="next-hook-text">
+      <h4>Save more with a bundle</h4>
+      <p>Our curated kits save up to &pound;29 vs buying individually &mdash; and the Bundle Box covers the whole journey in one box.</p>
+    </div>
+    <button class="next-hook-btn" onclick="go(4)">Browse Bundles &amp; Kits &rarr;</button>
+  </div>
+</div>
+
+<!-- ════ PANEL 4: BUNDLES & KITS ════ -->
+<div class="panel" id="panel-4"
+     style="--panel-bg:#EEE8F8;--panel-acc:#3D157D;">
+  <div class="stage-hero">
+    <div class="stage-info">
+      <div class="stage-badge">Bundles &amp; Kits &middot; Best value</div>
+      <h2>Everything you need, <em>nothing you don&rsquo;t</em></h2>
+      <p class="stage-tagline">The bundles take the guesswork out of what to buy &mdash; and save you money doing it. Each kit is curated by stage or purpose. The Bundle Box covers the complete journey, from first spoon to the family dinner table.</p>
+      <ul class="milestones">
+        <li>Curated by stage or purpose &mdash; not random bundles</li>
+        <li>Save up to &pound;29 vs buying individually</li>
+        <li>The Bundle Box: the complete journey, Stage 1 to Stage 4</li>
+        <li>Gift-ready packaging on every kit</li>
+      </ul>
+      <button class="stage-btn">Shop Bundles &rarr;</button>
+    </div>
+    <div class="feat-wrap">
+      <div class="feat-label">Featured Bundles</div>
+      <div class="feat-row">
+        <div class="feat-card">
+          <div class="feat-img">🎁</div>
+          <div class="feat-name">Bundle Box</div>
+          <div class="feat-age">Stage 1–4 complete</div>
+          <div class="feat-price">&pound;80.00</div>
+          <button class="feat-atc">Add to bag</button>
+        </div>
+        <div class="feat-card">
+          <div class="feat-img">✨</div>
+          <div class="feat-name">Stage 1 Starter</div>
+          <div class="feat-age">6–12 months</div>
+          <div class="feat-price">&pound;24.99</div>
+          <button class="feat-atc">Add to bag</button>
+        </div>
+        <div class="feat-card">
+          <div class="feat-img">⭐</div>
+          <div class="feat-name">Stage 3 Bundle</div>
+          <div class="feat-age">Best for nursery</div>
+          <div class="feat-price">&pound;25.99</div>
+          <button class="feat-atc best">Best for nursery</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="experts">
+    <div class="experts-lbl">Expert view</div>
+    <div class="expert-q">
+      &ldquo;The Bundle Box is the product I recommend to every family I work with. It removes every future purchasing decision &mdash; the right tool is already in the box, waiting for the right moment.&rdquo;
+      <div class="expert-who">&mdash; Kate Burrows, Lead Paediatric OT</div>
+    </div>
+    <div class="logos">
+      <div class="logo-pill">OT recommended</div>
+      <div class="logo-pill">Gift-ready</div>
+      <div class="logo-pill">King&rsquo;s Award 2023</div>
+    </div>
+  </div>
+
+  <div class="cat-section">
+    <div class="cat-header"><h3>All <span>Bundles &amp; Kits</span></h3><a href="#">View full range &rarr;</a></div>
+    <div class="note-box">📝 Bundle Box leads. Stage bundles 1&ndash;4 follow. Cross-references the Bundle Box journey page.</div>
+    <div class="prod-grid">
+      <div class="prod-card best"><div class="best-badge">Hero product</div><div class="prod-img">🎁</div><div class="prod-body"><div class="prod-name">Bundle Box</div><div class="prod-sub">Complete journey kit</div><div class="prod-price">&pound;80.00</div><button class="prod-btn" style="background:var(--panel-acc)">+</button></div></div>
+      <div class="prod-card"><div class="prod-img">✨</div><div class="prod-body"><div class="prod-name">Stage 1 Bundle</div><div class="prod-sub">Spoon, Fork + Bowl</div><div class="prod-price">&pound;24.99</div><button class="prod-btn">+</button></div></div>
+      <div class="prod-card"><div class="prod-img">⭐</div><div class="prod-body"><div class="prod-name">Stage 2 Bundle</div><div class="prod-sub">Set + Plate + Bowl</div><div class="prod-price">&pound;27.99</div><button class="prod-btn">+</button></div></div>
+      <div class="prod-card"><div class="prod-img">🏆</div><div class="prod-body"><div class="prod-name">Stage 3 Bundle</div><div class="prod-sub">Set + Plate + Case</div><div class="prod-price">&pound;25.99</div><button class="prod-btn">+</button></div></div>
+      <div class="prod-card"><div class="prod-img">🔪</div><div class="prod-body"><div class="prod-name">Stage 4 Full Set</div><div class="prod-sub">Ultimate bundle</div><div class="prod-price">&pound;34.99</div><button class="prod-btn">+</button></div></div>
+    </div>
+  </div>
+
+  <div class="next-hook" style="background:var(--dark);border-color:var(--dark);">
+    <div class="next-hook-text">
+      <h4 style="color:#fff;">Want to see how the Bundle Box works stage by stage?</h4>
+      <p style="color:rgba(255,255,255,.6);">The Bundle Box page walks through exactly what activates at each stage &mdash; and why it&rsquo;s the smartest single purchase on the site.</p>
+    </div>
+    <button class="next-hook-btn" style="background:var(--aqua);color:var(--dark);" onclick="window.location.href='../bundle-box/desktop.html'">Explore the Bundle Box &rarr;</button>
+  </div>
+</div>
+
+</div><!-- /content -->
+
+<script>
+function go(n) {
+  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', i===n));
+  document.querySelectorAll('.panel').forEach((p,i) => p.classList.toggle('active', i===n));
+  document.querySelector('.tabs-wrap').scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+</script>
+</body>
+</html>
