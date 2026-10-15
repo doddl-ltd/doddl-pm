@@ -48,7 +48,8 @@ You only see the tools your credential allows. Call `list_projects` / `list_peop
 | Source | Lands in | How |
 |---|---|---|
 | Teams meetings / calls | Triage (`source: meeting`) | doddl-transcribe posts notes + proposed actions after each internal meeting |
-| Email / Teams (Power Automate) | Triage (`source: email`/`teams`) | `POST /api/tasks` with header `x-intake-key` |
+| Flagged emails (opted-in people) | Triage (`source: email`) | doddl-transcribe summarises each newly flagged Outlook email; `source_ref` = `email\|<internetMessageId>` |
+| Email / Teams (Power Automate, optional) | Triage (`source: email`/`teams`) | `POST /api/tasks` with header `x-intake-key` |
 | Claude chat | Tasks or Triage | MCP tools, acting for the signed-in person |
 | Agents | Tasks, approvals, Triage | MCP or REST with their own key |
 
