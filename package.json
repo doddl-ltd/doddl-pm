@@ -8,6 +8,7 @@
     "test": "node --import ./test/setup.mjs --test \"test/*.test.mjs\""
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "0.133.0",
     "@azure/msal-browser": "3.11.1",
     "@modelcontextprotocol/sdk": "1.32.1",
     "@supabase/supabase-js": "2.39.0",

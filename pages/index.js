@@ -36,6 +36,7 @@ export default function Home() {
   const [view, setView]                         = useState('board')
   const [tasks, setTasks]                       = useState([])
   const [projects, setProjects]                 = useState([])
+  const [programmes, setProgrammes]             = useState([])
   const [taskGroups, setTaskGroups]             = useState([])
   const [notifications, setNotifications]       = useState([])
   const [triageCount, setTriageCount]           = useState(0)
@@ -73,12 +74,13 @@ export default function Home() {
   const userName = getDisplayName(user?.username) || user?.name?.split(' ')[0] || ''
 
   const load = useCallback(async () => {
-    const [t, p, g] = await Promise.all([
+    const [t, p, g, pr] = await Promise.all([
       selectAll(() => supabase.from('tasks').select('*').is('archived_at', null).order('created_at', { ascending: true })),
       selectAll(() => supabase.from('projects').select('*').is('archived_at', null).order('created_at', { ascending: false })),
       selectAll(() => supabase.from('task_groups').select('*').is('archived_at', null).order('position', { ascending: true })),
+      selectAll(() => supabase.from('programmes').select('id, name, position').is('archived_at', null).order('position', { ascending: true }).order('name', { ascending: true })),
     ])
-    setTasks(t); setProjects(p); setTaskGroups(g)
+    setTasks(t); setProjects(p); setTaskGroups(g); setProgrammes(pr)
   }, [])
   const loadTriageCount = useCallback(async () => {
     try {
@@ -154,7 +156,7 @@ export default function Home() {
         onAddTaskClick={onHeaderAddTask} onAddProjectClick={() => setShowAddProject(true)} />
 
       <div style={{ display: 'flex', height: 'calc(100vh - 52px)' }}>
-        <AppSidebar view={view} setView={setView} projects={projects}
+        <AppSidebar view={view} setView={setView} projects={projects} programmes={programmes}
           activeProject={activeProject} setActiveProject={setActiveProject}
           myFlowCount={myOpenTasksCount} unreadCount={unreadCount} approvalsCount={approvalsCount} triageCount={triageCount} />
 
@@ -171,7 +173,7 @@ export default function Home() {
             <InboxView notifications={notifications} tasks={tasks} unreadCount={unreadCount}
               markRead={markRead} markAllRead={markAllRead} setSelectedTask={setSelectedTask} />
           ) : view === 'triage' ? (
-            <TriageView projects={projects} onChanged={load} setTriageCount={setTriageCount} />
+            <TriageView projects={projects} tasks={tasks} onChanged={load} setTriageCount={setTriageCount} />
           ) : view === 'approvals' ? (
             <ApprovalsView tasks={tasks} projects={projects} setSelectedTask={setSelectedTask} />
           ) : activeProjectData ? (
