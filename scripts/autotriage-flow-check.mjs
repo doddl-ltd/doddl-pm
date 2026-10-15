@@ -45,20 +45,30 @@ let item = (await db.from('inbox_items').select('*').eq('id', cap.id).single()).
 ok('capture links the chat project as the hint and queues auto-triage', item.project_hint_id === ws1.project.id && item.auto_status === 'pending')
 
 // 4. Auto-triage with a scripted Claude: confident create, unsure create, confident update
+const esc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+let promptChars = 0
 const fakeClaude = {
   beta: { messages: { create: async (req) => {
-    if (!req.messages[0].content.includes(existing.id)) throw new Error('existing task not offered to Claude')
-    return { model: 'claude-opus-5-5', stop_reason: 'end_turn', content: [{ type: 'text', text: JSON.stringify({
+    const msg = req.messages[0].content
+    promptChars = msg.length
+    // Claude only sees short refs; find the ones for our project and the existing task.
+    const pref = (msg.match(new RegExp(`- (P\\d+) \\|[^\\n]*\\| ${esc(ws1.project.name)}\\n`)) || [])[1]
+    const tref = (msg.match(new RegExp(`- (T\\d+) \\| ${esc(existing.title)} \\|`)) || [])[1]
+    if (!pref || !tref) throw new Error('existing task / project not offered to Claude')
+    return { model: 'claude-opus-5-5', stop_reason: 'end_turn', usage: { input_tokens: 2500, output_tokens: 400 }, content: [{ type: 'text', text: JSON.stringify({
       summary: 'Filed the copy task; updated the pop-up forms task.',
       decisions: [
-        { action_index: 0, decision: 'create', project_id: ws1.project.id, project_fit: 'clear', task_id: null, title: 'Write the welcome email copy', assigned_to: 'Laura', due_date: '2026-10-20', status: null, progress: null, confidence: 0.92, reason: 'Clear new action with owner and date.' },
-        { action_index: 1, decision: 'create', project_id: ws1.project.id, project_fit: 'clear', task_id: null, title: 'Look at SMS', assigned_to: null, due_date: null, status: null, progress: null, confidence: 0.4, reason: 'Vague; unclear whether it was agreed.' },
-        { action_index: 2, decision: 'update', project_id: null, project_fit: null, task_id: existing.id, title: null, assigned_to: null, due_date: '2026-10-17', status: null, progress: null, confidence: 0.9, reason: 'Same deliverable as the open task; adds the Friday date.' },
+        { action_index: 0, decision: 'create', project_id: pref, project_fit: 'clear', task_id: null, title: 'Write the welcome email copy', assigned_to: 'Laura', due_date: '2026-10-20', status: null, progress: null, confidence: 0.92, reason: 'Clear new action with owner and date.' },
+        { action_index: 1, decision: 'create', project_id: pref, project_fit: 'clear', task_id: null, title: 'Look at SMS', assigned_to: null, due_date: null, status: null, progress: null, confidence: 0.4, reason: 'Vague; unclear whether it was agreed.' },
+        { action_index: 2, decision: 'update', project_id: null, project_fit: null, task_id: tref, title: null, assigned_to: null, due_date: '2026-10-17', status: null, progress: null, confidence: 0.9, reason: 'Same deliverable as the open task; adds the Friday date.' },
       ] }) }] }
   } } },
 }
 const r = await auto.triageOne(adminClient(auto.AUTO_ACTOR), fakeClaude, item) // the cron's own client
 ok('confident actions filed, unsure one left for a person', r.status === 'partial' && r.auto_status === 'needs_review', `${r.status}/${r.auto_status}`)
+ok('the prompt is small (only related tasks, short refs)', promptChars > 0 && promptChars < 12000, `${promptChars} characters`)
+const usageRow = (await db.from('inbox_items').select('auto_usage').eq('id', cap.id).single()).data
+ok('the call\'s tokens and cost are recorded on the item', usageRow.auto_usage && usageRow.auto_usage.cost_usd === 0.018, JSON.stringify(usageRow.auto_usage))
 const created = r.decisions.find(d => d.index === 0)
 const updated = (await ops.getTask(db, existing.id))
 const newTask = await ops.getTask(db, created.task_id)
@@ -101,6 +111,10 @@ if (pendingBefore) {
   console.log(`SKIP  pause check: ${pendingBefore} other item(s) already pending on staging`)
 } else {
   const p = await ops.captureInbox(db, jon, { source: 'chat', source_ref: `check-pause-${stamp}`, title: `[check] pause ${stamp}`, proposed_actions: [{ kind: 'create_task', title: 'Anything' }] })
+  const never = { beta: { messages: { create: async () => { throw new Error('Claude must not be called once the budget is used up') } } } }
+  const capped = await auto.runAutoTriage({ db: adminClient(auto.AUTO_ACTOR), claude: never, dailyBudgetUsd: 0 })
+  const capRow = (await db.from('inbox_items').select('auto_status, auto_error').eq('id', p.id).single()).data
+  ok('daily budget reached: no Claude call, item stays queued with the reason', /budget/.test(capped.paused || '') && capped.processed === 0 && capRow.auto_status === 'pending' && /budget/.test(capRow.auto_error || ''), capped.paused || '')
   const broke = { beta: { messages: { create: async () => { const e = new Error('400 {"type":"error","error":{"type":"invalid_request_error","message":"Your credit balance is too low to access the Anthropic API."}}'); e.status = 400; throw e } } } }
   const sum = await auto.runAutoTriage({ db: adminClient(auto.AUTO_ACTOR), claude: broke })
   const row = (await db.from('inbox_items').select('auto_status, auto_attempts, auto_error').eq('id', p.id).single()).data
