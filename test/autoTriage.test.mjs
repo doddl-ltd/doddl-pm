@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { planDecisions, parseResponse, buildRequest, canRetry, DECISIONS_SCHEMA, DONE_THRESHOLD } from '../lib/pm/autoTriage.js'
+import { planDecisions, parseResponse, buildRequest, canRetry, accountProblem, DECISIONS_SCHEMA, DONE_THRESHOLD } from '../lib/pm/autoTriage.js'
 import { workstreamKey } from '../lib/pm/programmes.js'
 
 const P1 = '11111111-1111-1111-1111-111111111111'
@@ -57,6 +57,27 @@ test('retry: only items nothing was filed from; bulk skips what a person undid',
   assert.equal(canRetry({ status: 'new', auto_status: 'undone' }, { bulk: true }), false)
   assert.equal(canRetry({ status: 'partial', auto_status: 'needs_review' }), false)
   assert.equal(canRetry({ status: 'new', auto_status: 'processing' }), false)
+})
+
+test('account problems pause the run; item problems do not', () => {
+  assert.match(accountProblem(400, 'Your credit balance is too low to access the Anthropic API.'), /^Paused: .*out of credit/)
+  assert.match(accountProblem(400, 'You have reached your specified workspace API usage limits.'), /spend limit/)
+  assert.match(accountProblem(401, 'invalid x-api-key'), /rejected/)
+  assert.match(accountProblem(429, 'rate_limit_error'), /rate limit/)
+  assert.match(accountProblem(529, 'Overloaded'), /overloaded/)
+  assert.match(accountProblem(503, 'x'), /error 503/)
+  assert.match(accountProblem(undefined, 'Connection error.', 'APIConnectionError'), /could not reach/)
+  assert.equal(accountProblem(400, 'prompt is too long: 250000 tokens > 200000 maximum'), null)
+  assert.equal(accountProblem(undefined, "Cannot read properties of undefined (reading 'map')", 'TypeError'), null, 'a code bug must not pause filing for ever')
+})
+
+test('created as done: normal bar for an agent reporting its own work, higher bar for meetings', () => {
+  const done = [{ kind: 'create_task', title: 'WEB BUILD 3 go-live', status: 'done' }]
+  const fromAgent = planDecisions({ ...item(done), source: 'agent' }, { decisions: [dec({ confidence: 0.8, project_fit: 'reasonable' })] }, ctx)
+  assert.equal(fromAgent.ops[0].status, 'done')
+  const fromMeeting = planDecisions(item(done), { decisions: [dec({ confidence: 0.8 })] }, ctx)
+  assert.equal(fromMeeting.ops.length, 0)
+  assert.match(fromMeeting.review[0].reason, /would create as done/)
 })
 
 test('marking done needs higher confidence', () => {

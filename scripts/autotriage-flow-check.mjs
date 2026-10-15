@@ -95,5 +95,21 @@ let refused = null
 try { await auto.retryAutoTriage(db, jon, { id: cap.id }) } catch (e) { refused = e }
 ok('retry refused once the item is dismissed', refused && refused.status === 409)
 
+// 8. The Claude API account runs out of credit: the run pauses, the item stays queued, attempts unused
+const pendingBefore = (await db.from('inbox_items').select('id', { count: 'exact', head: true }).eq('auto_status', 'pending').in('status', ['new', 'partial'])).count
+if (pendingBefore) {
+  console.log(`SKIP  pause check: ${pendingBefore} other item(s) already pending on staging`)
+} else {
+  const p = await ops.captureInbox(db, jon, { source: 'chat', source_ref: `check-pause-${stamp}`, title: `[check] pause ${stamp}`, proposed_actions: [{ kind: 'create_task', title: 'Anything' }] })
+  const broke = { beta: { messages: { create: async () => { const e = new Error('400 {"type":"error","error":{"type":"invalid_request_error","message":"Your credit balance is too low to access the Anthropic API."}}'); e.status = 400; throw e } } } }
+  const sum = await auto.runAutoTriage({ db: adminClient(auto.AUTO_ACTOR), claude: broke })
+  const row = (await db.from('inbox_items').select('auto_status, auto_attempts, auto_error').eq('id', p.id).single()).data
+  ok('out of credit pauses the run instead of parking items', sum.paused && sum.processed === 0 && sum.needs_review === 0, sum.paused || '')
+  ok('the item stays queued with the reason and no attempt used', row.auto_status === 'pending' && row.auto_attempts === 0 && /^Paused:/.test(row.auto_error))
+  const b = await prog.briefing(db, jon, {})
+  ok('the briefing reports that filing is paused', /out of credit/.test(b.triage.auto_filing_paused || ''))
+  await ops.triageInbox(db, jon, p.id, { decision: 'dismiss', notes: 'flow check clean-up' })
+}
+
 console.log(failed ? `\n${failed} FAILURE(S)` : '\nALL OK')
 process.exit(failed ? 1 : 0)

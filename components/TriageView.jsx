@@ -242,6 +242,7 @@ export default function TriageView({ projects, tasks = [], onChanged, setTriageC
     }
   }
   const retryable = tab === 'review' && items ? items.filter(i => i.status === 'new' && i.auto_status === 'needs_review').length : 0
+  const paused = tab === 'review' && items ? items.find(i => i.auto_status === 'pending' && String(i.auto_error || '').startsWith('Paused:')) : null
 
   return (
     <>
@@ -259,6 +260,11 @@ export default function TriageView({ projects, tasks = [], onChanged, setTriageC
         )}
       </div>
       {error && <p style={{ color: '#de350b', fontWeight: 700, fontSize: 13 }}>{error}</p>}
+      {paused && (
+        <div style={{ background: '#fffae6', border: '1px solid #ffe380', borderRadius: 8, padding: '10px 14px', marginBottom: 12, fontSize: 13, color: '#172b4d' }}>
+          <strong>Claude has paused filing.</strong> {paused.auto_error.replace(/^Paused:\s*/, '')} Nothing is lost: queued items are filed automatically once this is fixed.
+        </div>
+      )}
       {items === null && !error && <p style={{ color: '#6b778c', fontWeight: 600 }}>Loading…</p>}
       {items && items.length === 0 && (
         <div style={{ textAlign: 'center', padding: 60, color: '#6b778c' }}>

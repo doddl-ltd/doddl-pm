@@ -15,5 +15,7 @@ export default async function handler(req, res) {
   if (!process.env.ANTHROPIC_API_KEY) return res.status(200).json({ enabled: false, reason: 'ANTHROPIC_API_KEY not set' })
   const threshold = Number(process.env.AUTO_TRIAGE_THRESHOLD) || DEFAULT_THRESHOLD
   const summary = await runAutoTriage({ db: adminClient(AUTO_ACTOR), claude: createClaudeClient(), threshold })
-  return res.status(summary.errors.length && !summary.filed && !summary.needs_review ? 500 : 200).json({ enabled: true, threshold, ...summary })
+  // 503 when paused (credit, key, outage) so the failure shows in Vercel's cron and function logs.
+  const status = summary.paused ? 503 : summary.errors.length && !summary.filed && !summary.needs_review ? 500 : 200
+  return res.status(status).json({ enabled: true, threshold, ...summary })
 }
