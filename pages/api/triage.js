@@ -1,12 +1,13 @@
 import { adminClient } from '../../lib/server/admin'
 import { requireUser } from '../../lib/server/msalVerify'
 import { listInbox, triageInbox } from '../../lib/pm/ops'
-import { undoAutoTriage } from '../../lib/pm/autoTriage'
+import { undoAutoTriage, retryAutoTriage } from '../../lib/pm/autoTriage'
 
 // Triage screen API (signed-in doddl staff).
 // GET  /api/triage?view=review            items that need a person (new / partial)
 // GET  /api/triage?view=filed             what Claude filed automatically (latest first)
-// POST /api/triage { id, decision: accept|dismiss|undo, accept_actions?, edits?, project_id?, notes? }
+// POST /api/triage { id, decision: accept|dismiss|undo|retry, accept_actions?, edits?, project_id?, notes? }
+//      { decision: retry, all: true }     ask Claude again for every "needs a look" item
 export default async function handler(req, res) {
   const user = await requireUser(req, res)
   if (!user) return
@@ -23,6 +24,7 @@ export default async function handler(req, res) {
     if (req.method === 'POST') {
       const { id, decision, ...rest } = req.body || {}
       if (decision === 'undo') return res.status(200).json(await undoAutoTriage(db, principal, id))
+      if (decision === 'retry') return res.status(200).json(await retryAutoTriage(db, principal, { id, all: rest.all === true }))
       return res.status(200).json(await triageInbox(db, principal, id, { decision, ...rest }))
     }
     res.setHeader('Allow', 'GET, POST')

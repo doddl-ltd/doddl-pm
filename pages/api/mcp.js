@@ -16,6 +16,7 @@ import { adminClient } from '../../lib/server/admin'
 import { baseUrl } from '../../lib/server/oauth'
 import * as ops from '../../lib/pm/ops'
 import * as prog from '../../lib/pm/programmes'
+import { retryAutoTriage } from '../../lib/pm/autoTriage'
 
 const INSTRUCTIONS = `doddl PM tool: programmes contain projects; projects contain tasks (optionally in groups). People: use list_people for valid assignees.
 Programmes mirror Claude: a claude.ai Project / sidebar group / agent is a programme; each chat, Claude Code session or agent workstream is a project in it. At the start of doddl work call sync_workstream so the right programme and project exist, then use that project.
@@ -273,7 +274,7 @@ function buildServer(principal) {
   if (can('inbox:write')) {
     server.registerTool('capture_inbox_item', {
       title: 'Capture to inbox',
-      description: 'Record an email, meeting outcome or idea for a person to triage. Proposed actions become tasks only when accepted. Idempotent on source + source_ref.',
+      description: 'Record an email, meeting outcome, agreed actions or an idea. Claude files the proposed actions into projects automatically within minutes; anything it is unsure about waits in Triage for a person. Idempotent on source + source_ref.',
       inputSchema: {
         source: z.enum(['email', 'teams', 'meeting', 'agent', 'manual', 'chat']).describe('Use "chat" for a Claude conversation'),
         source_ref: z.string().optional().describe('Stable id, e.g. email message-id'),
@@ -293,16 +294,19 @@ function buildServer(principal) {
   if (can('inbox:triage')) {
     server.registerTool('triage_inbox_item', {
       title: 'Triage inbox item',
-      description: 'Accept (creates/updates the proposed tasks, optionally only some, with edits) or dismiss an inbox item. Only do this when the person you are working for asks.',
+      description: 'Accept (creates/updates the proposed tasks, optionally only some, with edits) or dismiss an inbox item, or "retry" to have Claude auto-file it again (e.g. after the missing project was created; all=true retries every "needs a look" item). Only do this when the person you are working for asks.',
       inputSchema: {
-        id: z.string().uuid(),
-        decision: z.enum(['accept', 'dismiss']),
+        id: z.string().uuid().optional().describe('Required unless decision is retry with all=true'),
+        decision: z.enum(['accept', 'dismiss', 'retry']),
+        all: z.boolean().optional().describe('With retry: every item waiting in "Needs a look"'),
         accept_actions: z.array(z.number().int().min(0)).optional().describe('Indexes of proposed_actions to accept (default all)'),
         edits: z.record(actionSchema.partial()).optional().describe('Per-index overrides, e.g. {"0": {"assigned_to": "Laura"}}'),
         project: z.string().optional().describe('Default project for created tasks'),
         notes: z.string().optional(),
       },
-    }, tool(({ id, ...rest }) => ops.triageInbox(db, principal, id, rest)))
+    }, tool(({ id, all, ...rest }) => (rest.decision === 'retry'
+      ? retryAutoTriage(db, principal, { id, all: all === true })
+      : ops.triageInbox(db, principal, id, rest))))
   }
 
   return server

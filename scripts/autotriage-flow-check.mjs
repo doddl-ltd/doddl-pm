@@ -51,9 +51,9 @@ const fakeClaude = {
     return { model: 'claude-opus-5-5', stop_reason: 'end_turn', content: [{ type: 'text', text: JSON.stringify({
       summary: 'Filed the copy task; updated the pop-up forms task.',
       decisions: [
-        { action_index: 0, decision: 'create', project_id: ws1.project.id, task_id: null, title: 'Write the welcome email copy', assigned_to: 'Laura', due_date: '2026-10-20', status: null, progress: null, confidence: 0.92, reason: 'Clear new action with owner and date.' },
-        { action_index: 1, decision: 'create', project_id: ws1.project.id, task_id: null, title: 'Look at SMS', assigned_to: null, due_date: null, status: null, progress: null, confidence: 0.4, reason: 'Vague; unclear whether it was agreed.' },
-        { action_index: 2, decision: 'update', project_id: null, task_id: existing.id, title: null, assigned_to: null, due_date: '2026-10-17', status: null, progress: null, confidence: 0.9, reason: 'Same deliverable as the open task; adds the Friday date.' },
+        { action_index: 0, decision: 'create', project_id: ws1.project.id, project_fit: 'clear', task_id: null, title: 'Write the welcome email copy', assigned_to: 'Laura', due_date: '2026-10-20', status: null, progress: null, confidence: 0.92, reason: 'Clear new action with owner and date.' },
+        { action_index: 1, decision: 'create', project_id: ws1.project.id, project_fit: 'clear', task_id: null, title: 'Look at SMS', assigned_to: null, due_date: null, status: null, progress: null, confidence: 0.4, reason: 'Vague; unclear whether it was agreed.' },
+        { action_index: 2, decision: 'update', project_id: null, project_fit: null, task_id: existing.id, title: null, assigned_to: null, due_date: '2026-10-17', status: null, progress: null, confidence: 0.9, reason: 'Same deliverable as the open task; adds the Friday date.' },
       ] }) }] }
   } } },
 }
@@ -85,6 +85,15 @@ const gone = (await db.from('tasks').select('archived_at').eq('id', created.task
 ok('undo archives what Claude created and lists updates to check', gone.archived_at && undo.updates_to_check.includes(existing.id))
 const after = (await db.from('inbox_items').select('status, auto_status').eq('id', cap.id).single()).data
 ok('undone item is back for a person and will not be re-filed', after.status === 'new' && after.auto_status === 'undone')
+
+// 7. "Ask Claude again": allowed for this one item, refused once a person has dealt with it
+const again = await auto.retryAutoTriage(db, jon, { id: cap.id })
+const queued = (await db.from('inbox_items').select('auto_status, auto_attempts').eq('id', cap.id).single()).data
+ok('retry queues the item for Claude again', again.queued === 1 && queued.auto_status === 'pending' && queued.auto_attempts === 0)
+await ops.triageInbox(db, jon, cap.id, { decision: 'dismiss', notes: 'flow check clean-up' })
+let refused = null
+try { await auto.retryAutoTriage(db, jon, { id: cap.id }) } catch (e) { refused = e }
+ok('retry refused once the item is dismissed', refused && refused.status === 409)
 
 console.log(failed ? `\n${failed} FAILURE(S)` : '\nALL OK')
 process.exit(failed ? 1 : 0)

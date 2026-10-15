@@ -65,6 +65,7 @@ function ReviewCard({ item, projects, onDone }) {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState(null)
   const filing = item.auto_status === 'pending' || item.auto_status === 'processing'
+  const canRetry = item.status === 'new' && (item.auto_status === 'needs_review' || item.auto_status === 'undone')
 
   const edit = (i, field, value) => setEdits(e => ({ ...e, [i]: { ...(e[i] || {}), [field]: value } }))
   const open = proposed.map((a, i) => ({ a, i })).filter(({ i }) => !filed[i])
@@ -139,6 +140,7 @@ function ReviewCard({ item, projects, onDone }) {
         )}
         {error && <span style={{ fontSize: 12, color: '#de350b', fontWeight: 700 }}>{error}</span>}
         <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
+          {canRetry && <button style={button(false)} disabled={busy} title="E.g. after creating the project it was missing" onClick={() => submit('retry')}>Ask Claude again</button>}
           <button style={button(false)} disabled={busy} onClick={() => submit('dismiss')}>Dismiss</button>
           <button style={button(true)} disabled={busy || !open.some(({ i }) => selected[i]) || (needsProject && !projectId)} onClick={() => submit('accept')}>
             {busy ? 'Saving…' : 'Accept selected'}
@@ -188,7 +190,7 @@ function FiledCard({ item, tasks, projects, onDone }) {
               <span style={{ fontWeight: 800, minWidth: 104, color: d.op === 'review' ? '#b85c00' : '#00875a' }}>{what}</span>
               <span style={{ flex: 1, color: '#172b4d' }}>
                 {(t && t.title) || a.title || '—'}
-                {where && <span style={{ color: '#6b778c' }}> · {where}</span>}
+                {where && <span style={{ color: '#6b778c' }}> · {where}{d.op === 'create' && d.project_fit === 'reasonable' ? ' (best guess)' : ''}</span>}
                 {t && t.assigned_to && <span style={{ color: '#6b778c' }}> · {t.assigned_to}</span>}
                 {d.reason && d.op !== 'create' && <span style={{ color: '#6b778c' }}> — {d.reason}</span>}
               </span>
@@ -209,6 +211,7 @@ export default function TriageView({ projects, tasks = [], onChanged, setTriageC
   const [tab, setTab] = useState('review')
   const [items, setItems] = useState(null)
   const [error, setError] = useState(null)
+  const [retrying, setRetrying] = useState(false)
 
   const load = useCallback(async () => {
     setItems(null)
@@ -225,6 +228,20 @@ export default function TriageView({ projects, tasks = [], onChanged, setTriageC
 
   useEffect(() => { load() }, [load])
   const done = () => { load(); if (onChanged) onChanged() }
+  const retryAll = async () => {
+    setRetrying(true); setError(null)
+    try {
+      const resp = await apiFetch('/api/triage', { method: 'POST', body: JSON.stringify({ decision: 'retry', all: true }) })
+      const out = await resp.json()
+      if (!resp.ok) throw new Error(out.error || 'Could not ask Claude again')
+      load()
+    } catch (e) {
+      setError(e.message)
+    } finally {
+      setRetrying(false)
+    }
+  }
+  const retryable = tab === 'review' && items ? items.filter(i => i.status === 'new' && i.auto_status === 'needs_review').length : 0
 
   return (
     <>
@@ -232,9 +249,14 @@ export default function TriageView({ projects, tasks = [], onChanged, setTriageC
         <h2 style={{ fontWeight: 800, fontSize: 18, color: 'var(--indigo)' }}>Triage</h2>
         <p style={{ fontSize: 13, color: '#6b778c', fontWeight: 600, marginTop: 2 }}>Meetings, flagged emails, Teams messages, Claude chats and agents. Claude files them into projects; only what it isn't sure about waits here.</p>
       </div>
-      <div style={{ borderBottom: '1px solid #dfe1e6', marginBottom: 14 }}>
+      <div style={{ borderBottom: '1px solid #dfe1e6', marginBottom: 14, display: 'flex', alignItems: 'center' }}>
         <button style={tabStyle(tab === 'review')} onClick={() => setTab('review')}>Needs a look</button>
         <button style={tabStyle(tab === 'filed')} onClick={() => setTab('filed')}>Filed by Claude</button>
+        {retryable > 1 && (
+          <button style={{ ...button(false), marginLeft: 'auto', marginBottom: 4 }} disabled={retrying} title="E.g. after creating projects that were missing" onClick={retryAll}>
+            {retrying ? 'Asking…' : 'Ask Claude again for all'}
+          </button>
+        )}
       </div>
       {error && <p style={{ color: '#de350b', fontWeight: 700, fontSize: 13 }}>{error}</p>}
       {items === null && !error && <p style={{ color: '#6b778c', fontWeight: 600 }}>Loading…</p>}
