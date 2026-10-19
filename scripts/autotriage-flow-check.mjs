@@ -55,7 +55,8 @@ const fakeClaude = {
     const pref = (msg.match(new RegExp(`- (P\\d+) \\|[^\\n]*\\| ${esc(ws1.project.name)}\\n`)) || [])[1]
     const tref = (msg.match(new RegExp(`- (T\\d+) \\| ${esc(existing.title)} \\|`)) || [])[1]
     if (!pref || !tref) throw new Error('existing task / project not offered to Claude')
-    return { model: 'claude-opus-5-5', stop_reason: 'end_turn', usage: { input_tokens: 2500, output_tokens: 400 }, content: [{ type: 'text', text: JSON.stringify({
+    if (req.model !== 'claude-haiku-5-5' || req.fallbacks) throw new Error(`expected Haiku 5.5 without fallbacks, got ${req.model}`)
+    return { model: 'claude-haiku-5-5', stop_reason: 'end_turn', usage: { input_tokens: 2500, output_tokens: 400 }, content: [{ type: 'text', text: JSON.stringify({
       summary: 'Filed the copy task; updated the pop-up forms task.',
       decisions: [
         { action_index: 0, decision: 'create', project_id: pref, project_fit: 'clear', task_id: null, title: 'Write the welcome email copy', assigned_to: 'Laura', due_date: '2026-10-20', status: null, progress: null, confidence: 0.92, reason: 'Clear new action with owner and date.' },
@@ -68,7 +69,7 @@ const r = await auto.triageOne(adminClient(auto.AUTO_ACTOR), fakeClaude, item) /
 ok('confident actions filed, unsure one left for a person', r.status === 'partial' && r.auto_status === 'needs_review', `${r.status}/${r.auto_status}`)
 ok('the prompt is small (only related tasks, short refs)', promptChars > 0 && promptChars < 12000, `${promptChars} characters`)
 const usageRow = (await db.from('inbox_items').select('auto_usage').eq('id', cap.id).single()).data
-ok('the call\'s tokens and cost are recorded on the item', usageRow.auto_usage && usageRow.auto_usage.cost_usd === 0.018, JSON.stringify(usageRow.auto_usage))
+ok('the call\'s tokens and cost are recorded on the item', usageRow.auto_usage && usageRow.auto_usage.cost_usd === 0.00045 && usageRow.auto_usage.model === 'claude-haiku-5-5', JSON.stringify(usageRow.auto_usage))
 const created = r.decisions.find(d => d.index === 0)
 const updated = (await ops.getTask(db, existing.id))
 const newTask = await ops.getTask(db, created.task_id)

@@ -63,7 +63,7 @@ Every 5 minutes (`/api/cron/auto-triage`, lib/pm/autoTriage.js) Claude decides, 
 - **Ask Claude again** (one item or all; `triage_inbox_item` decision `retry`) re-runs items nothing was filed from, e.g. after creating a missing project.
 - If the Claude API account has a problem (out of credit, spend limit, bad key, outage) filing **pauses**: items stay queued, Triage and `briefing` show the reason, and filing resumes by itself once it is fixed.
 - Off with Vercel env `AUTO_TRIAGE=off` or without `ANTHROPIC_API_KEY`; items then wait in Triage.
-- **Cost:** Claude sees only the open tasks that could match (at most 40, short refs instead of ids), at low effort. Each call's tokens and cost are stored on the item (`auto_usage`), `briefing` shows `claude_cost_today_usd`, and filing pauses once the day's spend reaches `AUTO_TRIAGE_DAILY_BUDGET_USD` (default $1). Model and effort: `AUTO_TRIAGE_MODEL` (default `claude-opus-5-5`), `AUTO_TRIAGE_EFFORT` (default `low`). Never run real-Claude test batches without stating the expected cost first.
+- **Cost:** Claude sees only the open tasks that could match (at most 40, short refs instead of ids), at low effort. Each call's tokens and cost are stored on the item (`auto_usage`), `briefing` shows `claude_cost_today_usd`, and filing pauses once the day's spend reaches `AUTO_TRIAGE_DAILY_BUDGET_USD` (default $1). Model and effort: `AUTO_TRIAGE_MODEL` (default `claude-haiku-5-5`, Jon's choice 2026-10-19; about $0.001 an item), `AUTO_TRIAGE_EFFORT` (default `low`). Never run real-Claude test batches without stating the expected cost first.
 
 ## 6. Credentials (names only)
 
