@@ -17,7 +17,17 @@ function NavBtn({ view, setView, activeKey, label, count }) {
   )
 }
 
-export default function AppSidebar({ view, setView, projects, activeProject, setActiveProject, myFlowCount, unreadCount, approvalsCount, triageCount }) {
+// [{ id, name, projects: [{ p, i }] }] — programmes in order, then projects with no programme.
+// `i` is the project's index in the full list so colours stay the same as before.
+function groupByProgramme(projects, programmes) {
+  const groups = programmes.map(pr => ({ id: pr.id, name: pr.name, projects: [] }))
+  const byId = new Map(groups.map(g => [g.id, g]))
+  const other = { id: 'other', name: groups.length ? 'Other projects' : null, projects: [] }
+  projects.forEach((p, i) => (byId.get(p.programme_id) || other).projects.push({ p, i }))
+  return [...groups.filter(g => g.projects.length), ...(other.projects.length ? [other] : [])]
+}
+
+export default function AppSidebar({ view, setView, projects, programmes = [], activeProject, setActiveProject, myFlowCount, unreadCount, approvalsCount, triageCount }) {
   const [width, setWidth] = useState(DEFAULT_W)
   const dragging = useRef(false)
 
@@ -67,10 +77,16 @@ export default function AppSidebar({ view, setView, projects, activeProject, set
       </div>
       <p style={{ fontSize: 10, fontWeight: 700, color: '#a0aec0', textTransform: 'uppercase', letterSpacing: '0.06em', padding: '0 12px', marginBottom: 6 }}>Projects</p>
       <button onClick={() => setActiveProject(null)} style={{ width: '100%', textAlign: 'left', padding: '6px 12px', borderRadius: 6, border: 'none', cursor: 'pointer', fontFamily: 'Nunito, sans-serif', fontWeight: 600, fontSize: 12, marginBottom: 2, background: !activeProject ? '#e9f2ff' : 'transparent', color: !activeProject ? '#0052cc' : '#42526e' }}>All projects</button>
-      {projects.map((p, i) => (
-        <button key={p.id} onClick={() => setActiveProject(p.id)} style={{ width: '100%', textAlign: 'left', padding: '6px 12px', borderRadius: 6, border: 'none', cursor: 'pointer', fontFamily: 'Nunito, sans-serif', fontWeight: 600, fontSize: 12, marginBottom: 2, background: activeProject === p.id ? '#e9f2ff' : 'transparent', color: activeProject === p.id ? '#0052cc' : '#42526e', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 6 }}>
-          <span style={{ width: 8, height: 8, borderRadius: '50%', background: getProjectColor(p, i), flexShrink: 0 }} />{p.name}
-        </button>
+      {/* Projects grouped by programme (programmes mirror claude.ai Projects / agents; Claude keeps them in step) */}
+      {groupByProgramme(projects, programmes).map(group => (
+        <div key={group.id} style={{ marginBottom: 6 }}>
+          {group.name && <p style={{ fontSize: 10, fontWeight: 800, color: '#6b778c', padding: '6px 12px 2px', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{group.name}</p>}
+          {group.projects.map(({ p, i }) => (
+            <button key={p.id} onClick={() => setActiveProject(p.id)} style={{ width: '100%', textAlign: 'left', padding: '6px 12px', borderRadius: 6, border: 'none', cursor: 'pointer', fontFamily: 'Nunito, sans-serif', fontWeight: 600, fontSize: 12, marginBottom: 2, background: activeProject === p.id ? '#e9f2ff' : 'transparent', color: activeProject === p.id ? '#0052cc' : '#42526e', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span style={{ width: 8, height: 8, borderRadius: '50%', background: getProjectColor(p, i), flexShrink: 0 }} />{p.name}
+            </button>
+          ))}
+        </div>
       ))}
       {/* Drag handle (UI #7) */}
       <div onMouseDown={startDrag} title="Drag to resize"

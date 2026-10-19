@@ -4,6 +4,7 @@ import CommentBody from './CommentBody'
 const TYPE_COLORS = {
   mention:          { bg: '#e9f2ff', color: '#0052cc', label: '@Mention' },
   comment_on_owned: { bg: '#e3fcef', color: '#00875a', label: 'Comment' },
+  auto_assigned:    { bg: '#ede9fe', color: '#6554c0', label: 'Filed by Claude' },
 }
 
 export default function InboxView({ notifications, tasks, unreadCount, markRead, markAllRead, setSelectedTask }) {

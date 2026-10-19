@@ -1,10 +1,13 @@
 import { adminClient } from '../../lib/server/admin'
 import { requireUser } from '../../lib/server/msalVerify'
 import { listInbox, triageInbox } from '../../lib/pm/ops'
+import { undoAutoTriage, retryAutoTriage } from '../../lib/pm/autoTriage'
 
 // Triage screen API (signed-in doddl staff).
-// GET  /api/triage?status=new
-// POST /api/triage { id, decision: accept|dismiss, accept_actions?, edits?, project_id?, notes? }
+// GET  /api/triage?view=review            items that need a person (new / partial)
+// GET  /api/triage?view=filed             what Claude filed automatically (latest first)
+// POST /api/triage { id, decision: accept|dismiss|undo|retry, accept_actions?, edits?, project_id?, notes? }
+//      { decision: retry, all: true }     ask Claude again for every "needs a look" item
 export default async function handler(req, res) {
   const user = await requireUser(req, res)
   if (!user) return
@@ -12,11 +15,17 @@ export default async function handler(req, res) {
   const principal = { actor: user.name, agent_id: null, on_behalf_of: null, scopes: [] }
   try {
     if (req.method === 'GET') {
-      return res.status(200).json(await listInbox(db, { status: req.query.status || 'new', limit: req.query.limit, offset: req.query.offset }))
+      const view = req.query.view || 'review'
+      if (view === 'filed') {
+        return res.status(200).json(await listInbox(db, { status: 'all', auto_status: 'filed,needs_review,undone', limit: req.query.limit || 50, offset: req.query.offset, onlyAutoTouched: true }))
+      }
+      return res.status(200).json(await listInbox(db, { status: req.query.status || 'new,partial', limit: req.query.limit, offset: req.query.offset }))
     }
     if (req.method === 'POST') {
-      const { id, ...rest } = req.body || {}
-      return res.status(200).json(await triageInbox(db, principal, id, rest))
+      const { id, decision, ...rest } = req.body || {}
+      if (decision === 'undo') return res.status(200).json(await undoAutoTriage(db, principal, id))
+      if (decision === 'retry') return res.status(200).json(await retryAutoTriage(db, principal, { id, all: rest.all === true }))
+      return res.status(200).json(await triageInbox(db, principal, id, { decision, ...rest }))
     }
     res.setHeader('Allow', 'GET, POST')
     return res.status(405).json({ error: 'Method not allowed' })
