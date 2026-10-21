@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react'
 import { TEAM } from '../lib/team'
 import { useDropdownPosition } from '../lib/useDropdownPosition'
+import { useIsMobile } from '../lib/useIsMobile'
 
 const COLORS = ['#0052cc','#00875a','#de350b','#ff8b00','#6554c0','#00a3bf']
 const colorFor = (name) => COLORS[name.charCodeAt(0) % COLORS.length]
@@ -15,7 +16,8 @@ const colorFor = (name) => COLORS[name.charCodeAt(0) % COLORS.length]
 export default function AssigneeSelect({ value, onChange, avatarOnly }) {
   const [open, setOpen] = useState(false)
   const anchorRef = useRef(null)
-  const pos = useDropdownPosition(anchorRef, open, { estimatedHeight: TEAM.length * 32 + 40 })
+  const big = useIsMobile()   // phone: finger-sized options
+  const pos = useDropdownPosition(anchorRef, open, { estimatedHeight: TEAM.length * (big ? 42 : 32) + 40 })
 
   return (
     <div style={{ position: 'relative' }} ref={anchorRef}>
@@ -35,11 +37,11 @@ export default function AssigneeSelect({ value, onChange, avatarOnly }) {
           <div style={{ position: 'fixed', inset: 0, zIndex: 998 }} onClick={() => setOpen(false)} />
           <div style={{ position: 'fixed', top: pos.top, left: pos.left, zIndex: 999, background: '#fff', border: '1px solid #dfe1e6', borderRadius: 4, boxShadow: '0 4px 16px rgba(0,0,0,0.15)', minWidth: 160 }}>
             <div onClick={() => { onChange(''); setOpen(false) }}
-              style={{ padding: '6px 10px', cursor: 'pointer', fontSize: 12, color: '#6b778c' }}
+              style={{ padding: big ? '11px 14px' : '6px 10px', cursor: 'pointer', fontSize: 12, color: '#6b778c' }}
               onMouseEnter={e => e.currentTarget.style.background = '#f4f5f7'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>Unassigned</div>
             {TEAM.map(m => (
               <div key={m.email} onClick={() => { onChange(m.name); setOpen(false) }}
-                style={{ padding: '6px 10px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}
+                style={{ padding: big ? '11px 14px' : '6px 10px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}
                 onMouseEnter={e => e.currentTarget.style.background = '#f4f5f7'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
                 <span style={{ display: 'inline-flex', alignItems: 'center', background: colorFor(m.name), color: '#fff', fontWeight: 800, height: 20, padding: '0 8px', fontSize: 10, borderRadius: 10 }}>
                   {m.name}

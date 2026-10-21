@@ -6,9 +6,11 @@ import AssigneeSelect from './AssigneeSelect'
 import PriorityBadge from './PriorityBadge'
 import ProgressBar from './ProgressBar'
 import TimelineCell from './TimelineCell'
+import { useIsMobile } from '../lib/useIsMobile'
 
 export default function ProjectTableRow({ task, projectColor, onUpdate, onPatch, onDelete, onSelect, depth = 0, selected, onToggleSelect, widths }) {
   const W = widths || W_DEFAULT
+  const isMobile = useIsMobile()
   // Safe wrapper — onPatch is optional; if parent didn't wire it, just no-op.
   const patchParent = (p) => { if (onPatch) onPatch(task.id, p) }
   // Saves write to DB then trigger parent refresh. The taskIdRef guard (below)
@@ -110,6 +112,59 @@ export default function ProjectTableRow({ task, projectColor, onUpdate, onPatch,
     if (!error) onUpdate()
   }
 
+  const saveTimeline = async (start, end) => {
+    setLocalStart(start); setLocalEnd(end)
+    const { error } = await supabase.from('tasks').update({ start_date: start, due_date: end }).eq('id', task.id)
+    if (!error) onUpdate()
+  }
+
+  // Phone: the row as a card. Title in full (tap opens the task), then the same editable
+  // cells the table has, wrapped onto two lines. Rename and delete are always visible
+  // (there is no hover), and delete asks first because it is easy to tap by mistake.
+  if (isMobile) {
+    return (
+      <div style={{ borderLeft: `4px solid ${projectColor}`, borderBottom: '1px solid #f0f1f3', padding: `10px 12px 11px ${12 + (depth ? 6 : 0)}px`, background: '#fff' }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+          {editingTitle ? (
+            <input ref={titleInputRef} value={titleDraft}
+              onChange={e => setTitleDraft(e.target.value)}
+              onBlur={commitTitle}
+              onKeyDown={e => {
+                if (e.key === 'Enter') { e.preventDefault(); commitTitle() }
+                if (e.key === 'Escape') { e.preventDefault(); cancelTitle() }
+              }}
+              style={{ flex: 1, minWidth: 0, border: '1px solid var(--aqua)', borderRadius: 6, padding: '6px 8px', fontWeight: 600, fontFamily: 'Nunito, sans-serif', outline: 'none', color: '#172b4d' }} />
+          ) : (
+            <span onClick={() => onSelect && onSelect(task)}
+              style={{ flex: 1, minWidth: 0, fontWeight: depth === 0 ? 700 : 600, fontSize: 14, lineHeight: 1.35, color: '#172b4d', cursor: 'pointer', wordBreak: 'break-word', paddingTop: 2 }}>
+              {task.title || <span style={{ color: '#c1c7d0' }}>(untitled)</span>}
+            </span>
+          )}
+          {!editingTitle && (
+            <button onClick={startEditTitle} aria-label="Rename task"
+              style={{ background: 'none', border: 'none', color: '#97a0af', fontSize: 15, padding: '2px 4px', cursor: 'pointer', flexShrink: 0 }}>✎</button>
+          )}
+          <button onClick={() => { if (window.confirm(`Delete "${task.title || 'this task'}"?`)) onDelete(task.id) }} aria-label="Delete task"
+            style={{ background: 'none', border: 'none', color: '#97a0af', fontSize: 20, lineHeight: 1, padding: '0 2px', cursor: 'pointer', flexShrink: 0 }}>×</button>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', marginTop: 9 }}>
+          <AssigneeSelect value={localAssignee} onChange={v => { setLocalAssignee(v); save('assigned_to', v) }} avatarOnly />
+          <StatusBadge value={localStatus} onChange={handleStatus} />
+          <PriorityBadge value={localPriority} onChange={v => { setLocalPriority(v); save('priority', v) }} />
+          {effort ? <span style={{ fontSize: 11, fontWeight: 700, color: '#0052cc', background: '#e9f2ff', borderRadius: 10, padding: '2px 7px' }}>{effort}d</span> : null}
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginTop: 10 }}>
+          <div style={{ flex: 3, minWidth: 0 }}>
+            <TimelineCell startDate={localStart} dueDate={localEnd} color={projectColor} onSave={saveTimeline} />
+          </div>
+          <div style={{ flex: 2, minWidth: 0 }}>
+            <ProgressBar value={localProgress} onChange={handleProgress} />
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div style={{ display: 'flex', alignItems: 'center', borderLeft: `4px solid ${projectColor}`, borderBottom: '1px solid #f0f1f3', minHeight: 40, background: selected ? '#f0f4ff' : 'transparent' }}
       onMouseEnter={e => { setHovering(true); if (!selected) e.currentTarget.style.background = '#f8f9ff' }}
@@ -162,11 +217,7 @@ export default function ProjectTableRow({ task, projectColor, onUpdate, onPatch,
       <div style={{ width: W.timeline, padding: '4px 6px', flexShrink: 0 }}>
         <TimelineCell
           startDate={localStart} dueDate={localEnd} color={projectColor}
-          onSave={async (start, end) => {
-            setLocalStart(start); setLocalEnd(end)
-            const { error } = await supabase.from('tasks').update({ start_date: start, due_date: end }).eq('id', task.id)
-            if (!error) onUpdate()
-          }} />
+          onSave={saveTimeline} />
       </div>
       {/* Effort — auto from dates */}
       <div style={{ width: W.effort, padding: '4px 6px', textAlign: 'center', flexShrink: 0 }}>

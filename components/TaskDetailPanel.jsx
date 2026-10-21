@@ -12,6 +12,8 @@ import CommentBody from './CommentBody'
 import MentionInput from './MentionInput'
 import ApprovalTaskPanel from './ApprovalTaskPanel'
 import TaskEvidence from './TaskEvidence'
+import { useIsMobile } from '../lib/useIsMobile'
+import { HEADER_H } from './AppHeader'
 
 const MIN_W = 300, MAX_W = 800, DEFAULT_W = 400, STORAGE_KEY = 'doddl-pm-detail-panel-width'
 export const TASK_PANEL = { MIN: MIN_W, MAX: MAX_W, DEFAULT: DEFAULT_W, STORAGE_KEY }
@@ -23,6 +25,15 @@ export default function TaskDetailPanel({ task, user, onClose, onUpdate, onPatch
   const [editTask, setEditTask]   = useState(task)
   const [saving, setSaving]       = useState(false)
   const userName = getDisplayName(user?.username) || user?.name || 'Unknown'
+  const isMobile = useIsMobile()
+
+  // Phone: the panel is a full-screen sheet over the scrolling page, so hold the page still.
+  useEffect(() => {
+    if (!isMobile) return
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => { document.body.style.overflow = prev }
+  }, [isMobile])
 
   // UI #6 — resize drag (width state is owned by the parent so the main content
   // can reserve the matching marginRight).
@@ -133,14 +144,16 @@ export default function TaskDetailPanel({ task, user, onClose, onUpdate, onPatch
   )
 
   return (
-    <div style={{ position: 'fixed', right: 0, top: 52, bottom: 0, width: panelW, background: '#fff', borderLeft: '1px solid #dfe1e6', zIndex: 500, display: 'flex', flexDirection: 'column', boxShadow: '-4px 0 20px rgba(0,0,0,0.08)' }}>
+    <div style={isMobile
+      ? { position: 'fixed', inset: 0, background: '#fff', zIndex: 600, display: 'flex', flexDirection: 'column', paddingTop: 'env(safe-area-inset-top)' }
+      : { position: 'fixed', right: 0, top: HEADER_H, bottom: 0, width: panelW, background: '#fff', borderLeft: '1px solid #dfe1e6', zIndex: 500, display: 'flex', flexDirection: 'column', boxShadow: '-4px 0 20px rgba(0,0,0,0.08)' }}>
       {/* Left-edge drag handle (UI #6) */}
-      <div onMouseDown={startPanelDrag} title="Drag to resize panel"
+      {!isMobile && <div onMouseDown={startPanelDrag} title="Drag to resize panel"
         style={{ position: 'absolute', top: 0, left: -3, bottom: 0, width: 6, cursor: 'col-resize', zIndex: 501 }}
         onMouseEnter={e => e.currentTarget.style.background = 'rgba(61,21,125,0.15)'}
-        onMouseLeave={e => e.currentTarget.style.background = 'transparent'} />
+        onMouseLeave={e => e.currentTarget.style.background = 'transparent'} />}
       {/* Header */}
-      <div style={{ padding: '14px 20px', borderBottom: '1px solid #dfe1e6', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', background: '#fafbfc' }}>
+      <div style={{ padding: isMobile ? '12px 14px' : '14px 20px', borderBottom: '1px solid #dfe1e6', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', background: '#fafbfc' }}>
         <div style={{ flex: 1, marginRight: 12 }}>
           <p style={{ fontSize: 10, fontWeight: 700, color: '#6b778c', textTransform: 'uppercase', marginBottom: 6 }}>
             {editTask.task_type && editTask.task_type !== 'standard'
@@ -168,11 +181,14 @@ export default function TaskDetailPanel({ task, user, onClose, onUpdate, onPatch
             <StatusBadge value={editTask.status} onChange={v => save('status', v)} />
           </div>
         </div>
-        <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: 22, cursor: 'pointer', color: '#6b778c', flexShrink: 0 }}>×</button>
+        <button onClick={onClose} aria-label="Close task"
+          style={isMobile
+            ? { background: '#f0f1f3', border: 'none', borderRadius: 18, width: 36, height: 36, fontSize: 24, lineHeight: '34px', cursor: 'pointer', color: '#42526e', flexShrink: 0 }
+            : { background: 'none', border: 'none', fontSize: 22, cursor: 'pointer', color: '#6b778c', flexShrink: 0 }}>×</button>
       </div>
 
       {/* Editable fields */}
-      <div style={{ overflowY: 'auto', flex: 1 }}>
+      <div style={{ overflowY: 'auto', flex: 1, WebkitOverflowScrolling: 'touch', overscrollBehavior: 'contain' }}>
         {editTask.task_type === 'approval' && (
           <ApprovalTaskPanel task={editTask} userName={userName} onUpdate={onUpdate} />
         )}
@@ -293,7 +309,7 @@ export default function TaskDetailPanel({ task, user, onClose, onUpdate, onPatch
       </div>
 
       {/* Comment input */}
-      <div style={{ padding: '12px 20px', borderTop: '1px solid #dfe1e6', background: '#fafbfc' }}>
+      <div style={{ padding: isMobile ? '10px 14px calc(10px + env(safe-area-inset-bottom))' : '12px 20px', borderTop: '1px solid #dfe1e6', background: '#fafbfc' }}>
         <div style={{ display: 'flex', gap: 8 }}>
           <OwnerAvatar name={userName} />
           <MentionInput value={newComment} onChange={setNewComment} onPost={postComment} posting={posting} userName={userName} />

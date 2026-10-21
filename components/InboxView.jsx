@@ -10,7 +10,7 @@ const TYPE_COLORS = {
 export default function InboxView({ notifications, tasks, unreadCount, markRead, markAllRead, setSelectedTask }) {
   return (
     <>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20, flexWrap: 'wrap' }}>
         <div>
           <h2 style={{ fontWeight: 800, fontSize: 18, color: 'var(--indigo)' }}>Notifications</h2>
           <p style={{ fontSize: 13, color: '#6b778c', fontWeight: 600, marginTop: 2 }}>Comments on your tasks and @mentions</p>
@@ -36,7 +36,7 @@ export default function InboxView({ notifications, tasks, unreadCount, markRead,
                 <div style={{ width: 8, height: 8, borderRadius: '50%', background: n.read ? 'transparent' : '#0052cc', flexShrink: 0, marginTop: 6 }} />
                 <OwnerAvatar name={n.from_user} />
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4, flexWrap: 'wrap' }}>
                     <span style={{ fontWeight: 700, fontSize: 13, color: '#172b4d' }}>{n.from_user}</span>
                     <span style={{ background: tc.bg, color: tc.color, borderRadius: 3, padding: '1px 7px', fontSize: 11, fontWeight: 700 }}>{tc.label}</span>
                     <span style={{ fontSize: 11, color: '#a0aec0', marginLeft: 'auto' }}>{new Date(n.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>

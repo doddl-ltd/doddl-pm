@@ -45,7 +45,7 @@ function SubTabs({ tab, setTab, counts }) {
     { key: 'history', label: 'History', count: counts.history },
   ]
   return (
-    <div style={{ display: 'flex', gap: 4, borderBottom: '1px solid #dfe1e6', marginBottom: 16 }}>
+    <div className="scroll-x" style={{ display: 'flex', gap: 4, borderBottom: '1px solid #dfe1e6', marginBottom: 16 }}>
       {items.map(it => (
         <button key={it.key} onClick={() => setTab(it.key)}
           style={{

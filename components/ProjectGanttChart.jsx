@@ -2,10 +2,12 @@ import { useState } from 'react'
 import { STATUSES, statusMap } from '../lib/constants'
 import { TEAM } from '../lib/team'
 import OwnerAvatar from './OwnerAvatar'
+import { useIsMobile } from '../lib/useIsMobile'
 
 // Project-level Gantt with filters and dependency arrows.
 // Expects: tasks (filtered to this project already), onSelectTask, projectColor.
 export default function ProjectGanttChart({ tasks, onSelectTask }) {
+  const isMobile = useIsMobile()
   const [filterAssignee, setFilterAssignee] = useState('')
   const [filterStatus,   setFilterStatus]   = useState('')
   const [showDeps,       setShowDeps]       = useState(true)
@@ -52,7 +54,7 @@ export default function ProjectGanttChart({ tasks, onSelectTask }) {
   // Minimum 18px/day so weekly labels always have >= 126px of breathing room —
   // well above the ~46px needed for "20 Apr 2026" style formatting.
   const dayW  = Math.max(18, Math.min(40, 1100 / totalDays))
-  const labelW = 240
+  const labelW = isMobile ? 130 : 240
   const rowH   = 34
   const barTop = 7
   const barH   = 20

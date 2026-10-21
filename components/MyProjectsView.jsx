@@ -18,7 +18,7 @@ export default function MyProjectsView({ projects, visibleTasks, userName, setAc
 
   return (
     <>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20, flexWrap: 'wrap' }}>
         <div>
           <h2 style={{ fontWeight: 800, fontSize: 18, color: 'var(--indigo)' }}>My Projects</h2>
           <p style={{ fontSize: 13, color: '#6b778c', fontWeight: 600, marginTop: 2 }}>Projects where you have at least one task assigned</p>
@@ -35,7 +35,7 @@ export default function MyProjectsView({ projects, visibleTasks, userName, setAc
           <p style={{ fontSize: 13 }}>When a task in a project is assigned to you, that project appears here</p>
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 16 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(300px, 100%), 1fr))', gap: 16 }}>
           {mine.map((project) => {
             const i = projects.findIndex(p => p.id === project.id)
             const pTasks   = visibleTasks.filter(t => t.project_id === project.id && !t.is_group)
