@@ -57,7 +57,9 @@ You only see the tools your credential allows. Call `list_projects` / `list_peop
 
 ## 5a. Auto-triage
 
-Every 5 minutes (`/api/cron/auto-triage`, lib/pm/autoTriage.js) Claude decides, for each captured action: **update** the open task it refers to, **create** a task, or **skip** it.
+Every 5 minutes (`/api/cron/auto-triage`, lib/pm/autoTriage.js) captured items are filed.
+- **Fixed homes, no Claude call** (Jon, 2026-10-21; lib/pm/routing.js): meeting notes go to project **Meeting Note Actions**, one group per meeting named `<date> · <meeting title>`, every action a task in it. Teams "Send to doddl PM" messages and flagged e-mails go to **Adhoc Teams / Emails Tasks**.
+- **Everything else** (Claude chats, agents): Claude decides, for each captured action, to **update** the open task it refers to, **create** a task, or **skip** it.
 - Code guard rails: ids only from the lists Claude was given, real people, valid dates; confidence ≥ 0.75 (`AUTO_TRIAGE_THRESHOLD`); a new task needs a project that is a *clear* or *reasonable* home; closing a task, or creating one as done from a meeting or e-mail, needs ≥ 0.85.
 - Everything filed is listed under **Triage → Filed by Claude** with **Undo**, carries an evidence link back to the inbox item, and notifies the owner.
 - **Ask Claude again** (one item or all; `triage_inbox_item` decision `retry`) re-runs items nothing was filed from, e.g. after creating a missing project.
