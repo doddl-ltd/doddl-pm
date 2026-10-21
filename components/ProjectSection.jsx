@@ -7,6 +7,7 @@ import ProjectTableRow from './ProjectTableRow'
 import ProjectDashboard from './ProjectDashboard'
 import KanbanBoard from './KanbanBoard'
 import ProjectGanttChart from './ProjectGanttChart'
+import { useIsMobile } from '../lib/useIsMobile'
 
 const WIDTHS_STORAGE_KEY = 'doddl-pm-project-col-widths'
 const MIN_W = { select: 28, owner: 60, status: 70, timeline: 110, effort: 40, priority: 60, progress: 80 }
@@ -23,6 +24,7 @@ const projectStatusLabel = (k) => PROJECT_STATUSES.find(s => s.key === k)?.label
 
 export default function ProjectSection({ project, tasks, allTasks, taskGroups, onUpdate, onPatch, onDelete, onDeleteGroup, onAddTask, onAddSubtask, onSelect, colorIndex, projects, user }) {
   const [projectTab, setProjectTab] = useState('table')
+  const isMobile = useIsMobile()
   const [addingGroup, setAddingGroup] = useState(false)
   const [groupName, setGroupName] = useState('')
   const [selectedIds, setSelectedIds] = useState(new Set())
@@ -181,21 +183,21 @@ export default function ProjectSection({ project, tasks, allTasks, taskGroups, o
 
   const TAB = ({ id, label, icon }) => (
     <button onClick={() => setProjectTab(id)} style={{
-      display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', border: 'none', background: 'none', cursor: 'pointer',
+      display: 'flex', alignItems: 'center', gap: 6, padding: isMobile ? '11px 10px' : '8px 14px', border: 'none', background: 'none', cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0,
       fontFamily: 'Nunito, sans-serif', fontWeight: 600, fontSize: 13, borderBottom: projectTab === id ? `3px solid ${color}` : '3px solid transparent',
       color: projectTab === id ? color : '#6b778c', marginBottom: -1
     }}>{icon} {label}</button>
   )
 
   return (
-    <div style={{ marginBottom: 40, background: '#fff', borderRadius: 12, border: '1px solid #dfe1e6', overflow: 'hidden', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
+    <div style={{ marginBottom: isMobile ? 16 : 40, background: '#fff', borderRadius: 12, border: '1px solid #dfe1e6', overflow: 'hidden', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
       {/* Project header — solid doddl brand colour. Hover reveals a pencil to
           switch into an inline edit mode; Save persists to Supabase, Cancel
           reverts to the last saved values. */}
       <div
         onMouseEnter={() => setHeaderHover(true)}
         onMouseLeave={() => setHeaderHover(false)}
-        style={{ position: 'relative', padding: '14px 20px', background: color, display: 'flex', alignItems: editingHeader ? 'flex-start' : 'center', gap: 12 }}
+        style={{ position: 'relative', padding: isMobile ? '12px 14px' : '14px 20px', background: color, display: 'flex', alignItems: editingHeader ? 'flex-start' : 'center', gap: isMobile ? 10 : 12, flexWrap: isMobile ? 'wrap' : 'nowrap' }}
       >
         {editingHeader ? (
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -257,7 +259,7 @@ export default function ProjectSection({ project, tasks, allTasks, taskGroups, o
           </div>
         )}
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0, width: isMobile ? '100%' : 'auto' }}>
           {editingHeader ? (
             <>
               <button onClick={saveEdit} disabled={savingHeader || !editForm.name.trim()} title="Save changes"
@@ -271,14 +273,14 @@ export default function ProjectSection({ project, tasks, allTasks, taskGroups, o
             </>
           ) : (
             <>
-              <div style={{ width: 100, height: 5, background: 'rgba(255,255,255,0.25)', borderRadius: 3, overflow: 'hidden' }}>
+              <div style={{ width: isMobile ? 'auto' : 100, flex: isMobile ? 1 : 'none', height: 5, background: 'rgba(255,255,255,0.25)', borderRadius: 3, overflow: 'hidden' }}>
                 <div style={{ width: `${pct}%`, height: '100%', background: '#fff', borderRadius: 3 }} />
               </div>
               <span style={{ fontSize: 12, fontWeight: 800, color: '#fff' }}>{pct}%</span>
               <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.65)' }}>{doneTasks}/{totalTasks}</span>
               <button onClick={startEdit} title="Edit project"
                 aria-label="Edit project"
-                style={{ background: 'rgba(255,255,255,0.15)', border: 'none', color: '#fff', borderRadius: 4, padding: '3px 8px', cursor: 'pointer', fontSize: 13, fontFamily: 'Nunito, sans-serif', fontWeight: 700, opacity: headerHover ? 1 : 0, transition: 'opacity 120ms ease' }}
+                style={{ background: 'rgba(255,255,255,0.15)', border: 'none', color: '#fff', borderRadius: 4, padding: isMobile ? '6px 10px' : '3px 8px', cursor: 'pointer', fontSize: 13, fontFamily: 'Nunito, sans-serif', fontWeight: 700, opacity: headerHover || isMobile ? 1 : 0, transition: 'opacity 120ms ease' }}
                 onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.3)'}
                 onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.15)'}>
                 ✎ Edit
@@ -290,7 +292,7 @@ export default function ProjectSection({ project, tasks, allTasks, taskGroups, o
                     .then(() => onUpdate())
                 }
               }} title="Delete project"
-                style={{ background: 'rgba(255,255,255,0.15)', border: 'none', color: '#fff', borderRadius: 4, padding: '3px 8px', cursor: 'pointer', fontSize: 12, fontFamily: 'Nunito, sans-serif', fontWeight: 700 }}
+                style={{ background: 'rgba(255,255,255,0.15)', border: 'none', color: '#fff', borderRadius: 4, padding: isMobile ? '6px 10px' : '3px 8px', cursor: 'pointer', fontSize: 12, fontFamily: 'Nunito, sans-serif', fontWeight: 700 }}
                 onMouseEnter={e => e.currentTarget.style.background='rgba(222,53,11,0.6)'}
                 onMouseLeave={e => e.currentTarget.style.background='rgba(255,255,255,0.15)'}>🗑 Delete</button>
             </>
@@ -299,17 +301,17 @@ export default function ProjectSection({ project, tasks, allTasks, taskGroups, o
       </div>
 
       {/* Tabs — Monday.com style */}
-      <div style={{ display: 'flex', alignItems: 'center', borderBottom: '1px solid #dfe1e6', padding: '0 20px', background: '#fff', gap: 4 }}>
-        <TAB id="table" label="Main Table" icon="☰" />
+      <div className={isMobile ? 'scroll-x' : undefined} style={{ display: 'flex', alignItems: 'center', borderBottom: '1px solid #dfe1e6', padding: isMobile ? '0 6px' : '0 20px', background: '#fff', gap: isMobile ? 0 : 4 }}>
+        <TAB id="table" label={isMobile ? 'Tasks' : 'Main Table'} icon="☰" />
         <TAB id="kanban" label="Kanban" icon="⊞" />
         <TAB id="gantt" label="Timeline" icon="▬" />
         <TAB id="dashboard" label="Dashboard" icon="◉" />
-        <div style={{ flex: 1 }} />
-        <button onClick={() => onAddTask(project.id)} style={{ background: color, color: '#fff', border: 'none', borderRadius: 6, padding: '5px 12px', fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: 'Nunito, sans-serif' }}>+ Add task</button>
+        <div style={{ flex: 1, minWidth: isMobile ? 8 : 0 }} />
+        <button onClick={() => onAddTask(project.id)} style={{ background: color, color: '#fff', border: 'none', borderRadius: 6, padding: isMobile ? '7px 12px' : '5px 12px', fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: 'Nunito, sans-serif', whiteSpace: 'nowrap', flexShrink: 0, marginRight: isMobile ? 6 : 0 }}>+ Add task</button>
       </div>
 
       {/* Tab content */}
-      <div style={{ padding: projectTab === 'table' ? 0 : '0 16px' }}>
+      <div style={{ padding: projectTab === 'table' ? 0 : isMobile ? '0 10px' : '0 16px' }}>
 
         {/* TABLE VIEW */}
         {projectTab === 'table' && (
@@ -342,7 +344,7 @@ export default function ProjectSection({ project, tasks, allTasks, taskGroups, o
                   • Task header uses padding-left 0 to align with row's title text (which
                     starts at indent=0 for top-level rows)
                   • per-column horizontal padding matches ProjectTableRow's cells */}
-            <div style={{ display: 'flex', alignItems: 'center', background: '#f8f9fc', borderBottom: '2px solid #dfe1e6', borderLeft: '4px solid transparent' }}>
+            {!isMobile && <div style={{ display: 'flex', alignItems: 'center', background: '#f8f9fc', borderBottom: '2px solid #dfe1e6', borderLeft: '4px solid transparent' }}>
               <div style={{ width: W.select, flexShrink: 0 }} />
               <div style={{ flex: 1, maxWidth: TASK_COL_MAX, padding: '7px 8px 7px 0', fontSize: 11, fontWeight: 700, color: '#6b778c', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Task</div>
               {[
@@ -361,7 +363,7 @@ export default function ProjectSection({ project, tasks, allTasks, taskGroups, o
                     onMouseLeave={e => e.currentTarget.style.background = 'transparent'} />
                 </div>
               ))}
-            </div>
+            </div>}
 
             {/* Groups with their tasks */}
             {groups.map((group, gi) => (

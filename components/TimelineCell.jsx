@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
-import CalendarPicker from './CalendarPicker'
+import CalendarPicker, { calendarSize } from './CalendarPicker'
+import { useIsMobile } from '../lib/useIsMobile'
 
 export default function TimelineCell({ startDate, dueDate, color, onSave }) {
   const [stage, setStage] = useState(null)   // null | 'start' | 'end'
@@ -8,12 +9,18 @@ export default function TimelineCell({ startDate, dueDate, color, onSave }) {
   const anchorRef         = useRef()
   const [pos, setPos]     = useState(null)
   const savedStart        = useRef(startDate || '')
+  const isMobile          = useIsMobile()
 
   useEffect(() => { if (!stage) { setS(startDate || ''); setE(dueDate || '') } }, [startDate, dueDate])
 
   const open = (which) => {
     const r = anchorRef.current?.getBoundingClientRect()
-    if (r) setPos({ top: r.bottom + 4, left: r.left })
+    // Keep the calendar on screen: clamp it to the right edge and open it upwards near the bottom.
+    if (r) {
+      const { w, h } = calendarSize(isMobile)
+      const below = r.bottom + 4 + h <= window.innerHeight - 8
+      setPos({ top: below ? r.bottom + 4 : Math.max(8, r.top - 4 - h), left: Math.max(8, Math.min(r.left, window.innerWidth - w - 8)) })
+    }
     savedStart.current = startDate || ''
     setStage(which)
   }
@@ -74,6 +81,7 @@ export default function TimelineCell({ startDate, dueDate, color, onSave }) {
             style={{ position: 'fixed', inset: 0, zIndex: 9998, background: 'transparent' }} />
           <div style={{ position: 'fixed', top: pos.top, left: pos.left, zIndex: 9999 }}>
             <CalendarPicker
+              large={isMobile}
               value={stage === 'start' ? s : e}
               onChange={stage === 'start' ? pickStart : pickEnd}
               label={stage === 'start' ? '① Pick start date (both required)' : '② Pick end date (both required)'} />

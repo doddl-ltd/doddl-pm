@@ -2,6 +2,7 @@ import { useState, useRef } from 'react'
 import { getProjectColor } from '../lib/team'
 import { exportToExcel, parseImport, applyTaskImport } from '../lib/excelIO'
 import OwnerAvatar from './OwnerAvatar'
+import { useIsMobile } from '../lib/useIsMobile'
 
 const PRIO_COLORS = { critical: '#de350b', high: '#ff8b00', medium: '#0052cc', low: '#6b778c' }
 const PROJECT_STATUSES = ['active', 'on_hold', 'completed', 'archived']
@@ -36,7 +37,7 @@ function ViewTab({ id, label, active, onClick }) {
 // ── CARD VIEW ─────────────────────────────────────────────────────────────
 function CardsView({ projects, projectsAll, visibleTasks, setActiveProject }) {
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 16 }}>
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(300px, 100%), 1fr))', gap: 16 }}>
       {projects.map(project => {
         const i = projectsAll.findIndex(p => p.id === project.id)
         const { total, done, inProg, overdue, pct } = statsFor(project, visibleTasks)
@@ -103,8 +104,8 @@ function CardsView({ projects, projectsAll, visibleTasks, setActiveProject }) {
 function ListView({ projects, projectsAll, visibleTasks, setActiveProject }) {
   const fmt = (d) => d ? new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'
   return (
-    <div style={{ background: '#fff', borderRadius: 10, border: '1px solid #dfe1e6', overflow: 'hidden' }}>
-      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+    <div className="scroll-x" style={{ background: '#fff', borderRadius: 10, border: '1px solid #dfe1e6' }}>
+      <table style={{ width: '100%', minWidth: 760, borderCollapse: 'collapse' }}>
         <thead>
           <tr style={{ background: '#f8f9fc', borderBottom: '2px solid #dfe1e6' }}>
             {['Project', 'Owner', 'Status', 'Priority', 'Start', 'Due', 'Progress', 'Overdue'].map(h =>
@@ -159,6 +160,7 @@ function ListView({ projects, projectsAll, visibleTasks, setActiveProject }) {
 
 // ── GANTT VIEW (UI #11) ───────────────────────────────────────────────────
 function GanttView({ projects, projectsAll, setActiveProject }) {
+  const isMobile = useIsMobile()
   const datedProjects = projects.filter(p => p.start_date && p.due_date)
   if (datedProjects.length === 0) {
     return <div style={{ padding: 40, textAlign: 'center', color: '#6b778c', background: '#fff', border: '1px solid #dfe1e6', borderRadius: 10 }}>
@@ -173,7 +175,7 @@ function GanttView({ projects, projectsAll, setActiveProject }) {
   // Minimum 8 px/day so the chart doesn't squash below readability. Horizontal
   // scroll is preferred to an unreadable chart.
   const dayW = Math.max(8, Math.min(24, 2000 / totalDays))
-  const labelW = 220
+  const labelW = isMobile ? 120 : 220
   const today = new Date()
   const todayPos = Math.ceil((today - minDate) / 86400000) * dayW
   // Label cadence adapts to week spacing: 1/2/4 weeks between text labels.
@@ -230,6 +232,7 @@ function GanttView({ projects, projectsAll, setActiveProject }) {
 
 // ── DASHBOARD VIEW (UI #12) ───────────────────────────────────────────────
 function DashboardView({ projects, visibleTasks }) {
+  const isMobile = useIsMobile()
   const today = todayISO()
   const tasksAll = visibleTasks.filter(t => !t.is_group)
   const totalTasks = tasksAll.length
@@ -252,9 +255,9 @@ function DashboardView({ projects, visibleTasks }) {
   })
 
   const Stat = ({ label, value, color, bg, sub }) => (
-    <div style={{ background: '#fff', borderRadius: 10, padding: '18px 22px', border: '1px solid #dfe1e6', borderTop: `3px solid ${color}`, flex: 1 }}>
+    <div style={{ background: '#fff', borderRadius: 10, padding: isMobile ? '12px 14px' : '18px 22px', border: '1px solid #dfe1e6', borderTop: `3px solid ${color}`, flex: 1, minWidth: 0 }}>
       <p style={{ fontSize: 11, fontWeight: 700, color: '#6b778c', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>{label}</p>
-      <p style={{ fontSize: 30, fontWeight: 800, color, marginBottom: 2 }}>{value}</p>
+      <p style={{ fontSize: isMobile ? 24 : 30, fontWeight: 800, color, marginBottom: 2 }}>{value}</p>
       {sub && <p style={{ fontSize: 11, color: '#6b778c' }}>{sub}</p>}
     </div>
   )
@@ -262,7 +265,7 @@ function DashboardView({ projects, visibleTasks }) {
   return (
     <div>
       {/* KPI row */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 12, marginBottom: 20 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, minmax(0, 1fr))' : 'repeat(5, 1fr)', gap: isMobile ? 8 : 12, marginBottom: 20 }}>
         <Stat label="Total tasks"     value={totalTasks}    color="var(--indigo)" sub={`${projects.length} projects`} />
         <Stat label="Done"            value={doneTasks}     color="#36b37e"       sub={`${globalPct}% complete`} />
         <Stat label="Live"            value={liveTasks}     color="#0052cc"       sub="active" />
@@ -282,11 +285,11 @@ function DashboardView({ projects, visibleTasks }) {
       </div>
 
       {/* Per-project progress summary */}
-      <div style={{ background: '#fff', borderRadius: 10, border: '1px solid #dfe1e6', overflow: 'hidden' }}>
+      <div className="scroll-x" style={{ background: '#fff', borderRadius: 10, border: '1px solid #dfe1e6' }}>
         <div style={{ padding: '14px 20px', borderBottom: '1px solid #f0f1f3' }}>
           <p style={{ fontWeight: 800, fontSize: 14, color: '#172b4d' }}>Progress by project</p>
         </div>
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+        <table style={{ width: '100%', minWidth: 520, borderCollapse: 'collapse' }}>
           <thead>
             <tr style={{ background: '#f8f9fc', borderBottom: '1px solid #dfe1e6' }}>
               {['Project','Tasks','Done','Overdue','Progress'].map(h =>
@@ -380,7 +383,7 @@ export default function ProjectGallery({ projects, visibleTasks, allTasks, setAc
   return (
     <>
       {/* Header: title + new project button */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, flexWrap: 'wrap', gap: 10 }}>
         <div>
           <h2 style={{ fontWeight: 800, fontSize: 20, color: 'var(--indigo)' }}>All Projects</h2>
           <p style={{ fontSize: 13, color: '#6b778c', fontWeight: 600, marginTop: 2 }}>
@@ -388,7 +391,7 @@ export default function ProjectGallery({ projects, visibleTasks, allTasks, setAc
             {statusFilter && ` · ${statusFilter}`}
           </p>
         </div>
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
           <button onClick={handleExport} title="Download all projects and tasks as an .xlsx file"
             style={{ background: '#fff', color: '#42526e', border: '1px solid #dfe1e6', borderRadius: 6, padding: '7px 12px', fontWeight: 700, fontSize: 12, cursor: 'pointer', fontFamily: 'Nunito, sans-serif' }}>📤 Export</button>
           <button onClick={() => fileInputRef.current?.click()} disabled={importing}

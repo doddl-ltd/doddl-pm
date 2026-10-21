@@ -40,9 +40,9 @@ function Header({ item }) {
   const payload = item.payload || {}
   return (
     <>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6, flexWrap: 'wrap' }}>
         <span style={{ background: src.bg, color: src.color, borderRadius: 3, padding: '1px 7px', fontSize: 11, fontWeight: 700 }}>{src.label}</span>
-        <span style={{ fontWeight: 800, fontSize: 14, color: '#172b4d' }}>{item.title}</span>
+        <span style={{ fontWeight: 800, fontSize: 14, color: '#172b4d', minWidth: 0, wordBreak: 'break-word' }}>{item.title}</span>
         <span style={{ marginLeft: 'auto', fontSize: 11, color: '#6b778c', fontWeight: 600 }}>{fmt(item.occurred_at || item.created_at)}</span>
       </div>
       {item.summary && <p style={{ fontSize: 13, color: '#42526e', lineHeight: 1.5, margin: '0 0 8px' }}>{item.summary}</p>}
@@ -116,7 +116,7 @@ function ReviewCard({ item, projects, onDone }) {
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                 <input type="checkbox" checked={selected[i]} onChange={ev => setSelected(s => s.map((v, j) => (j === i ? ev.target.checked : v)))} />
                 <span style={{ fontSize: 11, fontWeight: 700, color: '#6b778c', minWidth: 52 }}>{a.kind === 'update_task' ? 'Update' : 'New task'}</span>
-                <span style={{ flex: 1, minWidth: 180, fontSize: 13, color: '#172b4d' }}>
+                <span style={{ flex: 1, minWidth: 'min(180px, 70%)', fontSize: 13, color: '#172b4d', wordBreak: 'break-word' }}>
                   {e.title || a.title || a.task_id}
                   {(a.status || a.progress != null) && <span style={{ fontSize: 11, color: '#6b778c', fontWeight: 700 }}> · {a.status || ''}{a.progress != null ? ` ${a.progress}%` : ''}</span>}
                 </span>
@@ -139,7 +139,7 @@ function ReviewCard({ item, projects, onDone }) {
           </select>
         )}
         {error && <span style={{ fontSize: 12, color: '#de350b', fontWeight: 700 }}>{error}</span>}
-        <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
+        <div style={{ marginLeft: 'auto', display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
           {canRetry && <button style={button(false)} disabled={busy} title="E.g. after creating the project it was missing" onClick={() => submit('retry')}>Ask Claude again</button>}
           <button style={button(false)} disabled={busy} onClick={() => submit('dismiss')}>Dismiss</button>
           <button style={button(true)} disabled={busy || !open.some(({ i }) => selected[i]) || (needsProject && !projectId)} onClick={() => submit('accept')}>
@@ -187,7 +187,7 @@ function FiledCard({ item, tasks, projects, onDone }) {
             : d.op === 'update' ? 'Updated' : d.op === 'skip' ? 'Skipped' : 'Left for you'
           return (
             <div key={d.index} style={{ display: 'flex', gap: 8, padding: '4px 0', fontSize: 12, alignItems: 'baseline' }}>
-              <span style={{ fontWeight: 800, minWidth: 104, color: d.op === 'review' ? '#b85c00' : '#00875a' }}>{what}</span>
+              <span style={{ fontWeight: 800, minWidth: 90, color: d.op === 'review' ? '#b85c00' : '#00875a' }}>{what}</span>
               <span style={{ flex: 1, color: '#172b4d' }}>
                 {(t && t.title) || a.title || '—'}
                 {where && <span style={{ color: '#6b778c' }}> · {where}{d.op === 'create' && d.project_fit === 'reasonable' ? ' (best guess)' : ''}</span>}
@@ -250,7 +250,7 @@ export default function TriageView({ projects, tasks = [], onChanged, setTriageC
         <h2 style={{ fontWeight: 800, fontSize: 18, color: 'var(--indigo)' }}>Triage</h2>
         <p style={{ fontSize: 13, color: '#6b778c', fontWeight: 600, marginTop: 2 }}>Meetings, flagged emails, Teams messages, Claude chats and agents. Claude files them into projects; only what it isn't sure about waits here.</p>
       </div>
-      <div style={{ borderBottom: '1px solid #dfe1e6', marginBottom: 14, display: 'flex', alignItems: 'center' }}>
+      <div style={{ borderBottom: '1px solid #dfe1e6', marginBottom: 14, display: 'flex', alignItems: 'center', flexWrap: 'wrap' }}>
         <button style={tabStyle(tab === 'review')} onClick={() => setTab('review')}>Needs a look</button>
         <button style={tabStyle(tab === 'filed')} onClick={() => setTab('filed')}>Filed by Claude</button>
         {retryable > 1 && (

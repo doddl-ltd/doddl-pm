@@ -3,10 +3,10 @@ import Head from 'next/head'
 import { supabase, apiFetch } from '../lib/supabase'
 import { getMsal } from '../lib/msal'
 import { getDisplayName } from '../lib/team'
+import { useIsMobile } from '../lib/useIsMobile'
 import LoginScreen from '../components/LoginScreen'
 import GlobalStyles from '../components/GlobalStyles'
-import AppHeader from '../components/AppHeader'
-import AppSidebar from '../components/AppSidebar'
+import AppShell from '../components/AppShell'
 import TaskDetailPanel, { TASK_PANEL } from '../components/TaskDetailPanel'
 import AddTaskModal from '../components/AddTaskModal'
 import AddProjectModal from '../components/AddProjectModal'
@@ -49,6 +49,7 @@ export default function Home() {
   const [search, setSearch]                     = useState('')
   const [selectedTask, setSelectedTask]         = useState(null)
   const [taskPanelW, setTaskPanelW]             = useState(TASK_PANEL.DEFAULT)
+  const isMobile = useIsMobile()
   useEffect(() => {
     if (typeof window === 'undefined') return
     try {
@@ -128,6 +129,11 @@ export default function Home() {
     setAddTaskProjectId(parent?.project_id || null); setAddTaskParentId(parentId); setShowAddTask(true)
   }
   const onHeaderAddTask = () => { setView('board'); setAddTaskProjectId(null); setAddTaskParentId(null); setShowAddTask(true) }
+  // Opening a project (or All projects) from the sidebar always shows the project board,
+  // whichever view was open (before, it did nothing visible from My Work, Triage etc.).
+  const openProject = (id) => { setView('board'); setActiveProject(id) }
+  // Phone tabs: Projects always lands on the project list.
+  const navigate = (key) => { if (key === 'board') setActiveProject(null); setView(key) }
 
   // Visibility: flow tasks only show to the assigned user unless linked to a project
   const visibleTasks = tasks.filter(t => (t.source === 'manual' || !t.source || t.project_id || !t.assigned_to) || t.assigned_to.toLowerCase() === userName.toLowerCase())
@@ -152,15 +158,11 @@ export default function Home() {
   return (
     <>
       <GlobalStyles />
-      <AppHeader search={search} setSearch={setSearch} userName={userName} handleLogout={handleLogout}
-        onAddTaskClick={onHeaderAddTask} onAddProjectClick={() => setShowAddProject(true)} />
-
-      <div style={{ display: 'flex', height: 'calc(100vh - 52px)' }}>
-        <AppSidebar view={view} setView={setView} projects={projects} programmes={programmes}
-          activeProject={activeProject} setActiveProject={setActiveProject}
-          myFlowCount={myOpenTasksCount} unreadCount={unreadCount} approvalsCount={approvalsCount} triageCount={triageCount} />
-
-        <main style={{ flex: 1, overflowY: 'auto', padding: 20, marginRight: selectedTask ? taskPanelW : 0 }}>
+      <AppShell isMobile={isMobile} scrollKey={`${view}|${activeProject || ''}`} onNavigate={navigate}
+        mainRightPad={selectedTask && !isMobile ? taskPanelW : 0}
+        header={{ search, setSearch, userName, handleLogout, onAddTaskClick: onHeaderAddTask, onAddProjectClick: () => setShowAddProject(true) }}
+        sidebar={{ view, setView, projects, programmes, activeProject, setActiveProject: openProject,
+          myFlowCount: myOpenTasksCount, unreadCount, approvalsCount, triageCount }}>
           {loading ? (
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '60%', color: '#6b778c', fontWeight: 600 }}>Loading...</div>
           ) : view === 'mywork' ? (
@@ -194,8 +196,7 @@ export default function Home() {
             <ProjectGallery projects={projects} visibleTasks={visibleTasks} allTasks={tasks}
               setActiveProject={setActiveProject} setShowAddProject={setShowAddProject} onUpdate={load} />
           )}
-        </main>
-      </div>
+      </AppShell>
 
       {selectedTask && <TaskDetailPanel task={selectedTask} user={user} allTasks={tasks} onClose={() => setSelectedTask(null)} onUpdate={load} onPatch={patchTask} panelW={taskPanelW} setPanelW={setTaskPanelW} />}
       {showAddTask && <AddTaskModal projects={projects} parentId={addTaskParentId} projectId={addTaskProjectId} allTasks={tasks} onClose={() => setShowAddTask(false)} onSaved={load} currentUser={user} />}

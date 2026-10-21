@@ -1,7 +1,9 @@
 import { TEAM } from '../lib/team'
 import OwnerAvatar from './OwnerAvatar'
+import { useIsMobile } from '../lib/useIsMobile'
 
 export default function ProjectDashboard({ project, tasks, color }) {
+  const isMobile = useIsMobile()
   const total = tasks.length
   const done = tasks.filter(t => t.status === 'done').length
   const inProgress = tasks.filter(t => t.status === 'in_progress' || t.status === 'on_track').length
@@ -13,9 +15,9 @@ export default function ProjectDashboard({ project, tasks, color }) {
   const byAssignee = TEAM.map(m => ({ name: m.name, count: tasks.filter(t => t.assigned_to === m.name).length })).filter(m => m.count > 0)
 
   const Stat = ({ label, value, color: c, sub }) => (
-    <div style={{ background: '#fff', borderRadius: 10, padding: '20px 24px', border: '1px solid #dfe1e6', flex: 1 }}>
+    <div style={{ background: '#fff', borderRadius: 10, padding: isMobile ? '12px 14px' : '20px 24px', border: '1px solid #dfe1e6', flex: 1, minWidth: isMobile ? 'calc(50% - 6px)' : 0 }}>
       <p style={{ fontSize: 11, fontWeight: 700, color: '#6b778c', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>{label}</p>
-      <p style={{ fontSize: 32, fontWeight: 800, color: c || '#172b4d', marginBottom: 4 }}>{value}</p>
+      <p style={{ fontSize: isMobile ? 24 : 32, fontWeight: 800, color: c || '#172b4d', marginBottom: 4 }}>{value}</p>
       {sub && <p style={{ fontSize: 12, color: '#6b778c' }}>{sub}</p>}
     </div>
   )
@@ -23,7 +25,7 @@ export default function ProjectDashboard({ project, tasks, color }) {
   return (
     <div style={{ padding: '0 0 24px 0' }}>
       {/* KPI row */}
-      <div style={{ display: 'flex', gap: 12, marginBottom: 20 }}>
+      <div style={{ display: 'flex', gap: 12, marginBottom: 20, flexWrap: isMobile ? 'wrap' : 'nowrap' }}>
         <Stat label="Total Tasks" value={total} sub={`${pct}% complete`} />
         <Stat label="Done" value={done} color="#36b37e" sub="completed" />
         <Stat label="In Progress" value={inProgress} color="#0052cc" sub="active" />
@@ -39,7 +41,7 @@ export default function ProjectDashboard({ project, tasks, color }) {
         <div style={{ height: 12, background: '#f0f1f3', borderRadius: 6, overflow: 'hidden' }}>
           <div style={{ width: `${pct}%`, height: '100%', background: color, borderRadius: 6, transition: 'width 0.5s' }} />
         </div>
-        <div style={{ display: 'flex', gap: 16, marginTop: 12 }}>
+        <div style={{ display: 'flex', gap: isMobile ? '6px 14px' : 16, marginTop: 12, flexWrap: 'wrap' }}>
           {[['Not Started', notStarted, '#c1c7d0'], ['In Progress', inProgress, '#0052cc'], ['Done', done, '#36b37e'], ['Blocked', blocked, '#de350b']].map(([l, v, c]) => (
             <div key={l} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
               <div style={{ width: 10, height: 10, borderRadius: 2, background: c }} />
