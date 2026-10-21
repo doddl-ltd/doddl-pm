@@ -106,6 +106,26 @@ let refused = null
 try { await auto.retryAutoTriage(db, jon, { id: cap.id }) } catch (e) { refused = e }
 ok('retry refused once the item is dismissed', refused && refused.status === 409)
 
+// 7b. Meetings and Teams messages file into their fixed projects with no Claude call
+const noClaude = { beta: { messages: { create: async () => { throw new Error('routed items must not call Claude') } } } }
+const mtg = await ops.captureInbox(db, jon, {
+  source: 'meeting', source_ref: `check-meeting-${stamp}`, title: `[check] Notes title ${stamp}`, occurred_at: '2026-10-21T09:30:00Z',
+  payload: { subject: `[check] Weekly sync ${stamp}` },
+  proposed_actions: [{ kind: 'create_task', title: 'Send the spec sheet', assigned_to: 'Laura', due_date: '2026-10-24' }, { kind: 'create_task', title: 'Book the shoot' }],
+})
+const mItem = (await db.from('inbox_items').select('*').eq('id', mtg.id).single()).data
+const mr = await auto.triageOne(adminClient(auto.AUTO_ACTOR), noClaude, mItem)
+const mTasks = (await db.from('tasks').select('title, assigned_to, due_date, projects(name), task_groups(name)').in('id', mr.decisions.map(d => d.task_id))).data
+ok('meeting actions go to Meeting Note Actions, in a group named with the date', mr.auto_status === 'filed' && mTasks.length === 2 &&
+  mTasks.every(t => t.projects.name === 'Meeting Note Actions' && t.task_groups.name === `21 Oct 2026 · [check] Weekly sync ${stamp}`), mTasks.map(t => `${t.projects.name} > ${t.task_groups && t.task_groups.name} > ${t.title}`).join(' | '))
+ok('owner and due date are kept', mTasks.some(t => t.title === 'Send the spec sheet' && t.assigned_to === 'Laura' && t.due_date === '2026-10-24'))
+const tm = await ops.captureInbox(db, jon, { source: 'teams', source_ref: `check-teams-${stamp}`, title: `[check] Reorder Stage 2 boxes ${stamp}`, proposed_actions: [{ kind: 'create_task', title: 'Reorder Stage 2 boxes', assigned_to: 'Laura' }] })
+const tr = await auto.triageOne(adminClient(auto.AUTO_ACTOR), noClaude, (await db.from('inbox_items').select('*').eq('id', tm.id).single()).data)
+const tTask = (await db.from('tasks').select('projects(name), group_id').eq('id', tr.decisions[0].task_id).single()).data
+ok('Teams messages go to Adhoc Teams / Emails Tasks', tr.auto_status === 'filed' && tTask.projects.name === 'Adhoc Teams / Emails Tasks' && !tTask.group_id)
+await auto.undoAutoTriage(db, jon, mtg.id); await ops.triageInbox(db, jon, mtg.id, { decision: 'dismiss', notes: 'flow check clean-up' })
+await auto.undoAutoTriage(db, jon, tm.id); await ops.triageInbox(db, jon, tm.id, { decision: 'dismiss', notes: 'flow check clean-up' })
+
 // 8. The Claude API account runs out of credit: the run pauses, the item stays queued, attempts unused
 const pendingBefore = (await db.from('inbox_items').select('id', { count: 'exact', head: true }).eq('auto_status', 'pending').in('status', ['new', 'partial'])).count
 if (pendingBefore) {
