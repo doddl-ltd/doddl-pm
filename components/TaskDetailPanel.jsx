@@ -238,6 +238,18 @@ export default function TaskDetailPanel({ task, user, onClose, onUpdate, onPatch
           })()}
         </div>
 
+        {/* How to do it: the task's description. Claude, agents and auto-triage write a task's
+            steps and context here, so it is shown above Notes and can be edited like it. */}
+        {(editTask.description || '') !== '' && (
+          <div style={{ padding: '12px 20px', borderBottom: '1px solid #f0f1f3' }}>
+            <FieldLabel label="How to do it" />
+            <textarea value={editTask.description || ''} onChange={e => setEditTask(t => ({ ...t, description: e.target.value }))}
+              onBlur={e => save('description', e.target.value)}
+              rows={Math.min(18, Math.max(4, String(editTask.description || '').split('\n').length + 1))}
+              style={{ width: '100%', border: '1px solid #dfe1e6', borderRadius: 6, padding: '8px 10px', fontSize: 13, fontFamily: 'Nunito, sans-serif', resize: 'vertical', outline: 'none', color: '#172b4d', lineHeight: 1.5, background: '#fafbfc' }} />
+          </div>
+        )}
+
         {/* Notes */}
         <div style={{ padding: '12px 20px', borderBottom: '1px solid #f0f1f3' }}>
           <FieldLabel label="Notes" />
