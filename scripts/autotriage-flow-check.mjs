@@ -123,6 +123,13 @@ const tm = await ops.captureInbox(db, jon, { source: 'teams', source_ref: `check
 const tr = await auto.triageOne(adminClient(auto.AUTO_ACTOR), noClaude, (await db.from('inbox_items').select('*').eq('id', tm.id).single()).data)
 const tTask = (await db.from('tasks').select('projects(name), group_id').eq('id', tr.decisions[0].task_id).single()).data
 ok('Teams messages go to Adhoc Teams / Emails Tasks', tr.auto_status === 'filed' && tTask.projects.name === 'Adhoc Teams / Emails Tasks' && !tTask.group_id)
+const em = await ops.captureInbox(db, jon, { source: 'email', source_ref: `check-email-${stamp}`, title: `[check] Supplier PO ${stamp}`, proposed_actions: [{ kind: 'create_task', title: 'Confirm the PO date', assigned_to: 'Jon' }] })
+const fast = await auto.fileNowIfRouted(adminClient(auto.AUTO_ACTOR), em.id)
+const fastAgain = await auto.fileNowIfRouted(adminClient(auto.AUTO_ACTOR), em.id)
+ok('a flagged e-mail is filed at capture, once', fast && fast.auto_status === 'filed' && fastAgain === null)
+const chatNow = await auto.fileNowIfRouted(adminClient(auto.AUTO_ACTOR), cap.id)
+ok('a Claude chat item is not filed at capture (the cron handles it)', chatNow === null)
+await auto.undoAutoTriage(db, jon, em.id); await ops.triageInbox(db, jon, em.id, { decision: 'dismiss', notes: 'flow check clean-up' })
 await auto.undoAutoTriage(db, jon, mtg.id); await ops.triageInbox(db, jon, mtg.id, { decision: 'dismiss', notes: 'flow check clean-up' })
 await auto.undoAutoTriage(db, jon, tm.id); await ops.triageInbox(db, jon, tm.id, { decision: 'dismiss', notes: 'flow check clean-up' })
 
