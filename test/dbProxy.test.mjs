@@ -68,23 +68,91 @@ function proxyWith(calls, responder) {
   })
 }
 
-test('GET forwards the query unchanged with service key and actor', async () => {
+test('GET forwards the query with service key, actor, viewer and the visibility filter', async () => {
   const calls = []
   const res = fakeRes()
   await proxyWith(calls)(fakeReq({ method: 'GET', url: '/api/db/rest/v1/tasks?select=*,projects(name)&order=created_at.asc' }), res)
   assert.equal(res.statusCode, 200)
-  assert.equal(calls[0].url, 'https://db.example/rest/v1/tasks?select=*,projects(name)&order=created_at.asc')
+  assert.equal(calls[0].url, 'https://db.example/rest/v1/tasks?select=*,projects(name)&order=created_at.asc&pm_visible=is.true')
   assert.equal(calls[0].headers.authorization, 'Bearer service')
   assert.equal(calls[0].headers['x-doddl-actor'], 'Laura')
+  assert.equal(calls[0].headers['x-doddl-viewer'], 'Laura')
 })
 
-test('DELETE on tasks becomes a soft delete', async () => {
+test('who sees what: a browser cannot choose the viewer, and tables without rules are unfiltered', async () => {
+  const calls = []
+  await proxyWith(calls)(fakeReq({ method: 'GET', url: '/api/db/rest/v1/notifications?select=*', headers: { 'x-doddl-viewer': 'Jon' } }), fakeRes())
+  assert.equal(calls[0].headers['x-doddl-viewer'], 'Laura')
+  assert.match(calls[0].url, /pm_visible=is\.true$/)
+  await proxyWith(calls)(fakeReq({ method: 'GET', url: '/api/db/rest/v1/people?select=name' }), fakeRes())
+  assert.equal(calls[1].url, 'https://db.example/rest/v1/people?select=name')
+  await proxyWith(calls)(fakeReq({ method: 'PATCH', url: '/api/db/rest/v1/tasks?id=eq.a', body: '{"status":"done"}' }), fakeRes())
+  assert.equal(calls[2].url, 'https://db.example/rest/v1/tasks?id=eq.a&pm_visible=is.true')
+})
+
+test('who sees what: new tasks and comments only where you can see', async () => {
+  // The parent lookup returns nothing: the project / task is not visible to Laura.
+  let calls = []
+  let res = fakeRes()
+  await proxyWith(calls, (url) => (url.includes('/projects?') ? '[]' : '[{"id":"t1"}]'))(
+    fakeReq({ method: 'POST', url: '/api/db/rest/v1/tasks', body: JSON.stringify({ title: 'x', project_id: 'p-private' }) }), res)
+  assert.equal(res.statusCode, 403)
+  assert.equal(calls.length, 1)
+  assert.equal(calls[0].url, 'https://db.example/rest/v1/projects?select=id&id=in.(p-private)&pm_visible=is.true')
+  assert.equal(calls[0].headers['x-doddl-viewer'], 'Laura')
+
+  calls = []
+  res = fakeRes()
+  await proxyWith(calls, (url) => (url.includes('/tasks?') ? '[]' : '[]'))(
+    fakeReq({ method: 'POST', url: '/api/db/rest/v1/comments', body: JSON.stringify({ task_id: 't-hidden', body: 'hi' }) }), res)
+  assert.equal(res.statusCode, 403)
+
+  // Visible project: the insert goes through.
+  calls = []
+  res = fakeRes()
+  await proxyWith(calls, (url) => (url.includes('/projects?') ? '[{"id":"p1"}]' : '[{"id":"t1"}]'))(
+    fakeReq({ method: 'POST', url: '/api/db/rest/v1/tasks', body: JSON.stringify({ title: 'x', project_id: 'p1' }) }), res)
+  assert.equal(res.statusCode, 200)
+  assert.equal(calls[1].method, 'POST')
+})
+
+test("who sees what: only a project's owner changes who sees it", async () => {
+  const owner = (name) => (url, init) => (init.method === 'GET' ? JSON.stringify([{ id: 'p1', owner: name }]) : '[{"id":"p1"}]')
+  let calls = []
+  let res = fakeRes()
+  await proxyWith(calls, owner('Jon'))(fakeReq({ method: 'PATCH', url: '/api/db/rest/v1/projects?id=eq.p1&select=*', body: '{"is_private":true}' }), res)
+  assert.equal(res.statusCode, 403)
+  assert.equal(calls[0].url, 'https://db.example/rest/v1/projects?id=eq.p1&select=id%2Cowner&pm_visible=is.true')
+  calls = []
+  res = fakeRes()
+  await proxyWith(calls, owner('laura'))(fakeReq({ method: 'PATCH', url: '/api/db/rest/v1/projects?id=eq.p1', body: '{"is_private":true,"members":["Cat"]}' }), res)
+  assert.equal(res.statusCode, 200)
+  // Other project edits are not the owner's alone.
+  calls = []
+  res = fakeRes()
+  await proxyWith(calls, owner('Jon'))(fakeReq({ method: 'PATCH', url: '/api/db/rest/v1/projects?id=eq.p1', body: '{"due_date":"2026-12-01"}' }), res)
+  assert.equal(res.statusCode, 200)
+  assert.equal(calls.length, 1)
+})
+
+test('a new private project always includes the person creating it', () => {
+  const p = JSON.parse(rewriteBody('projects', Buffer.from(JSON.stringify({ name: 'HR', is_private: true, owner: 'Jon', members: ['Cat'] })), user))
+  assert.deepEqual(p.members, ['Cat', 'Laura'])
+  const mine = JSON.parse(rewriteBody('projects', Buffer.from(JSON.stringify({ name: 'Mine', is_private: true })), user))
+  assert.equal(mine.owner, 'Laura')
+  assert.deepEqual(mine.members, [])
+  const open = JSON.parse(rewriteBody('projects', Buffer.from(JSON.stringify({ name: 'Open' })), user))
+  assert.equal(open.members, undefined)
+})
+
+test('DELETE on tasks becomes a soft delete of visible rows only', async () => {
   const calls = []
   const res = fakeRes()
   await proxyWith(calls, () => '[{"id":"a"}]')(fakeReq({ method: 'DELETE', url: '/api/db/rest/v1/tasks?id=eq.a' }), res)
   assert.equal(res.statusCode, 204)
   assert.equal(calls.length, 1)
   assert.equal(calls[0].method, 'PATCH')
+  assert.equal(calls[0].url, 'https://db.example/rest/v1/tasks?id=eq.a&pm_visible=is.true')
   assert.ok(JSON.parse(calls[0].body).archived_at)
 })
 

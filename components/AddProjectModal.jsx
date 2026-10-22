@@ -3,10 +3,11 @@ import { supabase } from '../lib/supabase'
 import { PROJECT_COLORS, TEAM } from '../lib/team'
 import { PRIORITIES } from '../lib/constants'
 import { PROJECT_STATUSES } from './ProjectSection'
+import AccessPicker from './AccessPicker'
 
-export default function AddProjectModal({ onClose, onSaved, colorIndex }) {
+export default function AddProjectModal({ onClose, onSaved, colorIndex, userName }) {
   const color = PROJECT_COLORS[colorIndex % PROJECT_COLORS.length]
-  const [form, setForm] = useState({ name: '', description: '', priority: 'medium', owner: '', due_date: '', status: 'active', color })
+  const [form, setForm] = useState({ name: '', description: '', priority: 'medium', owner: userName || '', due_date: '', status: 'active', color, is_private: false, members: [] })
   const [saving, setSaving] = useState(false)
   const save = async () => {
     if (!form.name.trim()) return
@@ -16,6 +17,7 @@ export default function AddProjectModal({ onClose, onSaved, colorIndex }) {
       owner: form.owner || null,
       due_date: form.due_date || null,
       description: form.description || null,
+      members: form.is_private ? form.members : [],
     }
     await supabase.from('projects').insert([payload])
     setSaving(false); onSaved(); onClose()
@@ -48,6 +50,10 @@ export default function AddProjectModal({ onClose, onSaved, colorIndex }) {
               style={{ padding: '8px 10px', border: '1px solid #dfe1e6', borderRadius: 6, fontSize: 13, fontFamily: 'Nunito, sans-serif' }}>
               {PROJECT_STATUSES.map(s => <option key={s.key} value={s.key}>{s.label}</option>)}
             </select>
+            <div style={{ gridColumn: '1 / -1', padding: '10px 12px', background: '#f8f9fc', borderRadius: 8 }}>
+              <AccessPicker isPrivate={form.is_private} members={form.members} owner={form.owner || userName}
+                onChange={({ is_private, members }) => setForm({ ...form, is_private, members })} />
+            </div>
             <div style={{ gridColumn: '1 / -1' }}>
               <label style={{ fontSize: 11, fontWeight: 700, color: '#6b778c', display: 'block', marginBottom: 4 }}>Colour</label>
               <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>

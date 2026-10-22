@@ -51,7 +51,7 @@ function SidebarContent({ view, setView, projects, programmes, activeProject, se
           {group.name && <p style={{ fontSize: big ? 11 : 10, fontWeight: 800, color: '#6b778c', padding: '6px 12px 2px', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{group.name}</p>}
           {group.projects.map(({ p, i }) => (
             <button key={p.id} onClick={() => setActiveProject(p.id)} style={{ ...projBtn(activeProject === p.id), overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span style={{ width: 8, height: 8, borderRadius: '50%', background: getProjectColor(p, i), flexShrink: 0 }} />{p.name}
+              <span style={{ width: 8, height: 8, borderRadius: '50%', background: getProjectColor(p, i), flexShrink: 0 }} />{p.is_private ? '🔒 ' : ''}{p.name}
             </button>
           ))}
         </div>

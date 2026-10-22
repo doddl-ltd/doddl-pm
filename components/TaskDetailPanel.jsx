@@ -189,6 +189,33 @@ export default function TaskDetailPanel({ task, user, onClose, onUpdate, onPatch
 
       {/* Editable fields */}
       <div style={{ overflowY: 'auto', flex: 1, WebkitOverflowScrolling: 'touch', overscrollBehavior: 'contain' }}>
+        {/* Who can see it (migration 23): meeting actions are for the people in the meeting, Teams / e-mail
+            captures for the person who pushed them. Anyone who can see the task can share it. */}
+        {Array.isArray(editTask.visible_to) && (() => {
+          const names = editTask.visible_to
+          const others = TEAM.map(m => m.name).filter(n => n !== 'Claude' && !names.some(x => x.toLowerCase() === n.toLowerCase()))
+          return (
+            <div style={{ padding: isMobile ? '10px 14px' : '10px 20px', borderBottom: '1px solid #f0f1f3', background: '#fffaf0' }}>
+              <FieldLabel label="Who can see this" />
+              <p style={{ fontSize: 12, color: '#42526e', marginBottom: 8, lineHeight: 1.4 }}>
+                🔒 Only {names.length ? <b>{names.join(', ')}</b> : 'nobody else'}{editTask.assigned_to && !names.some(x => x.toLowerCase() === String(editTask.assigned_to).toLowerCase()) ? <> and <b>{editTask.assigned_to}</b> (assigned)</> : ''}.
+              </p>
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+                {others.length > 0 && (
+                  <select value="" onChange={e => { if (e.target.value) save('visible_to', [...names, e.target.value]) }}
+                    style={{ border: '1px solid #dfe1e6', borderRadius: 6, padding: '5px 8px', fontSize: 12, fontFamily: 'Nunito, sans-serif', background: '#fff', color: '#172b4d' }}>
+                    <option value="">+ Share with…</option>
+                    {others.map(n => <option key={n} value={n}>{n}</option>)}
+                  </select>
+                )}
+                <button onClick={() => { if (window.confirm('Let everyone who can see this project see this task?')) save('visible_to', null) }}
+                  style={{ background: 'none', border: '1px solid #dfe1e6', borderRadius: 6, padding: '5px 10px', fontSize: 12, fontWeight: 700, color: '#42526e', cursor: 'pointer', fontFamily: 'Nunito, sans-serif' }}>
+                  Show to the whole project
+                </button>
+              </div>
+            </div>
+          )
+        })()}
         {editTask.task_type === 'approval' && (
           <ApprovalTaskPanel task={editTask} userName={userName} onUpdate={onUpdate} />
         )}
