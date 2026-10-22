@@ -11,7 +11,8 @@ import { undoAutoTriage, retryAutoTriage } from '../../lib/pm/autoTriage'
 export default async function handler(req, res) {
   const user = await requireUser(req, res)
   if (!user) return
-  const db = adminClient(user.name)
+  // Only the items (and tasks) this person may see (migration 23).
+  const db = adminClient(user.name, { viewer: user.name })
   const principal = { actor: user.name, agent_id: null, on_behalf_of: null, scopes: [] }
   try {
     if (req.method === 'GET') {

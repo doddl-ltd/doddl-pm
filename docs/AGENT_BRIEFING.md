@@ -67,6 +67,19 @@ Every 5 minutes (`/api/cron/auto-triage`, lib/pm/autoTriage.js) captured items a
 - Off with Vercel env `AUTO_TRIAGE=off` or without `ANTHROPIC_API_KEY`; items then wait in Triage.
 - **Cost:** Claude sees only the open tasks that could match (at most 40, short refs instead of ids), at low effort. Each call's tokens and cost are stored on the item (`auto_usage`), `briefing` shows `claude_cost_today_usd`, and filing pauses once the day's spend reaches `AUTO_TRIAGE_DAILY_BUDGET_USD` (default $1). Model and effort: `AUTO_TRIAGE_MODEL` (default `claude-haiku-5-5`, Jon's choice 2026-10-19; about $0.001 an item), `AUTO_TRIAGE_EFFORT` (default `low`). Never run real-Claude test batches without stating the expected cost first.
 
+## 5b. Who sees what
+
+The database enforces this for every way in (migration 23, lib/server/visibility.js), so a person only ever receives what they may see. That covers the app, their Claude connector, Triage and the agent API.
+- **Private projects:** a project's owner can make it private. Only the owner and its members see it and its tasks, comments, links and history. Only the owner can change this.
+- **Meeting actions:** only the doddl people in the meeting see them, including the meeting's group in Meeting Note Actions.
+- **Teams messages and flagged e-mails:** only the person who pushed them sees them.
+- **A person's Claude chat captures:** only that person sees them in Triage.
+- **The assignee** always sees their own task.
+- **Sharing:** anyone who can see a restricted task can share it, or show it to the whole project, from its task panel.
+- **Notifications:** only your own.
+- **Who gets what:** your Claude (OAuth) sees exactly what you do. Agent keys and the auto-triage cron see everything; auto-triage only offers Claude projects and tasks that everyone on the captured item can see.
+- **Practical upshot:** if `find_tasks` or `get_task` cannot find something a person mentions, it may be private to someone else. Say so; never try to work around it.
+
 ## 6. Credentials (names only)
 
 | Secret | Where | Used by |

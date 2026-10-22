@@ -1,5 +1,6 @@
 import { adminClient } from '../../lib/server/admin'
 import { requireCaller, pick } from '../../lib/server/caller'
+import { viewerFor } from '../../lib/server/visibility'
 
 // Projects REST route. Requires a signed-in doddl person or an agent
 // credential. DELETE archives (Hard Rule 9: never hard-delete).
@@ -9,7 +10,7 @@ export default async function handler(req, res) {
   const write = req.method !== 'GET'
   const caller = await requireCaller(req, res, { agentScope: write ? 'tasks:write' : 'tasks:read' })
   if (!caller) return
-  const supabase = adminClient(caller.actor)
+  const supabase = adminClient(caller.actor, { viewer: viewerFor(caller) })
   const { id } = req.query
 
   if (req.method === 'GET') {

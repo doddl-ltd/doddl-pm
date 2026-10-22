@@ -13,6 +13,7 @@ import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/
 import { withAgentAuth } from '../../lib/agentAuth'
 import { hasScope } from '../../lib/server/credentials'
 import { adminClient } from '../../lib/server/admin'
+import { viewerFor } from '../../lib/server/visibility'
 import { baseUrl } from '../../lib/server/oauth'
 import * as ops from '../../lib/pm/ops'
 import * as prog from '../../lib/pm/programmes'
@@ -75,7 +76,8 @@ const actionSchema = z.object({
 })
 
 function buildServer(principal) {
-  const db = adminClient(principal.actor)
+  // A person's Claude (OAuth) sees only what that person can (lib/server/visibility.js); agent keys see all.
+  const db = adminClient(principal.actor, { viewer: viewerFor({ principal }) })
   const server = new McpServer({ name: 'doddl-pm', version: '2.0.0' }, { instructions: INSTRUCTIONS })
   const can = (scope) => hasScope(principal, scope)
 

@@ -8,6 +8,7 @@ import ProjectDashboard from './ProjectDashboard'
 import KanbanBoard from './KanbanBoard'
 import ProjectGanttChart from './ProjectGanttChart'
 import { useIsMobile } from '../lib/useIsMobile'
+import AccessPicker from './AccessPicker'
 
 const WIDTHS_STORAGE_KEY = 'doddl-pm-project-col-widths'
 const MIN_W = { select: 28, owner: 60, status: 70, timeline: 110, effort: 40, priority: 60, progress: 80 }
@@ -22,7 +23,7 @@ export const PROJECT_STATUSES = [
 ]
 const projectStatusLabel = (k) => PROJECT_STATUSES.find(s => s.key === k)?.label || (k ? k.replace('_', ' ') : '')
 
-export default function ProjectSection({ project, tasks, allTasks, taskGroups, onUpdate, onPatch, onDelete, onDeleteGroup, onAddTask, onAddSubtask, onSelect, colorIndex, projects, user }) {
+export default function ProjectSection({ project, tasks, allTasks, taskGroups, onUpdate, onPatch, onDelete, onDeleteGroup, onAddTask, onAddSubtask, onSelect, colorIndex, projects, user, userName }) {
   const [projectTab, setProjectTab] = useState('table')
   const isMobile = useIsMobile()
   const [addingGroup, setAddingGroup] = useState(false)
@@ -81,36 +82,28 @@ export default function ProjectSection({ project, tasks, allTasks, taskGroups, o
   const [editingHeader, setEditingHeader] = useState(false)
   const [headerHover, setHeaderHover]     = useState(false)
   const [savingHeader, setSavingHeader]   = useState(false)
-  const [editForm, setEditForm]           = useState({
-    name: project.name || '',
-    owner: project.owner || '',
-    due_date: project.due_date ? project.due_date.slice(0, 10) : '',
-    status: project.status || 'active',
-    description: project.description || '',
+  const formFor = (p) => ({
+    name: p.name || '',
+    owner: p.owner || '',
+    due_date: p.due_date ? p.due_date.slice(0, 10) : '',
+    status: p.status || 'active',
+    description: p.description || '',
+    is_private: !!p.is_private,
+    members: Array.isArray(p.members) ? p.members : [],
   })
+  const [editForm, setEditForm]           = useState(formFor(project))
+  // Who sees a project is the owner's call (enforced on the server too). No owner yet: anyone who can see it.
+  const sameName = (a, b) => String(a || '').trim().toLowerCase() === String(b || '').trim().toLowerCase()
+  const canManageAccess = !project.owner || sameName(project.owner, userName)
   // Re-seed the edit form whenever a fresh project prop arrives (e.g. after
   // another save) or when we enter edit mode, so inputs show the latest values.
   useEffect(() => {
-    if (!editingHeader) {
-      setEditForm({
-        name: project.name || '',
-        owner: project.owner || '',
-        due_date: project.due_date ? project.due_date.slice(0, 10) : '',
-        status: project.status || 'active',
-        description: project.description || '',
-      })
-    }
-  }, [project.id, project.name, project.owner, project.due_date, project.status, project.description, editingHeader])
+    if (!editingHeader) setEditForm(formFor(project))
+  }, [project.id, project.name, project.owner, project.due_date, project.status, project.description, project.is_private, project.members, editingHeader])
 
   const startEdit  = () => setEditingHeader(true)
   const cancelEdit = () => {
-    setEditForm({
-      name: project.name || '',
-      owner: project.owner || '',
-      due_date: project.due_date ? project.due_date.slice(0, 10) : '',
-      status: project.status || 'active',
-      description: project.description || '',
-    })
+    setEditForm(formFor(project))
     setEditingHeader(false)
   }
   const saveEdit = async () => {
@@ -123,6 +116,7 @@ export default function ProjectSection({ project, tasks, allTasks, taskGroups, o
       status: editForm.status || 'active',
       description: editForm.description || null,
       updated_at: new Date().toISOString(),
+      ...(canManageAccess ? { is_private: editForm.is_private, members: editForm.is_private ? editForm.members : [] } : {}),
     }
     const { error } = await supabase.from('projects').update(patch).eq('id', project.id)
     setSavingHeader(false)
@@ -169,8 +163,10 @@ export default function ProjectSection({ project, tasks, allTasks, taskGroups, o
 
   // Tasks with no group_id land in the ungrouped bucket (rendered after all
   // groups). Legacy `is_group` / `parent_id` tasks are ignored — that mechanism
-  // is superseded by task_groups.
-  const ungroupedTasks = tasks.filter(t => !t.is_group && !t.parent_id && !t.group_id)
+  // is superseded by task_groups. A task whose group this person can't see (a
+  // meeting they weren't in, but the task is assigned to them) shows here too.
+  const groupIds = new Set(groups.map(g => g.id))
+  const ungroupedTasks = tasks.filter(t => !t.is_group && !t.parent_id && (!t.group_id || !groupIds.has(t.group_id)))
 
   const saveGroup = async () => {
     if (!groupName.trim()) return
@@ -238,6 +234,12 @@ export default function ProjectSection({ project, tasks, allTasks, taskGroups, o
               rows={2}
               style={{ padding: '7px 10px', border: '1px solid rgba(255,255,255,0.4)', borderRadius: 6, background: 'rgba(255,255,255,0.95)', color: '#172b4d', fontSize: 13, fontFamily: 'Nunito, sans-serif', resize: 'vertical', outline: 'none' }}
             />
+            {canManageAccess ? (
+              <AccessPicker onDark isPrivate={editForm.is_private} members={editForm.members} owner={editForm.owner || project.owner || userName}
+                onChange={({ is_private, members }) => setEditForm(f => ({ ...f, is_private, members }))} />
+            ) : (
+              <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.8)' }}>Only {project.owner} can change who sees this project.</span>
+            )}
           </div>
         ) : (
           <div style={{ flex: 1 }}>
@@ -254,6 +256,12 @@ export default function ProjectSection({ project, tasks, allTasks, taskGroups, o
                 </span>
               )}
               {project.due_date && <span style={{ fontSize: 11, background: 'rgba(255,255,255,0.2)', borderRadius: 10, padding: '2px 10px', color: '#fff', fontWeight: 600 }}>Due {new Date(project.due_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</span>}
+              {project.is_private && (
+                <span title="Private: only these people (and anyone a task is assigned to) can see it"
+                  style={{ fontSize: 11, background: 'rgba(0,0,0,0.25)', borderRadius: 10, padding: '2px 10px', color: '#fff', fontWeight: 700 }}>
+                  🔒 Private · {[project.owner, ...(project.members || [])].filter(Boolean).join(', ')}
+                </span>
+              )}
             </div>
             {project.description && <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.7)', marginTop: 3 }}>{project.description}</p>}
           </div>

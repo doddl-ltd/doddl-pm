@@ -60,7 +60,7 @@ export default function MyProjectsView({ projects, visibleTasks, userName, setAc
                 <div style={{ height: 6, background: color }} />
                 <div style={{ padding: '18px 20px' }}>
                   <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 10 }}>
-                    <h3 style={{ fontWeight: 800, fontSize: 15, color: '#172b4d', lineHeight: 1.3, flex: 1, marginRight: 8 }}>{project.name}</h3>
+                    <h3 style={{ fontWeight: 800, fontSize: 15, color: '#172b4d', lineHeight: 1.3, flex: 1, marginRight: 8 }}>{project.is_private ? '🔒 ' : ''}{project.name}</h3>
                     <span style={{ fontSize: 10, fontWeight: 700, color: prioColor, background: prioColor + '18', borderRadius: 10, padding: '2px 8px', whiteSpace: 'nowrap', flexShrink: 0 }}>{(project.priority || 'medium').toUpperCase()}</span>
                   </div>
                   {project.description && (

@@ -51,7 +51,7 @@ function CardsView({ projects, projectsAll, visibleTasks, setActiveProject }) {
             <div style={{ height: 6, background: color }} />
             <div style={{ padding: '18px 20px' }}>
               <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 10 }}>
-                <h3 style={{ fontWeight: 800, fontSize: 15, color: '#172b4d', lineHeight: 1.3, flex: 1, marginRight: 8 }}>{project.name}</h3>
+                <h3 style={{ fontWeight: 800, fontSize: 15, color: '#172b4d', lineHeight: 1.3, flex: 1, marginRight: 8 }}>{project.is_private ? '🔒 ' : ''}{project.name}</h3>
                 <span style={{ fontSize: 10, fontWeight: 700, color: prioColor, background: prioColor + '18', borderRadius: 10, padding: '2px 8px', whiteSpace: 'nowrap', flexShrink: 0 }}>{(project.priority || 'medium').toUpperCase()}</span>
               </div>
               {project.description && (
@@ -127,7 +127,7 @@ function ListView({ projects, projectsAll, visibleTasks, setActiveProject }) {
                 <td style={{ padding: '10px 12px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     <span style={{ width: 10, height: 10, borderRadius: 3, background: color, flexShrink: 0 }} />
-                    <span style={{ fontSize: 13, fontWeight: 700, color: '#172b4d' }}>{project.name}</span>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: '#172b4d' }}>{project.is_private ? '🔒 ' : ''}{project.name}</span>
                   </div>
                 </td>
                 <td style={{ padding: '10px 12px', fontSize: 12, color: '#42526e', fontWeight: 600 }}>{project.owner || '—'}</td>

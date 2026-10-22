@@ -186,7 +186,7 @@ export default function Home() {
                   ← All Projects
                 </button>
               </div>
-              <ProjectSection key={activeProjectData.id} project={activeProjectData} colorIndex={activeProjectIdx}
+              <ProjectSection key={activeProjectData.id} project={activeProjectData} colorIndex={activeProjectIdx} userName={userName}
                 tasks={(search ? filteredTasks : visibleTasks).filter(t => t.project_id === activeProjectData.id)}
                 allTasks={visibleTasks} taskGroups={taskGroups} onUpdate={load} onPatch={patchTask}
                 onDelete={deleteTask} onDeleteGroup={deleteGroup}
@@ -200,7 +200,7 @@ export default function Home() {
 
       {selectedTask && <TaskDetailPanel task={selectedTask} user={user} allTasks={tasks} onClose={() => setSelectedTask(null)} onUpdate={load} onPatch={patchTask} panelW={taskPanelW} setPanelW={setTaskPanelW} />}
       {showAddTask && <AddTaskModal projects={projects} parentId={addTaskParentId} projectId={addTaskProjectId} allTasks={tasks} onClose={() => setShowAddTask(false)} onSaved={load} currentUser={user} />}
-      {showAddProject && <AddProjectModal onClose={() => setShowAddProject(false)} onSaved={load} colorIndex={projects.length} />}
+      {showAddProject && <AddProjectModal onClose={() => setShowAddProject(false)} onSaved={load} colorIndex={projects.length} userName={userName} />}
       <div id="timeline-portal" />
     </>
   )
