@@ -119,10 +119,13 @@ const mTasks = (await db.from('tasks').select('title, assigned_to, due_date, pro
 ok('meeting actions go to Meeting Note Actions, in a group named with the date', mr.auto_status === 'filed' && mTasks.length === 2 &&
   mTasks.every(t => t.projects.name === 'Meeting Note Actions' && t.task_groups.name === `21 Oct 2026 · [check] Weekly sync ${stamp}`), mTasks.map(t => `${t.projects.name} > ${t.task_groups && t.task_groups.name} > ${t.title}`).join(' | '))
 ok('owner and due date are kept', mTasks.some(t => t.title === 'Send the spec sheet' && t.assigned_to === 'Laura' && t.due_date === '2026-10-24'))
-const tm = await ops.captureInbox(db, jon, { source: 'teams', source_ref: `check-teams-${stamp}`, title: `[check] Reorder Stage 2 boxes ${stamp}`, proposed_actions: [{ kind: 'create_task', title: 'Reorder Stage 2 boxes', assigned_to: 'Laura' }] })
+const teamsLink = `https://teams.microsoft.com/l/message/19:check-${stamp}/1`
+const tm = await ops.captureInbox(db, jon, { source: 'teams', source_ref: `check-teams-${stamp}`, title: `[check] Reorder Stage 2 boxes ${stamp}`, payload: { link_to_message: teamsLink }, proposed_actions: [{ kind: 'create_task', title: 'Reorder Stage 2 boxes', assigned_to: 'Laura' }] })
 const tr = await auto.triageOne(adminClient(auto.AUTO_ACTOR), noClaude, (await db.from('inbox_items').select('*').eq('id', tm.id).single()).data)
 const tTask = (await db.from('tasks').select('projects(name), group_id').eq('id', tr.decisions[0].task_id).single()).data
 ok('Teams messages go to Adhoc Teams / Emails Tasks', tr.auto_status === 'filed' && tTask.projects.name === 'Adhoc Teams / Emails Tasks' && !tTask.group_id)
+const tLinks = (await db.from('task_links').select('url, label').eq('task_id', tr.decisions[0].task_id)).data
+ok('the task links back to the original Teams message (and any file attached to it)', tLinks.some(l => l.url === teamsLink && l.label === 'Original Teams message'), tLinks.map(l => l.label || l.url).join(' | '))
 const em = await ops.captureInbox(db, jon, { source: 'email', source_ref: `check-email-${stamp}`, title: `[check] Supplier PO ${stamp}`, proposed_actions: [{ kind: 'create_task', title: 'Confirm the PO date', assigned_to: 'Jon' }] })
 const fast = await auto.fileNowIfRouted(adminClient(auto.AUTO_ACTOR), em.id)
 const fastAgain = await auto.fileNowIfRouted(adminClient(auto.AUTO_ACTOR), em.id)
