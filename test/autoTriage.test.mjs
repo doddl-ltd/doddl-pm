@@ -168,3 +168,41 @@ test('workstream keys are stable and derived from programme + title', () => {
   assert.equal(workstreamKey('claude_chat', { programme: 'doddl  Marketing', title: 'CRM build in Klaviyo' }), 'claude_chat:doddl marketing/crm build in klaviyo')
   assert.equal(workstreamKey('agent', { key: 'Repo:doddl-ads' }), 'repo:doddl-ads')
 })
+
+// A query builder that records every call and answers each chain with the given result.
+function recordingDb(answer) {
+  const calls = []
+  const db = {
+    calls,
+    from(table) {
+      const chain = { table, ops: [] }
+      calls.push(chain)
+      const q = new Proxy({}, {
+        get(_, prop) {
+          if (prop === 'then') return (res, rej) => Promise.resolve(answer(chain)).then(res, rej)
+          return (...args) => { chain.ops.push([prop, ...args]); return q }
+        },
+      })
+      return q
+    },
+  }
+  return db
+}
+
+test('an idle cron run costs one count and touches nothing else', async () => {
+  const { runAutoTriage } = await import('../lib/pm/autoTriage.js')
+  const db = recordingDb(() => ({ count: 0, error: null, data: null }))
+  const summary = await runAutoTriage({ db, claude: null })
+  assert.equal(summary.idle, true)
+  assert.equal(summary.processed, 0)
+  assert.equal(db.calls.length, 1)
+  assert.deepEqual(db.calls[0].ops.map(o => o[0]), ['select', 'in'])
+  assert.deepEqual(db.calls[0].ops[1], ['in', 'auto_status', ['pending', 'processing']])
+})
+
+test('waiting work, or a failed count, runs the full pass', async () => {
+  const { hasWork } = await import('../lib/pm/autoTriage.js')
+  assert.equal(await hasWork(recordingDb(() => ({ count: 2, error: null }))), true)
+  assert.equal(await hasWork(recordingDb(() => ({ count: null, error: { message: 'timeout' } }))), true)
+  assert.equal(await hasWork(recordingDb(() => ({ count: 0, error: null }))), false)
+})
