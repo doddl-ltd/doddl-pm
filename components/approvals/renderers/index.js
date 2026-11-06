@@ -8,9 +8,19 @@
 // /api/approvals/decide; renderers only show the preview and collect lines/edits.
 // getRenderer returns null for types without a rich renderer (the card falls back to generic).
 import PackReview from './PackReview'
+import AdReview from './AdReview'
+import VideoReview from './VideoReview'
+import SocialReview from './SocialReview'
+import EmailReview from './EmailReview'
+import ListingChangeReview from './ListingChangeReview'
 
 const RENDERERS = {
   pack: PackReview,
+  ad_creative: AdReview,
+  video: VideoReview,
+  social_pack: SocialReview,
+  email: EmailReview,
+  listing_change: ListingChangeReview,
 }
 
 export function getRenderer(artefactType) {
