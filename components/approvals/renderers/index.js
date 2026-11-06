@@ -7,7 +7,19 @@
 // The approval card frame (ApprovalCard) owns the header, clock, decision bar and the POST to
 // /api/approvals/decide; renderers only show the preview and collect lines/edits.
 // getRenderer returns null for types without a rich renderer (the card falls back to generic).
-const RENDERERS = {}
+import AdReview from './AdReview'
+import VideoReview from './VideoReview'
+import SocialReview from './SocialReview'
+import EmailReview from './EmailReview'
+import ListingChangeReview from './ListingChangeReview'
+
+const RENDERERS = {
+  ad_creative: AdReview,
+  video: VideoReview,
+  social_pack: SocialReview,
+  email: EmailReview,
+  listing_change: ListingChangeReview,
+}
 
 export function getRenderer(artefactType) {
   return RENDERERS[artefactType] || null
