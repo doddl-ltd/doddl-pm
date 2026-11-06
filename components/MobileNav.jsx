@@ -1,5 +1,6 @@
-// Phone bottom tab bar: the four places people go most, plus Menu (projects,
-// approvals, new project, sign out). Sits above the iPhone home indicator.
+// Phone bottom tab bar: the places people go most (My Work, Projects, Approvals, Calendar, Alerts),
+// plus Menu (triage, the rest of doddl HQ, settings, new project, sign out; it carries the triage badge).
+// Sits above the iPhone home indicator.
 export const MOBILE_NAV_H = 58
 
 function Tab({ icon, label, active, count, onClick }) {
@@ -21,7 +22,7 @@ function Tab({ icon, label, active, count, onClick }) {
   )
 }
 
-export default function MobileNav({ view, onNavigate, onMenu, menuOpen, myFlowCount, triageCount, unreadCount }) {
+export default function MobileNav({ view, onNavigate, onMenu, menuOpen, myFlowCount, triageCount, unreadCount, approvalsCount }) {
   const on = (key) => !menuOpen && view === key
   return (
     <nav style={{
@@ -31,9 +32,10 @@ export default function MobileNav({ view, onNavigate, onMenu, menuOpen, myFlowCo
     }}>
       <Tab icon="👤" label="My Work"  active={on('mywork')} count={myFlowCount} onClick={() => onNavigate('mywork')} />
       <Tab icon="📋" label="Projects" active={on('board')}  onClick={() => onNavigate('board')} />
-      <Tab icon="📥" label="Triage"   active={on('triage')} count={triageCount} onClick={() => onNavigate('triage')} />
+      <Tab icon="✅" label="Approvals" active={on('approvals')} count={approvalsCount} onClick={() => onNavigate('approvals')} />
+      <Tab icon="🗓️" label="Calendar" active={on('calendar')} onClick={() => onNavigate('calendar')} />
       <Tab icon="🔔" label="Alerts"   active={on('inbox')}  count={unreadCount} onClick={() => onNavigate('inbox')} />
-      <Tab icon="☰"  label="Menu"     active={menuOpen || ['myprojects', 'approvals'].includes(view)} onClick={onMenu} />
+      <Tab icon="☰"  label="Menu"     active={menuOpen || ['myprojects', 'triage', 'studio', 'listings', 'idea', 'approvers'].includes(view)} count={triageCount} onClick={onMenu} />
     </nav>
   )
 }

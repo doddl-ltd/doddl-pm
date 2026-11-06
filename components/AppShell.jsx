@@ -36,7 +36,7 @@ export default function AppShell({ isMobile, header, sidebar, onNavigate, mainRi
       <MobileNav view={sidebar.view} menuOpen={menuOpen}
         onNavigate={(key) => { setMenuOpen(false); onNavigate(key) }}
         onMenu={() => setMenuOpen(o => !o)}
-        myFlowCount={sidebar.myFlowCount} triageCount={sidebar.triageCount} unreadCount={sidebar.unreadCount} />
+        myFlowCount={sidebar.myFlowCount} triageCount={sidebar.triageCount} unreadCount={sidebar.unreadCount} approvalsCount={sidebar.approvalsCount} />
       <AppSidebar {...sidebar} drawer open={menuOpen} onClose={() => setMenuOpen(false)}
         userName={header.userName} onAddProject={header.onAddProjectClick} onLogout={header.handleLogout} />
     </>
