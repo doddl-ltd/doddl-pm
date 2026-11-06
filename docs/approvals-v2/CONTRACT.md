@@ -195,7 +195,7 @@ The existing types stay. Five new types have per-field validation. Media URLs ar
   - `checks[]`.
   - Line ids are the field names. Line decisions are `push` | `keep` | `edit` (the edit text goes in `"<field>:edit"`).
 - **`pack`**
-  - Top level: `pack_kind` (`amazon_ads` | `paid_media` | `replies` | `outreach` | `listings`), `currency_totals` (bool).
+  - Top level: `pack_kind` (`amazon_ads` | `paid_media` | `replies` | `outreach` | `listings`), `currency_totals` (bool), `reply_by` (optional `HH:MM` UK; the daily replies pack, which expires then).
   - `groups[]` of `{name, lines[]}`, each line with:
     - `id`, `target`, `before`, `after`, `limit`, `limit_tone`, `why`
     - `weekly_delta: {currency, amount}`
@@ -298,3 +298,14 @@ Additions to the names above. Nothing above was renamed.
 - The clock runs at minute 7 of every hour on approvals that have `expires_at`, which every submission now gets. Approvals submitted before v2 have none and never expire.
 - The 08:00 summary is `/api/cron/approval-summary`, scheduled at 07:00 and 08:00 UTC; only the run at 08:00 UK time posts (BST-proof). One card per approver to the same webhook.
 
+## How doddl HQ reads and sends it (added by the HQ build, branch feat/approvals-v2)
+
+These pin down shapes the sections above leave open. Nothing above is renamed.
+
+- **Line ids HQ sends.** `pack` lines from a change-proposal are `c1`, `c2`, … in change order (Amazon Ads, paid media); the replies pack and the outreach pack use the message id and the HubSpot contact id; `social_pack` uses each post's `post_ref`; `listing_change` uses the field names `Title`, `Bullet 1`–`Bullet 5`, `Description`, `Search terms`.
+- **`decision_edits` shape HQ reads.** Per-line edits come from `line_decisions["<line_id>:edit"]`, or from `decision_edits.lines` / `.variants` / `.posts` / `.fields` keyed by line id. Any other top-level key (for example `preview_text`) is an artefact-wide copy edit. `decision_edits.scope = 'organic'` is the only non-copy key (video). An edit is a string (replaces text) or an object whose keys must already exist in what is being changed; anything else is refused, never guessed.
+- **What runs.** `approved` runs every line; `approved_with_edits` runs every line not marked `rejected`/`keep`; `partially_approved` runs only the lines marked `approved`/`edited`/`push`/`edit`. Edited copy runs only after HQ's Brand critic has passed exactly those words. Email edits are not sent: the CRM agent updates the draft and asks again.
+- **Decisions endpoint.** HQ calls `GET /api/agent/decisions/:task_id` and falls back to `GET /api/agent/lookup?task_id=` on a 404, so either order of release works. Unknown `decision` values fail closed.
+- **Response shapes HQ accepts.** `GET /api/agent/approval-rules` → `{ rules: [...] }` or a bare array; `GET /api/agent/ideas?status=new` → `{ ideas: [...] }` or a bare array. `PUT /api/agent/content-items` body is `{ items: [...] }`. `POST /api/agent/comments/:task_id` body is `{ body, anchor }`.
+- **Review approvals.** Ad creative and video cuts from Content & Creative are approval tasks with `external_ref` `doddl-hq:review:<ad_creative|video>:<source>`, in areas `paid_media` and `content_calendar`; nothing executes on approval, HQ records it.
+- **Agents' `content_items` refs.** `doddl-hq:proposal:<proposal_id>`, `doddl-hq:post:<post_ref>` (one per social post, so the calendar has a row per post), `doddl-hq:review:…`, `doddl-hq:idea:<idea id>` (the brief made from an idea; also its `brief_ref`).
