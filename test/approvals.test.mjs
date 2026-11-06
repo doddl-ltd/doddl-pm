@@ -262,3 +262,17 @@ test('validateAnchor: the four anchor shapes', () => {
   assert.throws(() => validateAnchor({ kind: 'time', t: 'soon' }), /time anchor/)
   assert.throws(() => validateAnchor({ kind: 'page' }), /anchor.kind/)
 })
+
+import { artefactSummary } from '../lib/pm/approvals.js'
+import { test as t2 } from 'node:test'
+import assert2 from 'node:assert/strict'
+t2('inbox row summary: pack counts lines across groups', () => {
+  const r = artefactSummary('pack', { groups: [{ name: 'Budgets', lines: [{}, {}] }, { name: 'Bids', lines: [{}] }] })
+  assert2.equal(r.line_count, 3)
+  assert2.equal(r.summary, '3 changes · Budgets, Bids')
+})
+t2('inbox row summary: listing counts differing fields only', () => {
+  const r = artefactSummary('listing_change', { product: 'Toddler 3-piece', marketplace: 'UK', fields: [{ status: 'drift' }, { status: 'match' }, { status: 'proposed' }] })
+  assert2.equal(r.line_count, 2)
+  assert2.equal(r.summary, 'Toddler 3-piece · Amazon UK · 2 fields')
+})
