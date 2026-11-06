@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Creative studio, phone</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&amp;display=swap">
+<style>
+body{margin:0;font-family:'Nunito',system-ui,sans-serif;color:#190e3e;background:#F6F4FA}
+a{color:#3D157D}a:hover{color:#190e3e}
+.top{background:#190e3e;color:#fff;padding:0 16px;min-height:56px;display:flex;align-items:center;gap:8px}
+.chip{display:inline-flex;align-items:center;font-size:12px;font-weight:800;border-radius:999px;padding:3px 10px;background:#EEE9F8;color:#3D157D;white-space:nowrap}
+.panel{background:#fff;border:1px solid #E4E0EE;border-radius:14px;padding:14px}
+.h2{font-size:15px;font-weight:800;margin:0 0 8px}
+.tile{background:#fff;border:1px solid #E4E0EE;border-radius:12px;padding:10px 12px}
+.pills{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px}
+.pill{flex:none;min-height:44px;padding:0 14px;border-radius:999px;border:1px solid #CFC8E0;background:#fff;font:800 14px 'Nunito',sans-serif;color:#190e3e;cursor:pointer;white-space:nowrap}
+.pill.on{background:#190e3e;border-color:#190e3e;color:#fff}
+.card{display:flex;gap:10px;background:#fff;border:1px solid #E4E0EE;border-radius:12px;padding:10px;text-decoration:none;color:#190e3e}
+.thumb{width:64px;height:72px;flex:none;border-radius:8px;background:repeating-linear-gradient(135deg,#ECE8F4 0 8px,#F4F1F9 8px 16px);display:flex;align-items:center;justify-content:center;color:#5B5470;font-size:10px;font-weight:800;text-align:center}
+.sel{font:700 15px 'Nunito',sans-serif;color:#190e3e;border:1px solid #CFC8E0;border-radius:10px;min-height:44px;padding:0 10px;background:#fff;width:100%}
+.row{display:flex;justify-content:space-between;gap:10px;align-items:center;min-height:48px;border-top:1px solid #F1EEF6;text-decoration:none;color:#190e3e;font-size:14px}
+.row:first-of-type{border-top:0}
+</style>
+</helmet>
+<div style="width: 390px; min-height: 1650px; background: #F6F4FA">
+  <div class="top">
+    <a href="InboxPhone.dc.html" style="color: #fff; text-decoration: none; font-weight: 800; font-size: 15px; min-height: 44px; display: inline-flex; align-items: center">‹ Approvals</a>
+    <span style="margin-left: auto; font-size: 13px; color: #DCD6EC; font-weight: 700">Creative studio</span>
+  </div>
+  <div style="padding: 16px; display: flex; flex-direction: column; gap: 14px">
+    <div>
+      <h1 style="margin: 0; font-size: 24px; font-weight: 800">Creative studio</h1>
+      <p style="margin: 4px 0 0; font-size: 14px; color: #5B5470">Every ad, video, post, email and listing, from brief to results.</p>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
+      <div class="tile"><p style="margin: 0; font-size: 12px; font-weight: 800; color: #5B5470">READY FOR YOU</p><p style="margin: 2px 0 0; font-size: 22px; font-weight: 800; color: #3D157D">6</p></div>
+      <div class="tile"><p style="margin: 0; font-size: 12px; font-weight: 800; color: #5B5470">STUCK</p><p style="margin: 2px 0 0; font-size: 22px; font-weight: 800; color: #A12B2B">2</p></div>
+      <div class="tile"><p style="margin: 0; font-size: 12px; font-weight: 800; color: #5B5470">LIVE THIS WEEK</p><p style="margin: 2px 0 0; font-size: 22px; font-weight: 800">11</p></div>
+      <a class="tile" href="ListingsPhone.dc.html" style="text-decoration: none; color: #190e3e"><p style="margin: 0; font-size: 12px; font-weight: 800; color: #5B5470">LISTINGS DRIFTING ›</p><p style="margin: 2px 0 0; font-size: 22px; font-weight: 800; color: #8A4B00">4</p></a>
+    </div>
+
+    <label style="font-size: 13px; font-weight: 800">Type
+      <select class="sel" style="margin-top: 6px" onChange="{{pickType}}">
+        <option value="all">Everything</option><option value="ad">Paid ads</option><option value="vid">Ad videos</option><option value="soc">Organic social</option><option value="em">Email</option><option value="lst">Amazon listings</option><option value="aad">Amazon ads</option>
+      </select>
+    </label>
+
+    <div class="pills" role="group" aria-label="Stage">
+      <sc-for list="{{stages}}" as="s" hint-placeholder-count="6"><button class="{{s.cls}}" onClick="{{s.pick}}">{{s.label}} {{s.n}}</button></sc-for>
+    </div>
+    <p style="margin: -6px 0 0; font-size: 13px; color: #5B5470">{{stageSub}}</p>
+
+    <div style="display: flex; flex-direction: column; gap: 8px">
+      <sc-for list="{{cards}}" as="k" hint-placeholder-count="4">
+        <a class="card" href="{{k.href}}">
+          <span class="thumb">{{k.fmt}}</span>
+          <span style="min-width: 0">
+            <span style="display: flex; gap: 6px; flex-wrap: wrap"><span class="chip" style="background: {{k.bg}}; color: {{k.fg}}">{{k.type}}</span><span class="chip" style="background: #F0EEF4; color: #4A4458">{{k.mkt}}</span></span>
+            <span style="display: block; margin-top: 4px; font-size: 15px; font-weight: 800; line-height: 1.3">{{k.title}}</span>
+            <span style="display: block; font-size: 13px; color: #5B5470">{{k.who}}</span>
+            <span style="display: block; margin-top: 2px; font-size: 13px; font-weight: 800; color: {{k.stc}}">{{k.status}}</span>
+          </span>
+        </a>
+      </sc-for>
+      <sc-if value="{{empty}}" hint-placeholder-val="{{ false }}"><p style="margin: 0; font-size: 14px; color: #5B5470">Nothing of this type at this stage.</p></sc-if>
+    </div>
+
+    <section class="panel">
+      <h2 class="h2">Stuck</h2>
+      <p style="margin: 0 0 8px; font-size: 14px; line-height: 1.45"><span class="chip" style="background: #F8E1E1; color: #A12B2B">3 days</span> <b>Grandparents gift video</b>: no approved Gift footage in the Media sort yet.</p>
+      <p style="margin: 0; font-size: 14px; line-height: 1.45"><span class="chip" style="background: #F8E1E1; color: #A12B2B">23h overdue</span> <b>December content calendar</b>: with Laura, reminder sent.</p>
+    </section>
+
+    <section class="panel">
+      <h2 class="h2">Where each type is approved</h2>
+      <a class="row" href="AdReviewPhone.dc.html"><span><b>Meta, Instagram, TikTok ads</b><br><span style="font-size: 13px; color: #5B5470">Jon · backup Chris</span></span><span aria-hidden="true">›</span></a>
+      <a class="row" href="VideoReviewPhone.dc.html"><span><b>Videos for ads</b><br><span style="font-size: 13px; color: #5B5470">Laura, then Jon for paid</span></span><span aria-hidden="true">›</span></a>
+      <a class="row" href="SocialReviewPhone.dc.html"><span><b>Organic social</b><br><span style="font-size: 13px; color: #5B5470">Laura · backup Jon</span></span><span aria-hidden="true">›</span></a>
+      <a class="row" href="EmailReviewPhone.dc.html"><span><b>Emails and flows</b><br><span style="font-size: 13px; color: #5B5470">Laura · backup Jon</span></span><span aria-hidden="true">›</span></a>
+      <a class="row" href="ListingDiffPhone.dc.html"><span><b>Amazon listings</b><br><span style="font-size: 13px; color: #5B5470">Jon · backup Laura</span></span><span aria-hidden="true">›</span></a>
+      <a class="row" href="BatchPhone.dc.html"><span><b>Amazon ads, replies, outreach</b><br><span style="font-size: 13px; color: #5B5470">Packs with a tick per line</span></span><span aria-hidden="true">›</span></a>
+    </section>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1650}}'>
+class Component extends DCLogic {
+  constructor(p) { super(p); this.state = { st: 'ready', f: 'all' }; }
+  renderVals() {
+    const s = this.state;
+    const T = {
+      ad: { type: 'Paid ad', bg: '#EEE9F8', fg: '#3D157D', href: 'AdReviewPhone.dc.html' },
+      vid: { type: 'Ad video', bg: '#FBE9D2', fg: '#8A4B00', href: 'VideoReviewPhone.dc.html' },
+      soc: { type: 'Social', bg: '#E2F2E7', fg: '#1E6B3A', href: 'SocialReviewPhone.dc.html' },
+      em: { type: 'Email', bg: '#E1ECF8', fg: '#1D4E89', href: 'EmailReviewPhone.dc.html' },
+      lst: { type: 'Amazon listing', bg: '#F6E3EF', fg: '#7A1F5C', href: 'ListingDiffPhone.dc.html' },
+      aad: { type: 'Amazon ads', bg: '#EEECF2', fg: '#4A4458', href: 'BatchPhone.dc.html' }
+    };
+    const raw = [
+      ['brief', 'vid', 'Grandparents gift 15s', 'UK', 'Creative agent', 'Waiting for footage', '#A12B2B', '9:16'],
+      ['brief', 'em', 'Christmas last order dates', 'UK · US', 'CRM agent', 'Draft due Fri', '#5B5470', 'Email'],
+      ['brief', 'soc', 'SEN week: 3 posts', 'UK', 'Social agent', 'Draft due Thu', '#5B5470', '1:1'],
+      ['make', 'ad', 'Kit for grandparents, 3 statics', 'UK', 'Paid Media agent', 'Crops in progress', '#5B5470', '4:5'],
+      ['make', 'vid', 'Toddler 3-piece unboxing', 'UK · US', 'Laura editing', 'Cut due Fri', '#5B5470', '9:16'],
+      ['make', 'lst', 'A+ refresh, baby cutlery', 'Germany', 'Listing agent', '4 of 6 modules', '#5B5470', 'A+'],
+      ['check', 'em', 'US welcome email 3', 'US', 'Brand checker', '1 fix needed', '#8A4B00', 'Email'],
+      ['check', 'soc', 'Reel: lunchbox', 'UK', 'Claims check', 'Wording being checked', '#8A4B00', '9:16'],
+      ['ready', 'em', 'Black Friday early access', 'UK', 'Jon (escalated)', 'Expires in 23h', '#A12B2B', 'Email'],
+      ['ready', 'ad', 'Kit for grandparents, 3 ads', 'UK', 'Jon', 'Due in 21h', '#1E6B3A', '4:5'],
+      ['ready', 'vid', 'First spoon, first try v2', 'UK', 'Laura, then Jon', 'Due in 19h', '#1E6B3A', '9:16'],
+      ['ready', 'soc', 'Week pack 9 to 15 Nov', 'UK', 'Laura', 'Due in 21h', '#1E6B3A', '9 posts'],
+      ['ready', 'lst', 'Toddler 3-piece, Dusky Rose', 'UK', 'Jon', 'Due in 8h', '#8A4B00', 'Listing'],
+      ['ready', 'aad', 'Sponsored Brands video', 'UK', 'Jon', 'Due in 23h', '#1E6B3A', '16:9'],
+      ['sched', 'soc', 'Halloween recap carousel', 'UK', 'Laura', 'Sat 7 Nov 18:00', '#1E6B3A', 'Carousel'],
+      ['sched', 'em', 'Bundle reminder, email 2', 'UK', 'Laura', 'Live Mon 9 Nov', '#1E6B3A', 'Email'],
+      ['sched', 'ad', '£40 bundle ads', 'UK', 'Jon', 'On Mon 06:00', '#1E6B3A', '4:5'],
+      ['live', 'ad', 'Kit grandparents, first set', 'UK', 'Paid Media agent', 'Day 4 of 7', '#3D157D', '4:5'],
+      ['live', 'em', 'Autumn newsletter', 'UK · US', 'CRM agent', '72h results in', '#3D157D', 'Email'],
+      ['live', 'lst', 'Baby cutlery, Fresh Green title', 'US', 'Listing agent', 'Live check passed', '#1E6B3A', 'Listing'],
+      ['live', 'vid', 'Weaning hook test A vs B', 'UK', 'Paid Media agent', 'Readout Fri', '#3D157D', '9:16']
+    ];
+    const items = raw.map(r => ({ col: r[0], t: r[1], ...T[r[1]], title: r[2], mkt: r[3], who: r[4], status: r[5], stc: r[6], fmt: r[7] })).filter(i => s.f === 'all' || i.t === s.f);
+    const defs = [['brief', 'Briefed', 'Brief agreed, nothing made yet'], ['make', 'Being made', 'Agent or editor working'], ['check', 'Checks', 'Brand, claims, rights, specs'], ['ready', 'Ready for you', 'Waiting on a review screen'], ['sched', 'Scheduled', 'Approved, goes live by itself'], ['live', 'Live', 'Results land on the card']];
+    const stages = defs.map(d => ({ label: d[1], n: String(items.filter(i => i.col === d[0]).length), cls: s.st === d[0] ? 'pill on' : 'pill', pick: () => this.setState({ st: d[0] }) }));
+    const cards = items.filter(i => i.col === s.st);
+    return { stages, cards, empty: cards.length === 0, stageSub: defs.find(d => d[0] === s.st)[2], pickType: (e) => this.setState({ f: e.target.value }) };
+  }
+}
+</script>
+</body>
+</html>

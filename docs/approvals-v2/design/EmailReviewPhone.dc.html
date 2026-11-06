@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Email review, phone</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&amp;display=swap">
+<style>
+body{margin:0;font-family:'Nunito',system-ui,sans-serif;color:#190e3e;background:#F6F4FA}
+a{color:#3D157D}a:hover{color:#190e3e}
+.top{background:#190e3e;color:#fff;padding:0 16px;min-height:56px;display:flex;align-items:center;gap:8px}
+.chip{display:inline-flex;align-items:center;font-size:12px;font-weight:800;border-radius:999px;padding:3px 10px;background:#EEE9F8;color:#3D157D;white-space:nowrap}
+.due{display:inline-flex;font-size:12px;font-weight:800;border-radius:999px;padding:3px 10px;white-space:nowrap;background:#F8E1E1;color:#A12B2B}
+.panel{background:#fff;border:1px solid #E4E0EE;border-radius:14px;padding:14px}
+.h2{font-size:15px;font-weight:800;margin:0 0 8px}
+.seg{display:flex;border:1px solid #CFC8E0;border-radius:12px;overflow:hidden;background:#fff}
+.seg button{flex:1;border:0;background:#fff;font:800 14px 'Nunito',sans-serif;color:#190e3e;min-height:44px;cursor:pointer}
+.seg button.on{background:#190e3e;color:#fff}
+.ph{background:repeating-linear-gradient(135deg,#ECE8F4 0 8px,#F4F1F9 8px 16px);display:flex;align-items:center;justify-content:center;color:#5B5470;font-size:12px;font-weight:800;text-align:center}
+.check{display:flex;gap:8px;font-size:14px;line-height:1.4;padding:6px 0;border-top:1px solid #F1EEF6}
+.ok{color:#1E6B3A;font-weight:800;flex:none;width:50px}
+.warn{color:#8A4B00;font-weight:800;flex:none;width:50px}
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:0 12px;border-radius:12px;font:800 15px 'Nunito',sans-serif;border:1px solid #CFC8E0;background:#fff;color:#190e3e;cursor:pointer;box-sizing:border-box;width:100%}
+.btn-p{background:#3D157D;border-color:#3D157D;color:#fff}
+.btn-d{color:#A12B2B;border-color:#E3B9B9}
+.input{font:600 15px 'Nunito',sans-serif;color:#190e3e;border:1px solid #CFC8E0;border-radius:10px;padding:10px 12px;box-sizing:border-box;width:100%}
+.radio{display:flex;align-items:center;gap:10px;min-height:44px;font-size:15px;font-weight:700}
+.radio input{width:20px;height:20px;accent-color:#3D157D}
+details summary{font-size:15px;font-weight:800;min-height:44px;display:flex;align-items:center;cursor:pointer}
+.kv{display:flex;justify-content:space-between;gap:12px;font-size:14px;padding:6px 0;border-top:1px solid #F1EEF6}
+.kv b{flex:none}
+</style>
+</helmet>
+<div style="width: 390px; min-height: 2250px; background: #F6F4FA; display: flex; flex-direction: column">
+  <div class="top">
+    <a href="InboxPhone.dc.html" style="color: #fff; text-decoration: none; font-weight: 800; font-size: 15px; min-height: 44px; display: inline-flex; align-items: center">‹ Approvals</a>
+    <span style="margin-left: auto; font-size: 13px; color: #DCD6EC; font-weight: 700">1 of 7</span>
+  </div>
+  <div style="padding: 16px; display: flex; flex-direction: column; gap: 12px">
+    <div style="display: flex; gap: 6px; flex-wrap: wrap"><span class="chip" style="background: #E1ECF8; color: #1D4E89">Email campaign</span><span class="due">Expires in 23h</span></div>
+    <h1 style="margin: 0; font-size: 22px; line-height: 1.25; font-weight: 800">Black Friday early access · UK</h1>
+    <p style="margin: 0; font-size: 13px; color: #5B5470">From CRM agent · Laura’s, escalated to you · sends Thu 12 Nov 07:00</p>
+
+    <section class="panel">
+      <h2 class="h2">In the inbox</h2>
+      <div style="display: flex; gap: 10px">
+        <span style="width: 32px; height: 32px; border-radius: 50%; background: #3D157D; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 800; flex: none">d</span>
+        <div><p style="margin: 0; font-size: 14px; font-weight: 800">doddl</p><p style="margin: 0; font-size: 14px; font-weight: 800">{{subj}}</p><p style="margin: 0; font-size: 13px; color: #5B5470">Your first pick, before Friday. Ends [date].</p></div>
+      </div>
+      <div class="seg" style="margin-top: 10px" role="group" aria-label="Subject line">
+        <button class="{{sA}}" onClick="{{toA}}">Subject A</button>
+        <button class="{{sB}}" onClick="{{toB}}">Subject B</button>
+      </div>
+      <p style="margin: 6px 0 0; font-size: 12px; color: #5B5470">Both go to 20% of the list; the winner goes to the rest after 2 hours.</p>
+    </section>
+
+    <div class="seg" role="group" aria-label="Preview">
+      <button class="{{dL}}" onClick="{{toL}}">Light</button>
+      <button class="{{dD}}" onClick="{{toD}}">Dark mode</button>
+    </div>
+    <div style="background: {{ebg}}; color: {{efg}}; border: 1px solid #DAD4E8; border-radius: 12px; overflow: hidden">
+      <div style="padding: 14px; text-align: center; font-size: 22px; font-weight: 800; color: {{elogo}}">doddl</div>
+      <div class="ph" style="height: 190px">Hero: gift flat lay</div>
+      <div style="padding: 16px">
+        <p style="margin: 0; font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: {{emuted}}">Early access for you</p>
+        <h2 style="margin: 4px 0 8px; font-size: 22px; font-weight: 800; line-height: 1.2">Black Friday starts early for you</h2>
+        <p style="margin: 0; font-size: 14px; line-height: 1.55">You are on our list, so you get first pick before Friday. [Offer line]. Ends [date].</p>
+        <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 14px">
+          <div><div class="ph" style="height: 70px; border-radius: 6px">Baby</div><p style="margin: 4px 0 0; font-size: 12px; font-weight: 800">£[price]</p></div>
+          <div><div class="ph" style="height: 70px; border-radius: 6px">2-piece</div><p style="margin: 4px 0 0; font-size: 12px; font-weight: 800">£[price]</p></div>
+          <div><div class="ph" style="height: 70px; border-radius: 6px">3-piece</div><p style="margin: 4px 0 0; font-size: 12px; font-weight: 800">£[price]</p></div>
+        </div>
+        <div style="text-align: center; margin-top: 16px"><span style="display: inline-block; background: {{ebtn}}; color: #fff; font-weight: 800; padding: 12px 22px; border-radius: 10px">Shop early access</span></div>
+      </div>
+      <div style="padding: 12px; font-size: 11px; text-align: center; color: {{emuted}}">doddl Ltd · [address] · Unsubscribe</div>
+    </div>
+    <button class="btn">Send a test to my inbox</button>
+
+    <section class="panel">
+      <h2 class="h2">Who gets it</h2>
+      <div class="kv" style="border-top: 0"><b>Sent to</b><span>UK engaged, 90 days</span></div>
+      <div class="kv"><b>About</b><span>[n] people</span></div>
+      <div class="kv"><b>Left out</b><span style="text-align: right">Bought in 14 days, suppressed</span></div>
+      <div class="kv"><b>When</b><span>Thu 12 Nov 07:00</span></div>
+    </section>
+
+    <section class="panel">
+      <h2 class="h2">Checks</h2>
+      <div class="check" style="border-top: 0"><span class="ok">Pass</span><span>Brand voice, no claims</span></div>
+      <div class="check"><span class="ok">Pass</span><span>Discount code live in Shopify from Thu 00:00</span></div>
+      <div class="check"><span class="ok">Pass</span><span>All 8 links open, tracking on</span></div>
+      <div class="check"><span class="ok">Pass</span><span>Prices match the site</span></div>
+      <div class="check"><span class="ok">Pass</span><span>Dark mode readable, alt text on images</span></div>
+      <div class="check"><span class="warn">Check</span><span>Preview text could be longer (49 of 90)</span></div>
+    </section>
+
+    <section class="panel">
+      <details>
+        <summary>Where it sits in the Black Friday plan</summary>
+        <p style="margin: 0; font-size: 14px; line-height: 1.7"><b>Thu 12 Nov · this email</b><br>Sat 14 Nov · reminder (to come)<br>Fri 27 Nov · Black Friday (to come)<br>Mon 30 Nov · last chance (to come)</p>
+      </details>
+    </section>
+  </div>
+
+  <div style="flex: 1"></div>
+  <div style="background: #fff; border-top: 1px solid #E4E0EE; padding: 12px 16px 16px; box-shadow: 0 -4px 16px rgba(25,14,62,.06)">
+    <label for="en" style="font-size: 13px; font-weight: 800">Note (needed to send back)</label>
+    <textarea id="en" class="input" rows="2" style="margin-top: 6px"></textarea>
+    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 8px">
+      <button class="btn btn-p">Approve and schedule</button>
+      <button class="btn">With edits</button>
+      <button class="btn">Send back</button>
+      <button class="btn btn-d">Reject</button>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":2250}}'>
+class Component extends DCLogic {
+  constructor(p) { super(p); this.state = { subj: 0, dark: false }; }
+  renderVals() {
+    const s = this.state;
+    const S = ['Black Friday starts early for you', 'You are on the list: first pick before Friday'];
+    const d = s.dark;
+    return {
+      subj: S[s.subj], sA: s.subj === 0 ? 'on' : '', sB: s.subj === 1 ? 'on' : '', toA: () => this.setState({ subj: 0 }), toB: () => this.setState({ subj: 1 }),
+      dL: d ? '' : 'on', dD: d ? 'on' : '', toL: () => this.setState({ dark: false }), toD: () => this.setState({ dark: true }),
+      ebg: d ? '#1C1A22' : '#FFFFFF', efg: d ? '#F1EEF8' : '#190e3e', emuted: d ? '#B9B2CC' : '#5B5470', elogo: d ? '#C9B6F2' : '#3D157D', ebtn: d ? '#6A44B0' : '#3D157D'
+    };
+  }
+}
+</script>
+</body>
+</html>

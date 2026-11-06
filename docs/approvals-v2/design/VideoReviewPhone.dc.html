@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Video review, phone</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&amp;display=swap">
+<style>
+body{margin:0;font-family:'Nunito',system-ui,sans-serif;color:#190e3e;background:#F6F4FA}
+a{color:#3D157D}a:hover{color:#190e3e}
+.top{background:#190e3e;color:#fff;padding:0 16px;min-height:56px;display:flex;align-items:center;gap:8px}
+.chip{display:inline-flex;align-items:center;font-size:12px;font-weight:800;border-radius:999px;padding:3px 10px;background:#EEE9F8;color:#3D157D;white-space:nowrap}
+.due{display:inline-flex;font-size:12px;font-weight:800;border-radius:999px;padding:3px 10px;white-space:nowrap;background:#E2F2E7;color:#1E6B3A}
+.panel{background:#fff;border:1px solid #E4E0EE;border-radius:14px;padding:14px}
+.h2{font-size:15px;font-weight:800;margin:0 0 8px}
+.seg{display:flex;border:1px solid #CFC8E0;border-radius:12px;overflow:hidden;background:#fff}
+.seg button{flex:1;border:0;background:#fff;font:800 14px 'Nunito',sans-serif;color:#190e3e;min-height:44px;cursor:pointer}
+.seg button.on{background:#190e3e;color:#fff}
+.player{position:relative;margin:0 auto;background:repeating-linear-gradient(135deg,#2A2440 0 10px,#332C4D 10px 20px);border-radius:14px;overflow:hidden;color:#DCD6EC;display:flex;align-items:center;justify-content:center;text-align:center}
+.safe-top{position:absolute;left:0;right:0;top:0;height:14%;background:rgba(232,120,120,.32);border-bottom:2px dashed #F2A0A0}
+.safe-bot{position:absolute;left:0;right:0;bottom:0;height:35%;background:rgba(232,120,120,.32);border-top:2px dashed #F2A0A0}
+.strip{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px}
+.fr{flex:none;width:72px;border:2px solid transparent;border-radius:10px;padding:0;background:none;cursor:pointer;font:inherit;color:#190e3e;text-align:left}
+.fr.on{border-color:#3D157D}
+.fth{height:64px;border-radius:8px;background:repeating-linear-gradient(135deg,#2A2440 0 6px,#332C4D 6px 12px);color:#DCD6EC;font-size:11px;font-weight:800;display:flex;align-items:flex-end;padding:4px;box-sizing:border-box}
+.cm{display:flex;gap:10px;padding:8px 0;border-top:1px solid #F1EEF6;font-size:14px;line-height:1.4}
+.ts{flex:none;font-weight:800;color:#3D157D;background:#EEE9F8;border-radius:6px;padding:1px 6px;height:22px;font-size:13px}
+.check{display:flex;gap:8px;font-size:14px;line-height:1.4;padding:6px 0;border-top:1px solid #F1EEF6}
+.ok{color:#1E6B3A;font-weight:800;flex:none;width:50px}
+.warn{color:#8A4B00;font-weight:800;flex:none;width:50px}
+.bad{color:#A12B2B;font-weight:800;flex:none;width:50px}
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:0 12px;border-radius:12px;font:800 15px 'Nunito',sans-serif;border:1px solid #CFC8E0;background:#fff;color:#190e3e;cursor:pointer;box-sizing:border-box;width:100%}
+.btn-p{background:#3D157D;border-color:#3D157D;color:#fff}
+.btn-d{color:#A12B2B;border-color:#E3B9B9}
+.input{font:600 15px 'Nunito',sans-serif;color:#190e3e;border:1px solid #CFC8E0;border-radius:10px;padding:10px 12px;box-sizing:border-box;width:100%}
+.radio{display:flex;align-items:center;gap:10px;min-height:44px;font-size:15px;font-weight:700}
+.radio input{width:20px;height:20px;accent-color:#3D157D}
+details summary{font-size:15px;font-weight:800;min-height:44px;display:flex;align-items:center;cursor:pointer}
+</style>
+</helmet>
+<div style="width: 390px; min-height: 1950px; background: #F6F4FA; display: flex; flex-direction: column">
+  <div class="top">
+    <a href="StudioPhone.dc.html" style="color: #fff; text-decoration: none; font-weight: 800; font-size: 15px; min-height: 44px; display: inline-flex; align-items: center">‹ Studio</a>
+    <span style="margin-left: auto; font-size: 13px; color: #DCD6EC; font-weight: 700">Cut v2 of 2</span>
+  </div>
+  <div style="padding: 16px; display: flex; flex-direction: column; gap: 12px">
+    <div style="display: flex; gap: 6px; flex-wrap: wrap"><span class="chip" style="background: #FBE9D2; color: #8A4B00">Ad video</span><span class="due">Due in 19h</span></div>
+    <h1 style="margin: 0; font-size: 22px; line-height: 1.25; font-weight: 800">First spoon, first try · 15s</h1>
+    <p style="margin: 0; font-size: 13px; color: #5B5470">Script by Creative agent, cut by Laura · Laura approves, then Jon for paid</p>
+
+    <div class="seg" role="group" aria-label="Shape">
+      <sc-for list="{{shapes}}" as="a" hint-placeholder-count="3"><button class="{{a.cls}}" onClick="{{a.pick}}">{{a.label}}</button></sc-for>
+    </div>
+
+    <div class="player" style="width: {{pw}}; height: {{ph}}">
+      <sc-if value="{{safe}}" hint-placeholder-val="{{ true }}"><span class="safe-top"></span><span class="safe-bot"></span></sc-if>
+      <div style="padding: 0 16px">
+        <p style="margin: 0; font-size: 12px; font-weight: 800">{{f.time}} · {{f.beat}}</p>
+        <p style="margin: 6px 0 0; font-size: 13px">{{f.shot}}</p>
+        <p style="margin: 10px 0 0; font-size: 19px; font-weight: 800; color: #fff">{{f.text}}</p>
+      </div>
+    </div>
+    <div style="display: flex; gap: 16px; justify-content: center">
+      <label class="radio"><input type="checkbox" checked="{{safe}}" onChange="{{toggleSafe}}"> Safe zones</label>
+      <label class="radio"><input type="checkbox" checked="checked"> Captions</label>
+    </div>
+
+    <div class="strip" aria-label="Frames">
+      <sc-for list="{{frames}}" as="x" hint-placeholder-count="6">
+        <button class="{{x.cls}}" onClick="{{x.pick}}"><span class="fth">{{x.time}}</span><span style="display: block; font-size: 11px; font-weight: 800; padding: 3px 2px">{{x.beat}}</span></button>
+      </sc-for>
+    </div>
+
+    <section class="panel">
+      <h2 class="h2">Comments on the timeline</h2>
+      <sc-for list="{{comments}}" as="c" hint-placeholder-count="4">
+        <div class="cm"><span class="ts">{{c.t}}</span><span><b>{{c.who}}</b> {{c.text}}<br><span style="font-size: 12px; color: #5B5470">{{c.state}}</span></span></div>
+      </sc-for>
+      <label for="nc" style="display: block; font-size: 13px; font-weight: 800; margin-top: 8px">Comment at {{f.time}}</label>
+      <input id="nc" class="input" style="margin-top: 6px" placeholder="What needs changing here?">
+    </section>
+
+    <section class="panel">
+      <h2 class="h2">Checks</h2>
+      <div class="check" style="border-top: 0"><span class="ok">Pass</span><span>Face and product in the first 2 seconds</span></div>
+      <div class="check"><span class="ok">Pass</span><span>Captions burnt in</span></div>
+      <div class="check"><span class="warn">Check</span><span>0:03 text touches the TikTok caption area</span></div>
+      <div class="check"><span class="ok">Pass</span><span>Model release for every child</span></div>
+      <div class="check"><span class="ok">Pass</span><span>Music licensed for paid social</span></div>
+      <div class="check"><span class="ok">Pass</span><span>No health or development claims</span></div>
+      <div class="check"><span class="bad">Fix</span><span>1:1 version not delivered</span></div>
+    </section>
+
+    <section class="panel">
+      <details>
+        <summary>Script against the cut</summary>
+        <p style="margin: 0 0 8px; font-size: 14px; line-height: 1.45"><b>0:00 Hook</b> · close-up, baby reaching · “First spoon. First try.”</p>
+        <p style="margin: 0 0 8px; font-size: 14px; line-height: 1.45"><b>0:03 Problem</b> · adult spoon slipping · “Big spoons, little hands”</p>
+        <p style="margin: 0 0 8px; font-size: 14px; line-height: 1.45"><b>0:06 In use</b> · Fresh Green spoon, Dusky Rose on tray · “Made for little hands”</p>
+        <p style="margin: 0 0 8px; font-size: 14px; line-height: 1.45"><b>0:10 Proof</b> · parent review quote, permission on file</p>
+        <p style="margin: 0; font-size: 14px; line-height: 1.45"><b>0:13 End card</b> · logo, baby set · “Shop doddl”</p>
+      </details>
+    </section>
+  </div>
+
+  <div style="flex: 1"></div>
+  <div style="background: #fff; border-top: 1px solid #E4E0EE; padding: 12px 16px 16px; box-shadow: 0 -4px 16px rgba(25,14,62,.06)">
+    <label class="radio"><input type="radio" name="vd" checked="checked"> Approve for paid and organic</label>
+    <label class="radio"><input type="radio" name="vd"> Organic only</label>
+    <label class="radio"><input type="radio" name="vd"> Send back with my comments</label>
+    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 6px">
+      <button class="btn btn-p">Send answer</button>
+      <button class="btn btn-d">Reject</button>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1950}}'>
+class Component extends DCLogic {
+  constructor(p) { super(p); this.state = { shape: '916', t: 0, safe: true }; }
+  renderVals() {
+    const s = this.state;
+    const F = [
+      { time: '0:00', beat: 'Hook', shot: 'Baby reaches for the spoon', text: 'First spoon. First try.' },
+      { time: '0:03', beat: 'Problem', shot: 'Adult spoon slips', text: 'Big spoons, little hands' },
+      { time: '0:06', beat: 'In use', shot: 'Fresh Green spoon in hand', text: 'Made for little hands' },
+      { time: '0:09', beat: 'In use', shot: 'Dusky Rose set, wide', text: 'Made for little hands' },
+      { time: '0:11', beat: 'Proof', shot: 'Parent quote card', text: '“[review quote]”' },
+      { time: '0:14', beat: 'End card', shot: 'Logo and baby set', text: 'Shop doddl' }
+    ];
+    const dims = { '916': ['234px', '416px'], '45': ['330px', '412px'], '11': ['340px', '340px'] };
+    const shapes = [['916', '9:16'], ['45', '4:5'], ['11', '1:1']].map(a => ({ label: a[1], cls: s.shape === a[0] ? 'on' : '', pick: () => this.setState({ shape: a[0] }) }));
+    const frames = F.map((x, i) => ({ time: x.time, beat: x.beat, cls: s.t === i ? 'fr on' : 'fr', pick: () => this.setState({ t: i }) }));
+    const comments = [
+      { t: '0:00', who: 'Laura', text: 'Much better start than v1.', state: 'Resolved' },
+      { t: '0:03', who: 'Brand checker', text: 'Lift the text 40px for TikTok.', state: 'Open · editor to fix' },
+      { t: '0:14', who: 'Laura', text: 'Use the indigo logo.', state: 'Open' }
+    ];
+    return { f: F[s.t], shapes, frames, comments, safe: s.safe, pw: dims[s.shape][0], ph: dims[s.shape][1], toggleSafe: () => this.setState({ safe: !s.safe }) };
+  }
+}
+</script>
+</body>
+</html>

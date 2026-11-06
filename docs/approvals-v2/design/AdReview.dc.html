@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Ad review</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&amp;display=swap">
+<style>
+body{margin:0;font-family:'Nunito',system-ui,sans-serif;color:#190e3e;background:#F6F4FA}
+a{color:#3D157D}a:hover{color:#190e3e}
+.shell{display:flex;flex-wrap:wrap;min-height:1900px;background:#F6F4FA}
+.side{flex:1 1 220px;max-width:248px;background:#190e3e;color:#fff;padding:20px 14px;box-sizing:border-box;display:flex;flex-direction:column;gap:2px}
+.brand{font-weight:800;font-size:21px;padding:4px 12px 18px}
+.brand span{color:#C9B6F2}
+.nav{display:flex;align-items:center;gap:10px;padding:0 12px;min-height:44px;border-radius:10px;color:#DCD6EC;text-decoration:none;font-weight:700;font-size:14px}
+.nav:hover{background:#2B2058;color:#fff}
+.nav.on{background:#3D157D;color:#fff}
+.navlbl{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:#ABA3C8;padding:16px 12px 4px;font-weight:800}
+.badge{margin-left:auto;background:#fff;color:#3D157D;border-radius:999px;font-size:12px;font-weight:800;padding:1px 8px}
+.main{flex:999 1 640px;min-width:0;padding:24px 36px 56px;box-sizing:border-box}
+.panel{background:#fff;border:1px solid #E4E0EE;border-radius:14px;padding:18px 20px}
+.lbl{font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#5B5470;margin:0}
+.h2{font-size:17px;font-weight:800;margin:0 0 10px}
+.chip{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:800;border-radius:999px;padding:3px 10px;background:#EEE9F8;color:#3D157D;white-space:nowrap}
+.due{display:inline-flex;align-items:center;font-size:13px;font-weight:800;border-radius:999px;padding:4px 12px;white-space:nowrap}
+.due-ok{background:#E2F2E7;color:#1E6B3A}.due-warn{background:#FBE9D2;color:#8A4B00}.due-bad{background:#F8E1E1;color:#A12B2B}
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:46px;padding:0 20px;border-radius:10px;font:800 15px 'Nunito',sans-serif;border:1px solid #CFC8E0;background:#fff;color:#190e3e;cursor:pointer;text-decoration:none;box-sizing:border-box}
+.btn:hover{border-color:#3D157D}
+.btn-p{background:#3D157D;border-color:#3D157D;color:#fff}
+.btn-p:hover{background:#190e3e;color:#fff}
+.btn-d{color:#A12B2B;border-color:#E3B9B9}
+.seg{display:inline-flex;border:1px solid #CFC8E0;border-radius:12px;overflow:hidden;background:#fff;flex-wrap:wrap}
+.seg button{border:0;background:#fff;font:800 14px 'Nunito',sans-serif;color:#190e3e;min-height:44px;padding:0 16px;cursor:pointer}
+.seg button.on{background:#190e3e;color:#fff}
+.ph{background:repeating-linear-gradient(135deg,#ECE8F4 0 10px,#F4F1F9 10px 20px);display:flex;align-items:center;justify-content:center;color:#5B5470;font-size:12px;font-weight:800;text-align:center;position:relative}
+.phone{width:250px;flex:none;border:8px solid #190e3e;border-radius:30px;background:#fff;overflow:hidden;box-sizing:border-box}
+.prow{display:flex;gap:22px;overflow-x:auto;padding:6px 2px 12px;align-items:flex-start}
+.cap{font-size:12px;font-weight:800;color:#5B5470;text-align:center;margin:8px 0 0}
+.mini{font-size:11px;line-height:1.35}
+.safe-top{position:absolute;left:0;right:0;top:0;height:14%;background:rgba(161,43,43,.28);border-bottom:2px dashed #A12B2B}
+.safe-bot{position:absolute;left:0;right:0;bottom:0;height:35%;background:rgba(161,43,43,.28);border-top:2px dashed #A12B2B}
+.check{display:flex;gap:10px;align-items:flex-start;font-size:14px;line-height:1.45;padding:7px 0;border-top:1px solid #F1EEF6}
+.check:first-child{border-top:0}
+.ok{color:#1E6B3A;font-weight:800;flex:none;width:58px}
+.warn{color:#8A4B00;font-weight:800;flex:none;width:58px}
+.field{display:flex;flex-direction:column;gap:6px;margin-top:12px}
+.field label{font-size:13px;font-weight:800;display:flex;justify-content:space-between}
+.input{font:600 14px 'Nunito',sans-serif;color:#190e3e;border:1px solid #CFC8E0;border-radius:10px;padding:10px 12px;min-height:44px;box-sizing:border-box;width:100%;background:#fff;resize:vertical}
+.radio{display:flex;align-items:center;gap:10px;min-height:40px;font-size:14px;font-weight:700}
+.radio input{width:18px;height:18px;accent-color:#3D157D}
+.tbl{width:100%;min-width:640px;border-collapse:collapse;font-size:14px}
+.tbl th{text-align:left;font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#5B5470;padding:8px 10px;background:#F6F4FA}
+.tbl td{padding:10px;border-top:1px solid #EFECF5}
+.step{display:flex;gap:12px;align-items:flex-start;font-size:14px;line-height:1.4}
+.num{flex:none;width:26px;height:26px;border-radius:50%;background:#EEE9F8;color:#3D157D;font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center}
+</style>
+</helmet>
+<div class="shell">
+  <nav class="side" aria-label="doddl PM">
+    <div class="brand">doddl <span>PM</span></div>
+    <a class="nav" href="#">My work</a>
+    <a class="nav" href="#">Triage</a>
+    <a class="nav" href="#">Projects</a>
+    <div class="navlbl">doddl HQ</div>
+    <a class="nav on" href="Main.dc.html">Approvals <span class="badge">7</span></a>
+    <a class="nav" href="Studio.dc.html">Creative studio</a>
+    <a class="nav" href="Calendar.dc.html">Content calendar</a>
+    <a class="nav" href="Listings.dc.html">Amazon listings</a>
+    <a class="nav" href="Idea.dc.html">Give HQ an idea</a>
+    <div class="navlbl">Settings</div>
+    <a class="nav" href="Approvers.dc.html">Who approves what</a>
+  </nav>
+
+  <main class="main">
+    <div style="display: flex; gap: 18px; flex-wrap: wrap">
+      <a href="Main.dc.html" style="font-size: 14px; font-weight: 800; text-decoration: none; display: inline-flex; min-height: 44px; align-items: center">‹ Approvals</a>
+      <a href="Studio.dc.html" style="font-size: 14px; font-weight: 800; text-decoration: none; display: inline-flex; min-height: 44px; align-items: center">‹ Creative studio</a>
+    </div>
+    <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center">
+      <span class="chip">Paid ad</span>
+      <span class="chip" style="background: #F0EEF4; color: #4A4458">From Paid Media agent</span>
+      <span class="chip" style="background: #F0EEF4; color: #4A4458">Approver Jon · backup Chris</span>
+      <span class="chip" style="background: #F0EEF4; color: #4A4458">Line 3 of the paid pack, week of 9 Nov</span>
+      <span class="due due-ok">Due in 21h</span>
+    </div>
+    <h1 style="margin: 12px 0 4px; font-size: 28px; font-weight: 800; letter-spacing: -0.01em">Kit for grandparents 45+: 3 new ads</h1>
+    <p style="margin: 0; color: #5B5470; font-size: 14px">Campaign meta_uk_kit_grandparents · ad set “45+ gifting, UK” · built paused, nothing spends until you say yes</p>
+
+    <div style="display: flex; flex-wrap: wrap; gap: 14px; margin-top: 20px; align-items: center">
+      <div class="seg" role="group" aria-label="Platform">
+        <button class="{{pMeta}}" onClick="{{toMeta}}">Facebook and Instagram</button>
+        <button class="{{pTik}}" onClick="{{toTik}}">TikTok</button>
+        <button class="{{pAmz}}" onClick="{{toAmz}}">Amazon Sponsored Brands</button>
+      </div>
+      <div class="seg" role="group" aria-label="Ad">
+        <sc-for list="{{vtabs}}" as="t" hint-placeholder-count="3"><button class="{{t.cls}}" onClick="{{t.pick}}">{{t.label}}</button></sc-for>
+      </div>
+      <label class="radio" style="margin-left: auto"><input type="checkbox" checked="{{safe}}" onChange="{{toggleSafe}}"> Show safe zones</label>
+    </div>
+
+    <section class="panel" style="margin-top: 16px">
+      <div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; align-items: baseline">
+        <h2 class="h2">{{v.name}}: how it looks in every placement</h2>
+        <p style="margin: 0; font-size: 13px; color: #5B5470">Click a preview to pin a comment to that spot</p>
+      </div>
+
+      <sc-if value="{{isMeta}}" hint-placeholder-val="{{ true }}">
+        <div class="prow">
+          <div>
+            <div class="phone">
+              <div style="display: flex; align-items: center; gap: 8px; padding: 8px 10px"><span style="width: 24px; height: 24px; border-radius: 50%; background: #3D157D"></span><span class="mini"><b>doddl</b><br>Sponsored</span></div>
+              <div class="ph" style="height: 292px">{{v.img}}<br>4:5</div>
+              <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; background: #F6F4FA"><span class="mini"><b>{{v.headline}}</b></span><span class="mini" style="border: 1px solid #CFC8E0; border-radius: 6px; padding: 3px 8px; font-weight: 800">{{v.cta}}</span></div>
+              <p class="mini" style="margin: 0; padding: 8px 10px 12px"><b>doddl</b> {{v.short}} <span style="color: #8F88A6">… more</span></p>
+            </div>
+            <p class="cap">Instagram feed 4:5</p>
+          </div>
+          <div>
+            <div class="phone">
+              <div class="ph" style="height: 420px; align-items: flex-end">
+                <sc-if value="{{safe}}" hint-placeholder-val="{{ true }}"><span class="safe-top"></span><span class="safe-bot"></span></sc-if>
+                <div style="position: absolute; top: 10px; left: 10px; right: 10px; display: flex; gap: 6px; align-items: center"><span style="width: 20px; height: 20px; border-radius: 50%; background: #3D157D"></span><span class="mini" style="color: #190e3e"><b>doddl</b> · Sponsored</span></div>
+                <div style="position: absolute; top: 46%; left: 0; right: 0; text-align: center; padding: 0 16px"><span style="font-size: 17px; font-weight: 800; color: #190e3e">{{v.overlay}}</span><br><span class="mini">{{v.img}} · 9:16</span></div>
+                <div style="width: 100%; padding: 0 12px 14px; box-sizing: border-box"><div style="background: #fff; border-radius: 8px; text-align: center; padding: 8px; font-size: 12px; font-weight: 800">{{v.cta}}</div></div>
+              </div>
+            </div>
+            <p class="cap">Stories and Reels 9:16</p>
+          </div>
+          <div>
+            <div class="phone">
+              <div style="display: flex; align-items: center; gap: 8px; padding: 8px 10px"><span style="width: 24px; height: 24px; border-radius: 50%; background: #3D157D"></span><span class="mini"><b>doddl</b><br>Sponsored</span></div>
+              <p class="mini" style="margin: 0; padding: 0 10px 8px">{{v.primary}}</p>
+              <div class="ph" style="height: 230px">{{v.img}}<br>1:1</div>
+              <div style="padding: 8px 10px 12px; background: #F6F4FA"><span class="mini" style="color: #5B5470">DODDL.COM</span><br><span class="mini"><b>{{v.headline}}</b></span><br><span class="mini" style="color: #5B5470">{{v.desc}}</span></div>
+            </div>
+            <p class="cap">Facebook feed 1:1</p>
+          </div>
+          <div style="width: 220px; flex: none">
+            <div style="border: 1px solid #E4E0EE; border-radius: 12px; overflow: hidden; background: #fff">
+              <div class="ph" style="height: 150px">{{v.img}}<br>1:1</div>
+              <p class="mini" style="margin: 0; padding: 8px 10px"><b>{{v.headline}}</b><br><span style="color: #5B5470">doddl.com</span></p>
+            </div>
+            <p class="cap">Marketplace and right column</p>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{isTik}}" hint-placeholder-val="{{ false }}">
+        <div class="prow">
+          <div>
+            <div class="phone" style="background: #111">
+              <div class="ph" style="height: 440px; background: repeating-linear-gradient(135deg,#2A2440 0 10px,#332C4D 10px 20px); color: #DCD6EC">
+                <sc-if value="{{safe}}" hint-placeholder-val="{{ true }}"><span class="safe-top"></span><span class="safe-bot"></span></sc-if>
+                <div style="position: absolute; top: 44%; left: 0; right: 0; text-align: center; padding: 0 16px"><span style="font-size: 17px; font-weight: 800; color: #fff">{{v.overlay}}</span><br><span class="mini">{{v.img}} · 9:16 video</span></div>
+                <div style="position: absolute; left: 10px; bottom: 16px; right: 56px; color: #fff"><span class="mini"><b>doddl</b> · Sponsored</span><br><span class="mini">{{v.short}}</span><br><span class="mini">♪ Licensed track · Commercial Music Library</span></div>
+                <div style="position: absolute; right: 8px; bottom: 70px; display: flex; flex-direction: column; gap: 14px"><span style="width: 30px; height: 30px; border-radius: 50%; background: #fff"></span><span style="width: 30px; height: 30px; border-radius: 50%; background: #534A70"></span><span style="width: 30px; height: 30px; border-radius: 50%; background: #534A70"></span></div>
+              </div>
+            </div>
+            <p class="cap">TikTok in-feed 9:16</p>
+          </div>
+          <div style="max-width: 420px; font-size: 14px; line-height: 1.5; color: #4A4458">
+            <p style="margin: 0 0 8px; font-weight: 800; color: #190e3e">TikTok needs a video</p>
+            <p style="margin: 0">This ad uses the video from screen 10 (First spoon, first try, cut v2). It cannot be approved here until that video is approved. The red bands show where TikTok’s buttons and caption cover the picture: keep text and faces out of them.</p>
+            <p style="margin: 12px 0 0"><a href="VideoReview.dc.html">Open the video review ›</a></p>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{isAmz}}" hint-placeholder-val="{{ false }}">
+        <div class="prow" style="flex-direction: column">
+          <div style="border: 1px solid #E4E0EE; border-radius: 12px; padding: 14px; display: flex; gap: 16px; align-items: center; flex-wrap: wrap; max-width: 860px">
+            <div class="ph" style="width: 120px; height: 60px">doddl logo</div>
+            <div style="flex: 1 1 200px"><p style="margin: 0; font-size: 18px; font-weight: 800">{{v.headline}}</p><p style="margin: 2px 0 0; font-size: 13px; color: #1D4E89; font-weight: 800">Shop doddl ›</p></div>
+            <div class="ph" style="width: 110px; height: 110px">Toddler 3-piece</div>
+            <div class="ph" style="width: 110px; height: 110px">Baby cutlery</div>
+            <div class="ph" style="width: 110px; height: 110px">Toddler 2-piece</div>
+          </div>
+          <p class="cap" style="text-align: left">Sponsored Brands headline banner, top of search results. Headline limit 50 characters; Amazon moderation takes up to 72 hours after you approve.</p>
+        </div>
+      </sc-if>
+    </section>
+
+    <div style="display: flex; flex-wrap: wrap; gap: 20px; margin-top: 20px; align-items: flex-start">
+      <div style="flex: 1 1 520px; min-width: 0; display: flex; flex-direction: column; gap: 16px">
+        <section class="panel">
+          <h2 class="h2">Words on {{v.name}}</h2>
+          <p style="margin: 0; font-size: 13px; color: #5B5470">Edit here and the previews update. Any edit goes back through the Brand checker before it runs.</p>
+          <div class="field"><label for="pt">Primary text <span style="color: #5B5470">{{v.ptn}} characters · first 125 show before “more”</span></label><textarea id="pt" class="input" rows="3">{{v.primary}}</textarea></div>
+          <div class="field"><label for="hl">Headline <span style="color: #5B5470">{{v.hln}} of 40</span></label><input id="hl" class="input" value="{{v.headline}}"></div>
+          <div class="field"><label for="ds">Description <span style="color: #5B5470">Facebook feed only</span></label><input id="ds" class="input" value="{{v.desc}}"></div>
+          <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px">
+            <div class="field"><label for="cta">Button</label><select id="cta" class="input"><option>{{v.cta}}</option><option>Learn more</option><option>Shop now</option></select></div>
+            <div class="field"><label for="url">Lands on</label><input id="url" class="input" value="doddl.com/pages/kit-offer"></div>
+          </div>
+          <p style="margin: 10px 0 0; font-size: 13px; color: #5B5470">Tracking added automatically: utm_source=meta · utm_campaign=kit_grandparents · utm_content={{v.code}}</p>
+        </section>
+
+        <section class="panel">
+          <h2 class="h2">Where it runs and what it spends</h2>
+          <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 20px; font-size: 14px; line-height: 1.45">
+            <div><p class="lbl">Audience</p>Women and men 45+, UK, interest in grandchildren and gifting; past buyers excluded</div>
+            <div><p class="lbl">Placements</p>Advantage+ placements: feeds, Stories, Reels, Marketplace</div>
+            <div><p class="lbl">Budget</p>£[daily budget] a day across the 3 ads; Meta shares it to the best one</div>
+            <div><p class="lbl">Dates</p>Switches on Mon 9 Nov 06:00 · first check Thu · readout Mon 16 Nov</div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <h2 class="h2">Already running in this campaign</h2>
+          <p style="margin: 0 0 10px; font-size: 13px; color: #5B5470">Last 7 days, so you can see what these new ads have to beat.</p>
+          <div style="overflow-x: auto">
+            <table class="tbl">
+              <thead><tr><th>Ad</th><th>Spend</th><th>Click rate</th><th>Cost per sale</th><th>Agent says</th></tr></thead>
+              <tbody>
+                <tr><td><b>Grandparents, lifestyle 4:5</b></td><td>£[spend]</td><td>[ctr]</td><td>£[cpa]</td><td>Keep. Best of the set.</td></tr>
+                <tr><td><b>Grandparents, product flat lay</b></td><td>£[spend]</td><td>[ctr]</td><td>£[cpa]</td><td>Pause when Ad A goes live (line 1 of the pack).</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+
+      <div style="flex: 1 1 380px; min-width: 0; display: flex; flex-direction: column; gap: 16px">
+        <section class="panel">
+          <h2 class="h2">Checks on {{v.name}}</h2>
+          <sc-for list="{{v.checks}}" as="c" hint-placeholder-count="8">
+            <div class="check"><span class="{{c.cls}}">{{c.res}}</span><span>{{c.text}}</span></div>
+          </sc-for>
+        </section>
+
+        <section class="panel">
+          <h2 class="h2">The picture</h2>
+          <div class="ph" style="height: 120px; border-radius: 10px">{{v.img}}</div>
+          <p style="margin: 10px 0 0; font-size: 13px; line-height: 1.5; color: #4A4458">14 Media › 03 Lifestyle › Toddler 12-24 months › {{v.file}}<br>Owned by doddl · model release on file · cleared for Social paid, Website</p>
+          <a href="#" style="display: inline-flex; min-height: 44px; align-items: center; font-weight: 800; font-size: 14px">Swap for another approved picture</a>
+        </section>
+
+        <section class="panel">
+          <h2 class="h2">Why the agent made this</h2>
+          <p style="margin: 0; font-size: 14px; line-height: 1.55">{{v.why}}</p>
+          <p style="margin: 10px 0 0; font-size: 13px; color: #5B5470">Brief: Kit offer, grandparents 45+ (approved 26 Oct)</p>
+        </section>
+
+        <section class="panel">
+          <h2 class="h2">After you say yes</h2>
+          <div style="display: flex; flex-direction: column; gap: 10px">
+            <div class="step"><span class="num">1</span><span>Stays paused until Mon 06:00, then the agent switches it on and posts a note here.</span></div>
+            <div class="step"><span class="num">2</span><span>Thu: 3-day check. If cost per sale is over twice the target, it pauses and tells you.</span></div>
+            <div class="step"><span class="num">3</span><span>Mon 16 Nov: 7-day readout lands on this card with keep, change or stop.</span></div>
+            <div class="step"><span class="num">4</span><span>Day 14: the winner goes into the next pack as the one to beat.</span></div>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <section class="panel" style="margin-top: 20px">
+      <h2 class="h2">Your answer, ad by ad</h2>
+      <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px">
+        <sc-for list="{{decide}}" as="d" hint-placeholder-count="3">
+          <fieldset style="border: 1px solid #E4E0EE; border-radius: 12px; padding: 10px 14px; margin: 0">
+            <legend style="font-weight: 800; font-size: 14px; padding: 0 6px">{{d.name}}</legend>
+            <label class="radio"><input type="radio" name="{{d.key}}" checked="{{d.a}}" onChange="{{d.setA}}"> Approve</label>
+            <label class="radio"><input type="radio" name="{{d.key}}" checked="{{d.e}}" onChange="{{d.setE}}"> Approve with my edits</label>
+            <label class="radio"><input type="radio" name="{{d.key}}" checked="{{d.r}}" onChange="{{d.setR}}"> Send back</label>
+          </fieldset>
+        </sc-for>
+      </div>
+      <div class="field"><label for="why">Note to the agent (needed for anything sent back)</label><textarea id="why" class="input" rows="2" placeholder="For example: Ad B, take the price out of the headline."></textarea></div>
+      <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; align-items: center">
+        <button class="btn btn-p">{{summary}}</button>
+        <button class="btn btn-d">Reject all three</button>
+        <span style="font-size: 13px; color: #5B5470">Your answer goes back into the paid pack; the rest of the pack stays open.</span>
+      </div>
+    </section>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1900}}'>
+class Component extends DCLogic {
+  constructor(p) { super(p); this.state = { plat: 'meta', v: 0, safe: true, dec: ['a', 'r', 'a'] }; }
+  renderVals() {
+    const s = this.state;
+    const ok = (text) => ({ cls: 'ok', res: 'Pass', text });
+    const warn = (text) => ({ cls: 'warn', res: 'Check', text });
+    const V = [
+      { name: 'Ad A', code: 'ad_a', img: 'Grandparent and toddler at the table', file: 'gp-table-0412.jpg', overlay: 'A gift for little hands', headline: 'A gift for little hands', cta: 'Shop now', desc: 'Toddler cutlery gift sets', primary: 'The gift they will use every day. doddl cutlery is made for little hands learning to feed themselves.', why: 'The lifestyle picture with a grandparent beat the flat lay in the first ad set. This tests the same idea with a gift line instead of a product line.',
+        checks: [ok('Brand voice: plain, warm, no hype'), ok('No health or development claims'), ok('Picture owned, model release on file, cleared for Social paid'), ok('Crops: 4:5, 9:16 and 1:1 all keep the product in shot'), ok('Text on the 9:16 sits inside the safe zone'), ok('Landing page loads; offer and price match the page'), ok('Meta ad policy: nothing flagged')] },
+      { name: 'Ad B', code: 'ad_b', img: 'Gift box, Fresh Green and Dusky Rose', file: 'gift-box-pair-0098.jpg', overlay: 'Grandparent gift, sorted', headline: 'Gift sets from £[price]', cta: 'Shop now', desc: 'Fresh Green or Dusky Rose', primary: 'Grandparent gift, sorted. Cutlery sets for toddlers learning to feed themselves, in Fresh Green and Dusky Rose.', why: 'Price-led variant. Gift buyers 45+ click more when the price is in the headline, but the price has to stay right for the whole run.',
+        checks: [ok('Brand voice'), ok('No health or development claims'), ok('Picture owned, cleared for Social paid'), warn('Price in the headline: if the site price changes, the ad is wrong. Agent re-checks at switch-on and daily.'), warn('Overlay text on 9:16 touches the bottom safe zone'), ok('Landing page loads'), ok('Meta ad policy')] },
+      { name: 'Ad C', code: 'ad_c', img: 'Toddler eating at grandma’s', file: 'grandma-kitchen-0233.jpg', overlay: 'Their own set for your house', headline: 'Their own set for your house', cta: 'Shop now', desc: 'Toddler cutlery for visits', primary: 'Mealtimes at grandma’s, made easier. A toddler cutlery set that lives at your house.', why: 'A new angle from the customer reviews: grandparents buying a second set to keep at their house.',
+        checks: [ok('Brand voice'), ok('No health or development claims'), ok('Picture owned, model release on file'), ok('Crops all keep the product in shot'), ok('Safe zones clear'), ok('Landing page loads'), ok('Meta ad policy')] }
+    ];
+    const v = { ...V[s.v] };
+    v.short = v.primary.slice(0, 70);
+    v.ptn = String(v.primary.length);
+    v.hln = String(v.headline.length);
+    const vtabs = V.map((x, i) => ({ label: x.name, cls: s.v === i ? 'on' : '', pick: () => this.setState({ v: i }) }));
+    const setDec = (i, val) => () => { const d = s.dec.slice(); d[i] = val; this.setState({ dec: d }); };
+    const decide = V.map((x, i) => ({ name: x.name, key: 'dec' + i, a: s.dec[i] === 'a', e: s.dec[i] === 'e', r: s.dec[i] === 'r', setA: setDec(i, 'a'), setE: setDec(i, 'e'), setR: setDec(i, 'r') }));
+    const yes = V.filter((x, i) => s.dec[i] !== 'r').map(x => x.name.replace('Ad ', ''));
+    const no = V.filter((x, i) => s.dec[i] === 'r').map(x => x.name.replace('Ad ', ''));
+    const summary = yes.length === 0 ? 'Send all three back' : ('Approve ' + yes.join(' and ') + (no.length ? ', send ' + no.join(' and ') + ' back' : ''));
+    return {
+      v, vtabs, decide, summary, safe: s.safe,
+      isMeta: s.plat === 'meta', isTik: s.plat === 'tiktok', isAmz: s.plat === 'amazon',
+      pMeta: s.plat === 'meta' ? 'on' : '', pTik: s.plat === 'tiktok' ? 'on' : '', pAmz: s.plat === 'amazon' ? 'on' : '',
+      toMeta: () => this.setState({ plat: 'meta' }), toTik: () => this.setState({ plat: 'tiktok' }), toAmz: () => this.setState({ plat: 'amazon' }),
+      toggleSafe: () => this.setState({ safe: !s.safe })
+    };
+  }
+}
+</script>
+</body>
+</html>

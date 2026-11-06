@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Who approves what</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&amp;display=swap">
+<style>
+body{margin:0;font-family:'Nunito',system-ui,sans-serif;color:#190e3e;background:#F6F4FA}
+a{color:#3D157D}a:hover{color:#190e3e}
+.shell{display:flex;flex-wrap:wrap;min-height:1500px;background:#F6F4FA}
+.side{flex:1 1 220px;max-width:248px;background:#190e3e;color:#fff;padding:20px 14px;box-sizing:border-box;display:flex;flex-direction:column;gap:2px}
+.brand{font-weight:800;font-size:21px;padding:4px 12px 18px}
+.brand span{color:#C9B6F2}
+.nav{display:flex;align-items:center;gap:10px;padding:0 12px;min-height:44px;border-radius:10px;color:#DCD6EC;text-decoration:none;font-weight:700;font-size:14px}
+.nav:hover{background:#2B2058;color:#fff}
+.nav.on{background:#3D157D;color:#fff}
+.navlbl{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:#ABA3C8;padding:16px 12px 4px;font-weight:800}
+.badge{margin-left:auto;background:#fff;color:#3D157D;border-radius:999px;font-size:12px;font-weight:800;padding:1px 8px}
+.main{flex:999 1 640px;min-width:0;padding:28px 36px 56px;box-sizing:border-box}
+.panel{background:#fff;border:1px solid #E4E0EE;border-radius:14px}
+.lbl{font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#5B5470}
+.chip{display:inline-flex;align-items:center;font-size:12px;font-weight:800;border-radius:999px;padding:3px 10px;background:#EEE9F8;color:#3D157D;white-space:nowrap}
+.warn{background:#FBE9D2;color:#8A4B00}.grey{background:#F0EEF4;color:#4A4458}.on{background:#E2F2E7;color:#1E6B3A}
+.row{display:grid;grid-template-columns:minmax(0,1.3fr) 120px 120px 150px 150px 150px 96px;gap:12px;align-items:center;padding:12px 18px;border-top:1px solid #EFECF5;font-size:14px}
+.row.sel{background:#F6F2FD}
+.who{display:inline-flex;align-items:center;gap:8px;font-weight:800}
+.av{width:28px;height:28px;border-radius:50%;background:#3D157D;color:#fff;font-size:12px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;flex:none}
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 16px;border-radius:10px;font:800 14px 'Nunito',sans-serif;border:1px solid #CFC8E0;background:#fff;color:#190e3e;cursor:pointer;box-sizing:border-box}
+.btn-p{background:#3D157D;border-color:#3D157D;color:#fff}
+.field{display:flex;flex-direction:column;gap:6px}
+.field label,.field legend{font-size:13px;font-weight:800;padding:0}
+.input{font:600 14px 'Nunito',sans-serif;color:#190e3e;border:1px solid #CFC8E0;border-radius:10px;padding:0 12px;min-height:44px;box-sizing:border-box;width:100%;background:#fff}
+.radio{display:flex;align-items:center;gap:10px;min-height:40px;font-size:14px;font-weight:700}
+.radio input{width:18px;height:18px;accent-color:#3D157D}
+</style>
+</helmet>
+<div class="shell">
+  <nav class="side" aria-label="doddl PM">
+    <div class="brand">doddl <span>PM</span></div>
+    <a class="nav" href="#">My work</a>
+    <a class="nav" href="#">Triage</a>
+    <a class="nav" href="#">Projects</a>
+    <div class="navlbl">doddl HQ</div>
+    <a class="nav" href="Main.dc.html">Approvals <span class="badge">7</span></a>
+    <a class="nav" href="Calendar.dc.html">Content calendar</a>
+    <a class="nav" href="Idea.dc.html">Give HQ an idea</a>
+    <div class="navlbl">Settings</div>
+    <a class="nav on" href="Approvers.dc.html">Who approves what</a>
+  </nav>
+
+  <main class="main">
+    <p class="lbl" style="margin: 0 0 6px">Settings · only Jon can change this page</p>
+    <h1 style="margin: 0; font-size: 30px; font-weight: 800">Who approves what</h1>
+    <p style="margin: 6px 0 0; color: #5B5470; font-size: 15px; max-width: 760px">Each area has one approver, a backup who gets the card at 48 hours, and, where it matters, a second approver or a spend threshold. Every change is logged.</p>
+
+    <div style="margin-top: 16px; display: flex; gap: 12px; flex-wrap: wrap">
+      <p style="margin: 0; background: #fff; border: 1px solid #E4E0EE; border-radius: 12px; padding: 10px 14px; font-size: 14px; flex: 1 1 380px"><b>doddl HQ reads this table each time it raises a card.</b> Last read 09:31 today, by the Amazon Ads agent.</p>
+      <p style="margin: 0; background: #FBE9D2; color: #6B3A00; border-radius: 12px; padding: 10px 14px; font-size: 14px; flex: 1 1 300px"><b>1 area needs a person:</b> App recipes has no feeding reviewer yet.</p>
+      <p style="margin: 0; background: #fff; border: 1px solid #E4E0EE; border-radius: 12px; padding: 10px 14px; font-size: 14px; flex: 1 1 300px"><b>Prices are not approvals.</b> Pricing agents recommend only; their notes go to Jon’s My work and nothing runs.</p>
+    </div>
+
+    <div style="display: flex; flex-wrap: wrap; gap: 20px; margin-top: 20px; align-items: flex-start">
+      <div class="panel" style="flex: 999 1 760px; min-width: 0; overflow-x: auto">
+        <div style="min-width: 1000px">
+          <div class="row lbl" style="border-top: 0; font-size: 12px"><span>Area</span><span>Approver</span><span>Backup at 48h</span><span>Second approver</span><span>Spend threshold</span><span>Batch</span><span></span></div>
+          <sc-for list="{{areas}}" as="a" hint-placeholder-count="11">
+            <div class="{{a.rowCls}}">
+              <span><b>{{a.name}}</b><span style="display: block; font-size: 12px; color: #5B5470">{{a.what}}</span></span>
+              <span class="who"><span class="av" aria-hidden="true">{{a.ini}}</span>{{a.approver}}</span>
+              <span style="font-weight: 700">{{a.backup}}</span>
+              <span><span class="chip {{a.secondCls}}">{{a.second}}</span></span>
+              <span><span class="chip {{a.thrCls}}">{{a.threshold}}</span></span>
+              <span><span class="chip {{a.batchCls}}">{{a.batch}}</span></span>
+              <span><button class="btn" onClick="{{a.edit}}" aria-label="Change {{a.name}}">Change</button></span>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+
+      <sc-if value="{{editing}}" hint-placeholder-val="{{ true }}">
+        <section class="panel" style="flex: 1 1 340px; padding: 18px; border: 2px solid #3D157D; display: flex; flex-direction: column; gap: 14px">
+          <div style="display: flex; justify-content: space-between; align-items: center"><h2 style="margin: 0; font-size: 18px; font-weight: 800">{{cur.name}}</h2><button class="btn" onClick="{{close}}" aria-label="Close">Close</button></div>
+          <div class="field"><label for="ap">Approver</label><select class="input" id="ap"><sc-for list="{{cur.apOpts}}" as="o" hint-placeholder-count="5"><option>{{o}}</option></sc-for></select></div>
+          <div class="field"><label for="bk">Backup (gets the card at 48 hours)</label><select class="input" id="bk"><sc-for list="{{cur.bkOpts}}" as="o" hint-placeholder-count="5"><option>{{o}}</option></sc-for></select></div>
+          <div class="field"><label for="sa">Second approver</label><select class="input" id="sa"><sc-for list="{{cur.saOpts}}" as="o" hint-placeholder-count="5"><option>{{o}}</option></sc-for></select><span style="font-size: 12px; color: #5B5470">Both must approve before anything runs.</span></div>
+          <sc-if value="{{cur.spend}}" hint-placeholder-val="{{ true }}">
+            <fieldset class="field" style="border: 0; margin: 0; padding: 0">
+              <legend>Spend threshold</legend>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px">
+                <input class="input" aria-label="Amount a week" placeholder="£ a week">
+                <select class="input" aria-label="Also needs"><option>Also needs Chris</option><option>Also needs Jon</option><option>Also needs Laura</option></select>
+              </div>
+              <span style="font-size: 12px; color: #5B5470">Changes that add more than this a week need a second yes.</span>
+            </fieldset>
+          </sc-if>
+          <fieldset class="field" style="border: 0; margin: 0; padding: 0">
+            <legend>Batch</legend>
+            <sc-if value="{{cur.batchable}}" hint-placeholder-val="{{ true }}">
+              <label class="radio"><input type="radio" name="b">Off: one card per item</label>
+              <label class="radio"><input type="radio" name="b" checked="{{ true }}">Weekly pack, one card with a tick per line</label>
+              <label class="radio"><input type="radio" name="b">Daily pack, same-day reply-by time</label>
+              <span style="font-size: 12px; color: #5B5470">Each line keeps its own reason and its own limit check.</span>
+            </sc-if>
+            <sc-if value="{{cur.noBatch}}" hint-placeholder-val="{{ false }}">
+              <p style="margin: 0; font-size: 14px; color: #5B5470">{{cur.noBatchWhy}}</p>
+            </sc-if>
+          </fieldset>
+          <fieldset class="field" style="border: 0; margin: 0; padding: 0">
+            <legend>Cards already waiting</legend>
+            <label class="radio"><input type="radio" name="w" checked="{{ true }}">Leave with the current approver</label>
+            <label class="radio"><input type="radio" name="w">Move them to the new approver</label>
+          </fieldset>
+          <div class="field"><label for="why">Reason for the change (goes in the log)</label><input class="input" id="why" placeholder="For example: Laura owns social from November"></div>
+          <button class="btn btn-p" onClick="{{save}}">Save change</button>
+        </section>
+      </sc-if>
+    </div>
+
+    <section class="panel" style="margin-top: 20px; overflow-x: auto">
+      <div style="padding: 16px 18px 6px; display: flex; justify-content: space-between; align-items: center"><h2 style="margin: 0; font-size: 18px; font-weight: 800">Change log</h2><span style="font-size: 13px; color: #5B5470">Kept for good. Nothing here can be edited.</span></div>
+      <div style="min-width: 820px">
+        <sc-for list="{{log}}" as="l" hint-placeholder-count="4">
+          <div style="display: grid; grid-template-columns: 150px 80px minmax(0, 1fr) minmax(0, 0.8fr); gap: 12px; padding: 10px 18px; border-top: 1px solid #EFECF5; font-size: 14px">
+            <span style="font-weight: 800; color: #5B5470">{{l.when}}</span><span style="font-weight: 800">{{l.who}}</span><span>{{l.what}}</span><span style="color: #5B5470">“{{l.why}}”</span>
+          </div>
+        </sc-for>
+      </div>
+    </section>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1500}}'>
+class Component extends DCLogic {
+  constructor(p) { super(p); this.state = { sel: 'social', saved: [] }; }
+  renderVals() {
+    const people = ['Jon', 'Laura', 'Cat', 'Chris', 'Cathy'];
+    const A = [
+      { id: 'ads', name: 'Amazon ads', what: 'Budgets, bids, keywords', approver: 'Jon', backup: 'Chris', second: 'None', threshold: 'Not set', spend: true, batch: 'Weekly pack', batchable: true },
+      { id: 'listings', name: 'Amazon listings', what: 'Title, bullets, images, A+', approver: 'Jon', backup: 'Laura', second: 'None', threshold: '—', spend: false, batch: 'Always single', batchable: false, why: 'Always single: one product per card.' },
+      { id: 'paid', name: 'Paid social and search', what: 'Budget moves, new ads, pauses', approver: 'Jon', backup: 'Chris', second: 'None', threshold: 'Not set', spend: true, batch: 'Weekly pack', batchable: true },
+      { id: 'email', name: 'Email (Klaviyo)', what: 'Sends, schedules, flow changes', approver: 'Laura', backup: 'Jon', second: 'None', threshold: '—', spend: false, batch: 'Off', batchable: true },
+      { id: 'social', name: 'Organic social', what: 'Posts, captions, images', approver: 'Laura', backup: 'Cat', second: 'None', threshold: '—', spend: false, batch: 'Weekly, Wed', batchable: true },
+      { id: 'dms', name: 'Comments and DMs', what: 'Every reply, every day · urgent issues single', approver: 'Laura', backup: 'Cathy', second: 'None', threshold: '—', spend: false, batch: 'Daily, reply by 17:00', batchable: true },
+      { id: 'web', name: 'Website', what: 'Theme and page changes', approver: 'Jon', backup: 'Laura', second: 'None', threshold: '—', spend: false, batch: 'Always single', batchable: false, why: 'Always single: one change set per card, with its preview.' },
+      { id: 'cal', name: 'Content calendar', what: 'The month’s briefs', approver: 'Laura', backup: 'Jon', second: 'None', threshold: '—', spend: false, batch: 'Monthly plan', batchable: true },
+      { id: 'b2b', name: 'B2B, PR and creators', what: 'Outreach, pitches, briefs', approver: 'Jon', backup: 'Laura', second: 'None', threshold: '—', spend: false, batch: 'Pack, max 25', batchable: true },
+      { id: 'app', name: 'App recipes', what: 'Recipes and feeding guides', approver: 'Not set', backup: 'Laura', second: 'Jon', threshold: '—', spend: false, batch: 'Off', batchable: true, needs: true }
+    ];
+    const sel = this.state.sel;
+    const areas = A.map(a => ({
+      ...a,
+      ini: a.approver === 'Not set' ? '?' : a.approver.slice(0, 2),
+      rowCls: a.id === sel ? 'row sel' : 'row',
+      secondCls: a.second === 'None' ? 'grey' : '',
+      thrCls: a.threshold === 'Not set' ? 'warn' : 'grey',
+      batchCls: a.batch === 'Always single' || a.batch === 'Off' ? 'grey' : 'on',
+      edit: () => this.setState({ sel: a.id })
+    }));
+    const c = A.find(a => a.id === sel);
+    const opts = (v, none) => [v, ...people.filter(p => p !== v), ...(none ? ['None'] : [])].filter((x, i, arr) => arr.indexOf(x) === i);
+    const cur = c ? { ...c, apOpts: opts(c.approver === 'Not set' ? 'Choose a person' : c.approver), bkOpts: opts(c.backup), saOpts: opts(c.second, true), noBatch: !c.batchable, noBatchWhy: c.why || '' } : null;
+    const base = [
+      { when: 'Wed 4 Nov 09:20', who: 'Jon', what: 'Organic social: approver Jon → Laura', why: 'Laura owns social from November' },
+      { when: 'Wed 4 Nov 09:19', who: 'Jon', what: 'Amazon ads, Paid social and search: weekly pack switched on', why: 'One card a week, tick per line' },
+      { when: 'Wed 4 Nov 09:18', who: 'Jon', what: 'Comments and DMs: daily pack, reply by 17:00', why: 'Every comment answered the same day' },
+      { when: 'Wed 4 Nov 09:15', who: 'Jon', what: 'Email (Klaviyo): backup set to Jon', why: 'Cover for Laura' },
+      { when: 'Wed 4 Nov 09:10', who: 'Jon', what: 'Page set up from the agreed workflow', why: 'Decisions of 4 Nov' }
+    ];
+    return {
+      areas, cur, editing: !!c,
+      close: () => this.setState({ sel: null }),
+      save: () => this.setState({ saved: [{ when: 'Just now', who: 'Jon', what: (c ? c.name : '') + ': settings saved', why: 'Reason as typed' }, ...this.state.saved], sel: null }),
+      log: [...this.state.saved, ...base]
+    };
+  }
+}
+</script>
+</body>
+</html>
