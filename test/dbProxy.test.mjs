@@ -177,3 +177,28 @@ test('refuses unfiltered updates/deletes and missing auth', async () => {
   assert.equal(res.statusCode, 401)
   assert.equal(calls.length, 0)
 })
+
+test('approvals v2: new tables are read-only here; v2 columns and decisions go through /api/approvals', async () => {
+  for (const t of ['approval_rules', 'approval_rules_log', 'approval_votes', 'approval_comments', 'content_items', 'ideas', 'listing_products', 'listing_fields', 'listing_events']) {
+    assert.equal(routeFor('GET', ['rest', 'v1', t]).table, t)
+    assert.throws(() => routeFor('POST', ['rest', 'v1', t]), /not allowed/)
+    assert.throws(() => routeFor('PATCH', ['rest', 'v1', t]), /not allowed/)
+  }
+  assert.throws(() => rewriteBody('tasks', Buffer.from(JSON.stringify({ escalated_to: 'Jon' })), user), /only be set through \/api\/approvals/)
+  assert.throws(() => rewriteBody('tasks', Buffer.from(JSON.stringify([{ title: 'x', approvers: ['Laura'] }])), user), /approvers/)
+  assert.throws(() => rewriteBody('tasks', Buffer.from(JSON.stringify({ decision: 'expired' })), user), /approvals\/decide/)
+  assert.throws(() => rewriteBody('tasks', Buffer.from(JSON.stringify({ decision: 'partially_approved' })), user), /approvals\/decide/)
+  // The old three decisions still work on pre-v2 approvals...
+  const calls = []
+  let res = fakeRes()
+  await proxyWith(calls, (url, init) => (init.method === 'GET' ? '[{"id":"t1","approvers":null}]' : '[{"id":"t1"}]'))(
+    fakeReq({ method: 'PATCH', url: '/api/db/rest/v1/tasks?id=eq.t1', body: '{"decision":"approved","decision_notes":"ok"}' }), res)
+  assert.equal(res.statusCode, 200)
+  assert.equal(calls[0].url, 'https://db.example/rest/v1/tasks?id=eq.t1&pm_visible=is.true&select=id%2Capprovers')
+  assert.equal(JSON.parse(calls[1].body).decision_by, 'Laura')
+  // ...but a v2 approval (approvers list) can't be decided around the votes.
+  res = fakeRes()
+  await proxyWith([], (url, init) => (init.method === 'GET' ? '[{"id":"t2","approvers":["Laura","Jon"]}]' : '[]'))(
+    fakeReq({ method: 'PATCH', url: '/api/db/rest/v1/tasks?id=eq.t2', body: '{"decision":"approved"}' }), res)
+  assert.equal(res.statusCode, 403)
+})
