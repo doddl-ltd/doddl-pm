@@ -18,6 +18,9 @@ import { baseUrl } from '../../lib/server/oauth'
 import * as ops from '../../lib/pm/ops'
 import * as prog from '../../lib/pm/programmes'
 import { retryAutoTriage } from '../../lib/pm/autoTriage'
+import * as appr from '../../lib/pm/approvals'
+import * as hq from '../../lib/pm/hq'
+import { createTeams } from '../../lib/server/teams'
 
 const INSTRUCTIONS = `doddl PM tool: programmes contain projects; projects contain tasks (optionally in groups). People: use list_people for valid assignees.
 Programmes mirror Claude: a claude.ai Project / sidebar group / agent is a programme; each chat, Claude Code session or agent workstream is a project in it. At the start of doddl work call sync_workstream so the right programme and project exist, then use that project.
@@ -26,7 +29,7 @@ Rules:
 - Marking a task done (status "done" or progress 100) needs evidence: a URL, commit ref ("owner/repo@sha") or file path proving the work exists. Never mark done on intention alone.
 - Progress drives status: 0 = not_started, 1-99 = in_progress, 100 = done. on_track / at_risk / blocked are explicit states.
 - Add context with add_note (appends, never overwrites). Attach proof with add_link.
-- Approve / reject decisions are made by people in the PM UI only. You can submit work for approval and read the decision.
+- Approve / reject decisions are made by people in the PM UI only. You can submit work for approval (pass approval_area so the right person approves; get_approval_rules lists the areas), read the decision (get_decision: decision_edits, line_decisions, reject_reason, votes) and comment on it.
 - Actions agreed in a conversation: capture_inbox_item with the workstream (Claude files them into the right project automatically), or create_task directly when the person asks for a task.
 - "My tasks" / "what's on my plate": my_tasks or briefing (they know who the signed-in person is).
 - Dates are YYYY-MM-DD. Use British English. Never invent IDs — look them up.`
@@ -123,7 +126,7 @@ function buildServer(principal) {
 
     server.registerTool('get_decision', {
       title: 'Get approval decision',
-      description: 'Whether an approval task has been approved, rejected or sent back for revision.',
+      description: 'Whether an approval is pending, approved (approved_with_edits / partially_approved), sent back (revision_requested), rejected or expired; with decision_edits, line_decisions, reject_reason, votes and who it is still waiting on. Apply decision_edits and act only on lines marked approved/edited/push.',
       inputSchema: { task_id: z.string().uuid() },
       annotations: { readOnlyHint: true },
     }, tool((a) => ops.getDecision(db, a.task_id)))
@@ -159,6 +162,20 @@ function buildServer(principal) {
       inputSchema: { person: z.string().optional(), programme: z.string().optional() },
       annotations: { readOnlyHint: true },
     }, tool((a) => prog.briefing(db, principal, a)))
+
+    server.registerTool('get_approval_rules', {
+      title: 'Get approval rules',
+      description: 'Who approves what: per area the approver, backup (takes over at 48h), second approver, weekly spend threshold, batching (single, weekly pack on a day, daily pack with a reply-by time, monthly, pack with a maximum). Read before submitting; pass the area as approval_area.',
+      inputSchema: {},
+      annotations: { readOnlyHint: true },
+    }, tool(() => appr.rulesForAgent(db, principal.agent_id)))
+
+    server.registerTool('list_approval_comments', {
+      title: 'List approval comments',
+      description: 'Review comments on an approval, oldest first, with their anchor (time in a video, point on a placement, field, or pack line) and whether they are resolved.',
+      inputSchema: { task_id: z.string().uuid() },
+      annotations: { readOnlyHint: true },
+    }, tool(async (a) => { const t = await appr.loadApproval(db, a.task_id); return { comments: await appr.listComments(db, t.id) } }))
 
     server.registerTool('list_inbox', {
       title: 'List inbox',
@@ -266,11 +283,90 @@ function buildServer(principal) {
         project: z.string().optional(),
         project_id: z.string().uuid().optional(),
         assigned_to: z.string().optional().describe('Who should review'),
-        artefact_type: z.string(),
+        artefact_type: z.string().describe('copy, document, design, pr_link, deploy_plan, or v2: ad_creative, video, social_pack, email, listing_change, pack'),
         artefact: z.record(z.any()),
         staging_url: z.string().optional(),
+        approval_area: z.string().optional().describe('Area from get_approval_rules, e.g. amazon_ads; sets the approver(s)'),
+        expires_at: z.string().optional().describe("ISO date-time; default 72 hours, or a daily pack's reply-by time"),
+        weekly_spend: z.number().optional().describe('Weekly spend this asks for, if not worked out from pack lines'),
       },
-    }, tool((a) => ops.submitForApproval(db, principal, a)))
+    }, tool((a) => ops.submitForApproval(db, principal, a, { teams: createTeams() })))
+
+    server.registerTool('add_approval_comment', {
+      title: 'Add approval comment',
+      description: "Comment on an approval (e.g. answer a reviewer's question), optionally anchored: {kind:'time', t:'0:03'}, {kind:'point', placement, x, y} (0-1), {kind:'field', field} or {kind:'line', line_id}.",
+      inputSchema: {
+        task_id: z.string().uuid(),
+        body: z.string().min(1).max(5000),
+        anchor: z.record(z.any()).optional(),
+      },
+    }, tool((a) => appr.addComment(db, principal.actor, a)))
+  }
+
+  if (can('content:write')) {
+    server.registerTool('upsert_content_items', {
+      title: 'Upsert content items',
+      description: 'Create or update creative studio / content calendar items, keyed on external_ref (only the fields sent change; new items need type and title). Moving stage resets stage_since. Stages: brief, make, check, ready, scheduled, live, done, dropped.',
+      inputSchema: {
+        items: z.array(z.object({
+          external_ref: z.string().min(1),
+          type: z.enum(hq.CONTENT_TYPES).optional(),
+          title: z.string().optional(),
+          markets: z.array(z.string()).optional(),
+          channel: z.string().optional(),
+          stage: z.enum(hq.STAGES).optional(),
+          owner: z.string().optional(),
+          approver: z.string().optional(),
+          approval_task_id: z.string().uuid().nullable().optional(),
+          status_text: z.string().optional(),
+          status_tone: z.enum(hq.TONES).nullable().optional(),
+          format: z.string().optional(),
+          thumb_url: z.string().optional(),
+          stage_since: z.string().optional(),
+          stage_sla_hours: z.number().positive().nullable().optional(),
+          scheduled_at: z.string().nullable().optional(),
+          live_at: z.string().nullable().optional(),
+          results: z.record(z.any()).nullable().optional(),
+          brief: z.record(z.any()).nullable().optional(),
+        })).min(1).max(500),
+      },
+      annotations: { idempotentHint: true },
+    }, tool((a) => hq.upsertContentItems(db, a)))
+  }
+
+  if (can('listings:write')) {
+    server.registerTool('post_listing_snapshot', {
+      title: 'Post listing snapshot',
+      description: 'Amazon listings live vs should-be: upsert products (asin, marketplace, sku, product, colour, parent_asin, listing_status, buy_box, should_source), fields (asin, marketplace, field = Title | Bullet 1-5 | Description | Search terms | Images | A+ content | Price | Variations | Category | Age range | Safety documents | Buy Box; should, live, status match|drift|proposed|in_flight|problem|na) and events (kind amazon_change|our_change|check|suppressed).',
+      inputSchema: {
+        products: z.array(z.record(z.any())).optional(),
+        fields: z.array(z.record(z.any())).optional(),
+        events: z.array(z.record(z.any())).optional(),
+      },
+      annotations: { idempotentHint: true },
+    }, tool((a) => hq.postListingSnapshot(db, a)))
+  }
+
+  if (can('ideas:read')) {
+    server.registerTool('list_ideas', {
+      title: 'List ideas',
+      description: 'Ideas people gave HQ (text, persona, age stages, channels, markets, timing, offer, must include / avoid, measure). Default: status new.',
+      inputSchema: { status: z.array(z.enum(hq.IDEA_STATUSES)).optional(), limit: z.number().int().min(1).max(500).optional() },
+      annotations: { readOnlyHint: true },
+    }, tool((a) => hq.listIdeas(db, { status: a.status || 'new', limit: a.limit })))
+  }
+
+  if (can('ideas:write')) {
+    server.registerTool('reply_idea', {
+      title: 'Reply to an idea',
+      description: 'Pick up, brief or decline an idea and reply to the person who gave it (they are notified). brief_ref links the brief.',
+      inputSchema: {
+        id: z.string().uuid(),
+        status: z.enum(hq.IDEA_STATUSES).optional(),
+        hq_reply: z.string().max(5000).optional(),
+        brief_ref: z.string().max(300).optional(),
+      },
+    }, tool(({ id, ...rest }) => hq.replyIdea(db, principal, id, rest, { notify: appr.notify })))
   }
 
   if (can('inbox:write')) {

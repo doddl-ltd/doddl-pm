@@ -23,6 +23,8 @@ Plain REST exists for scripts that can't speak MCP: `/api/agent/{tasks,lookup,pr
 
 `list_projects` · `list_people` · `list_programmes` · `programme_overview` · `my_tasks` · `briefing` · `find_tasks` · `get_task` · `get_decision` · `list_inbox` · `create_task` · `update_task` · `add_note` · `add_link` · `sync_workstream` · `create_project` · `submit_for_approval` · `capture_inbox_item` · `triage_inbox_item`
 
+Approvals v2 (docs/approvals-v2/CONTRACT.md): `get_approval_rules` · `list_approval_comments` · `add_approval_comment` · `upsert_content_items` (content:write) · `post_listing_snapshot` (listings:write) · `list_ideas` (ideas:read) · `reply_idea` (ideas:write)
+
 You only see the tools your credential allows. Call `list_projects` / `list_people` instead of relying on IDs or names from documents.
 
 **Grouping follows Claude.** A claude.ai Project, sidebar group or agent is a PM **programme**; a chat, Claude Code session or agent workstream is a PM **project**. Call `sync_workstream` at the start of doddl work, and pass the same `workstream` when capturing, so actions land in that chat's project. The `doddl-pm` skill (docs/claude-skill) does this for Claude chat and Claude Code.
@@ -41,9 +43,9 @@ You only see the tools your credential allows. Call `list_projects` / `list_peop
 
 ## 4. Approval loop (for agents producing work)
 
-1. `submit_for_approval` with `artefact_type` (`copy`, `document`, `design`, `pr_link`, `deploy_plan`) and the artefact. Pass `title` + `project` to create the task, or `task_id` to attach to an existing one.
+1. `submit_for_approval` with `artefact_type` (`copy`, `document`, `design`, `pr_link`, `deploy_plan`, or the v2 types `ad_creative`, `video`, `social_pack`, `email`, `listing_change`, `pack`) and the artefact. Pass `approval_area` (see `get_approval_rules`) so the right person approves; it expires after 72 hours. Pass `title` + `project` to create the task, or `task_id` to attach to an existing one.
 2. A person reviews it in **Approvals** and decides.
-3. `get_decision(task_id)` returns `pending`, or the `decision`, `decision_by`, `decision_at` and `decision_notes`.
+3. `get_decision(task_id)` returns `pending`, or the `decision` (`approved`, `approved_with_edits`, `partially_approved`, `revision_requested`, `rejected`, `expired`), `decision_by`, `decision_at`, `decision_notes`, `decision_edits`, `line_decisions`, `reject_reason` and `votes`. Act only on approved lines and apply the edits.
 
 ## 5. Where things come from
 

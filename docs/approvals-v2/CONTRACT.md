@@ -231,15 +231,15 @@ Every UI write goes through MSAL-verified routes. The actor is the signed-in per
 | Endpoint | Scope | What it does |
 |---|---|---|
 | `POST /api/agent/artefacts` | approvals:write (existing) | Accepts the new types and the optional `approval_area` and `expires_at`. The approver defaults from `approval_rules`. |
-| `GET /api/agent/decisions/:task_id` | existing | Adds `decision_edits`, `line_decisions`, `reject_reason` and `votes`. |
-| `GET /api/agent/approval-rules` | | Stamps `last_read_by` and `last_read_at`. |
+| `GET /api/agent/decisions/:task_id` | tasks:read | Adds `decision_edits`, `line_decisions`, `reject_reason` and `votes`. |
+| `GET /api/agent/approval-rules` | tasks:read | Stamps `last_read_by` and `last_read_at`. |
 | `PUT /api/agent/content-items` | content:write | Bulk upsert on `external_ref`. Moving `stage` resets `stage_since`. |
 | `POST /api/agent/listings/snapshot` | listings:write | `{products[], fields[], events[]}` bulk upsert. |
 | `GET /api/agent/ideas?status=new` | ideas:read | Lists new ideas. |
 | `PATCH /api/agent/ideas/:id` | ideas:write | Sets `status`, `hq_reply` and `brief_ref`. |
-| `GET /api/agent/comments/:task_id` and `POST` | | Reads and adds approval comments. |
+| `GET /api/agent/comments/:task_id` and `POST` | tasks:read (GET), approvals:write (POST) | Reads and adds approval comments. |
 
-MCP tools mirror these: `get_approval_rules`, `upsert_content_items`, `post_listing_snapshot`, `list_ideas`, `reply_idea`, `add_approval_comment`.
+MCP tools mirror these: `get_approval_rules`, `upsert_content_items`, `post_listing_snapshot`, `list_ideas`, `reply_idea`, `add_approval_comment`, plus `list_approval_comments`. `submit_for_approval` takes `approval_area`, `expires_at` and `weekly_spend`; `get_decision` returns the same body as the decisions endpoint.
 
 ## The clock (cron `/api/cron/approval-clock`, hourly)
 
@@ -266,3 +266,35 @@ A daily pack with `reply_by` expires at its reply-by time instead.
 - Use the house look: Nunito, indigo `#3D157D`, ink `#190e3e`, and the existing components and inline-style conventions. Below 768px, use the phone layout via `useIsMobile`.
 - Accessibility as in the designs: real buttons and labels, 44px touch targets.
 - doddl HQ: build-ahead rules (PR #36). New producers and the listing watcher get fixture adapters and default-off flags, with acceptance items marked `PENDING:`. Live writes stay off.
+
+## As built: backend (branch approvals-v2, 2026-11-06)
+
+Additions to the names above. Nothing above was renamed.
+
+**Database (migration 25, applied to staging)**
+- `people.approval_admin` (bool, Jon = true) is the role flag for changing rules.
+- `approval_rules` also has `spend_applies` (the area moves money, so it can have a spend threshold), `batchable` (false = always single), `note` (why it is always single) and `position` (display order). The seed: Amazon ads weekly pack and Paid media weekly pack (spend applies, threshold not set); Amazon listings and Website always single; Email off; Organic social weekly on `wed`; Comments and DMs daily, `reply_by` 17:00; Content calendar monthly; Outreach pack, `max_pack` 25; App recipes approver null, backup Laura, second Jon. The log starts with one set-up row.
+- `tasks.approvers` text[]: everyone who must approve, snapshotted at submit: [approver, second_approver, threshold_also_needs (only when the pack's weekly spend is over the threshold)]. The escalated backup can answer for the first. Null = a pre-v2 approval: anyone signed in may decide, as before.
+- `approval_votes` also has `id`, `role` (`approver` | `second` | `backup` | `any`) and `reject_reason`. Votes are immutable.
+- `approval_comments` also has `resolved_by`, `resolved_at`. `content_items` also has `created_at`. `ideas` also has `replied_by`, `replied_at`, `updated_at`. `listing_events` is unique on (asin, marketplace, at, text), so re-sending an event is a no-op.
+- Visibility: the approvers and the escalated backup always see the approval (even in a private project); votes and comments follow their task. The new tables are readable through `/api/db` (GET only); `/api/db` refuses writes to the v2 task columns, the new decision values, and any decision on a task with an approvers list.
+- Notification types added: `approval_request`, `approval_reminder`, `approval_escalated`, `approval_comment`, `approval_moved`, `idea_reply`.
+- The doddl-hq key gets `content:write`, `listings:write`, `ideas:read`, `ideas:write` (where the key exists; it is not on staging yet).
+
+**Decisions**
+- Line values accepted: `approved`, `rejected`, `edited`, `push`, `keep`, `edit`. `approved`/`edited`/`edit`/`push` count as yes, `rejected`/`keep` as no.
+- `partially_approved` when lines have both; an "approve" where every line is no becomes `rejected`; an `approved` vote carrying edits becomes `approved_with_edits`.
+- `rejected` needs a `reject_reason` (or notes, then the reason is `other`); `revision_requested` needs notes.
+- Two approvers: the decision waits for every approver; any send-back or rejection decides at once. Line decisions merge: a line goes ahead only if nobody said no. `decision_by` lists the voters ("Laura, Jon").
+- Approved, approved_with_edits and partially_approved set the task to done (as the old panel did).
+
+**Extra UI routes** (MSAL ID token, like /api/db)
+- `GET /api/approvals`: the signed-in person's inbox `{ tiles: {waiting, overdue, due_today, escalated}, badge, mine[], others[], decided[], rules[] }`. Rows carry `due_at` (created + 24h, or the expiry if sooner), `overdue`, `waiting_on`, `votes`, `escalated_to_me`.
+- `GET /api/approvals?task_id=`: one approval with `votes`, `waiting_on`, `comments`, `rule`, `due_at`.
+- `GET /api/approvals/comment?task_id=`: its comments.
+- Deep link for Teams cards: `/?view=approvals&task=<id>` (the UI should open it). Base URL from `PUBLIC_BASE_URL`, default https://doddl-pm.vercel.app.
+
+**Clock and Teams**
+- The clock runs at minute 7 of every hour on approvals that have `expires_at`, which every submission now gets. Approvals submitted before v2 have none and never expire.
+- The 08:00 summary is `/api/cron/approval-summary`, scheduled at 07:00 and 08:00 UTC; only the run at 08:00 UK time posts (BST-proof). One card per approver to the same webhook.
+
