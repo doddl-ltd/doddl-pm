@@ -1,9 +1,12 @@
 import { useState } from 'react'
-import { supabase } from '../lib/supabase'
+import { apiFetch } from '../lib/supabase'
 import { ARTEFACT_TYPES } from '../lib/artefactTypes'
 
 const DECISION_STYLES = {
   approved:            { bg: '#e3fcef', color: '#00875a', label: 'Approved' },
+  approved_with_edits: { bg: '#e3fcef', color: '#00875a', label: 'Approved with edits' },
+  partially_approved:  { bg: '#e3fcef', color: '#00875a', label: 'Partly approved' },
+  expired:             { bg: '#f0f1f3', color: '#42526e', label: 'Expired' },
   rejected:            { bg: '#ffebe6', color: '#de350b', label: 'Rejected' },
   revision_requested:  { bg: '#fff3e0', color: '#b85c00', label: 'Revision requested' },
 }
@@ -38,7 +41,7 @@ export default function ApprovalTaskPanel({ task, userName, onUpdate }) {
 
   const typeDef = task.artefact_type ? ARTEFACT_TYPES[task.artefact_type] : null
   const hasDecision = !!task.decision
-  const decisionStyle = hasDecision ? DECISION_STYLES[task.decision] : null
+  const decisionStyle = hasDecision ? (DECISION_STYLES[task.decision] || { bg: '#f0f1f3', color: '#42526e', label: task.decision }) : null
 
   const submitDecision = async (decision) => {
     if ((decision === 'rejected' || decision === 'revision_requested') && !notes.trim()) {
@@ -46,15 +49,15 @@ export default function ApprovalTaskPanel({ task, userName, onUpdate }) {
       return
     }
     setSaving(true); setError(null)
-    const { error: err } = await supabase.from('tasks').update({
-      decision,
-      decision_notes: notes.trim() || null,
-      decision_by:    userName || null,
-      decision_at:    new Date().toISOString(),
-      status:         decision === 'approved' ? 'done' : task.status,
-    }).eq('id', task.id)
+    // Approvals v2: every decision goes through /api/approvals/decide (votes, two approvers, the lock);
+    // the /api/db proxy refuses decisions on tasks with an approvers list.
+    let err = null
+    try {
+      const r = await apiFetch('/api/approvals/decide', { method: 'POST', body: JSON.stringify({ task_id: task.id, outcome: decision, notes: notes.trim() || undefined }) })
+      if (!r.ok) err = ((await r.json().catch(() => null)) || {}).error || `Request failed (${r.status})`
+    } catch (e) { err = e.message }
     setSaving(false)
-    if (err) { setError(err.message); return }
+    if (err) { setError(err); return }
     setNotes('')
     onUpdate()
   }
