@@ -2,7 +2,7 @@
 // Channel × day grid (desktop) or day pills (phone), the selected post as it will look, edits into
 // lines['<id>:edit'] = {caption, hashtags, alt_text, first_comment, time, note}, a tick per post
 // (lines[id] = approved | edited when ticked, rejected when unticked), balance across pillars, tick all.
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { C, Panel, H2, Note, Ph, Pill, Pills, Tick, Field, inputStyle, Checks, Btn, Fold, Cols, PhoneFrame, Avatar, mini, fmtDay } from './reviewKit'
 
 const EDIT_KEYS = ['caption', 'hashtags', 'alt_text', 'first_comment', 'time', 'note']
@@ -32,6 +32,14 @@ export default function SocialReview({ task, artefact, isMobile, readOnly, lines
   const channels = [...new Set(posts.map(p => p.channel || 'Other'))]
   const [sel, setSel] = useState(posts[0] ? posts[0].id : null)
   const [day, setDay] = useState(posts[0] ? posts[0].day : days[0])
+  // Every post starts with an explicit answer: unticked = not scheduled ('rejected'), so approving a
+  // half-ticked pack is recorded as partially approved and HQ never has to guess about an untouched post.
+  const postIds = posts.map(x => x.id).join('|')
+  useEffect(() => {
+    if (readOnly || !setLines) return
+    const missing = posts.filter(x => !lines[x.id])
+    if (missing.length) setLines({ ...lines, ...Object.fromEntries(missing.map(x => [x.id, 'rejected'])) })
+  }, [postIds, readOnly]) // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!posts.length) return <Panel><Note>This pack has no posts.</Note></Panel>
   const raw = posts.find(p => p.id === sel) || posts[0]
@@ -67,7 +75,7 @@ export default function SocialReview({ task, artefact, isMobile, readOnly, lines
   const tickWord = (x) => {
     const v = lines[x.id]
     if (isTicked(v)) return ['Ticked', C.ok]
-    if (v === 'rejected') return ['Sending back', C.bad]
+    if (v === 'rejected') return ['Not ticked', C.warn || C.bad]
     return [isMobile ? 'Not yet' : 'Not ticked', C.warn]
   }
 
