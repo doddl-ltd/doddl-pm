@@ -20,7 +20,7 @@ function Count({ n }) {
 }
 
 function changeLine(row, me) {
-  const bits = [typeLabel(row.artefact_type)]
+  const bits = [row.summary || typeLabel(row.artefact_type)]
   if (row.escalated_to_me && row.approvers?.[0]) bits.push(`${row.approvers[0]} has not answered in 48 hours. You are the backup.`)
   else if (Array.isArray(row.approvers) && row.approvers.length > 1) bits.push(`Approvers: ${whoText(row.approvers, me)}`)
   return bits.join(' · ')
@@ -214,7 +214,7 @@ export default function ApprovalsInbox({ data, loading, error, isMobile, userNam
                 <Table head={['What it is', 'Waiting on', 'Raised', 'Answer by', '']}>
                   {others.map(r => (
                     <Row key={r.id} onClick={() => onOpen(r.id)} label={`Open ${r.title}`} cells={<>
-                      <TitleCell title={r.title} chips={[areaOf(r)]} sub={r.voted ? 'You have answered' : typeLabel(r.artefact_type)} />
+                      <TitleCell title={r.title} chips={[areaOf(r)]} sub={r.voted ? 'You have answered' : (r.summary || typeLabel(r.artefact_type))} />
                       <span style={{ fontSize: 14, fontWeight: 700 }}>{whoText(r.waiting_on, userName)}</span>
                       <span style={{ fontSize: 14, color: C.soft }}>{fmtWhen(r.created_at)}</span>
                       <span><Due chip={dueChip(r, now)} /></span>
