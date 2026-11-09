@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>One listing, phone</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&amp;display=swap">
+<style>
+body{margin:0;font-family:'Nunito',system-ui,sans-serif;color:#190e3e;background:#F6F4FA}
+a{color:#3D157D}a:hover{color:#190e3e}
+.top{background:#190e3e;color:#fff;padding:0 16px;min-height:56px;display:flex;align-items:center;gap:8px}
+.chip{display:inline-flex;align-items:center;font-size:12px;font-weight:800;border-radius:999px;padding:3px 10px;white-space:nowrap;background:#EEE9F8;color:#3D157D}
+.due{display:inline-flex;font-size:12px;font-weight:800;border-radius:999px;padding:3px 10px;white-space:nowrap;background:#FBE9D2;color:#8A4B00}
+.panel{background:#fff;border:1px solid #E4E0EE;border-radius:14px;padding:14px}
+.h2{font-size:15px;font-weight:800;margin:0 0 8px}
+.pills{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px}
+.pill{flex:none;min-height:44px;padding:0 14px;border-radius:999px;border:1px solid #CFC8E0;background:#fff;font:800 14px 'Nunito',sans-serif;color:#190e3e;cursor:pointer;white-space:nowrap}
+.pill.on{background:#190e3e;border-color:#190e3e;color:#fff}
+.fcard{background:#fff;border:1px solid #E4E0EE;border-radius:14px;padding:12px 14px}
+.side{font-size:12px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:#5B5470;margin:10px 0 4px}
+.live{background:#FFF4E5;border-radius:8px;padding:8px 10px;font-size:14px;line-height:1.45}
+.should{background:#F1ECFB;border-radius:8px;padding:8px 10px;font-size:14px;line-height:1.45;font-weight:700}
+.same{font-size:14px;line-height:1.45}
+.st{display:inline-flex;font-size:12px;font-weight:800;border-radius:999px;padding:3px 10px}
+.s-ok{background:#E2F2E7;color:#1E6B3A}.s-dr{background:#FBE9D2;color:#8A4B00}.s-new{background:#EEE9F8;color:#3D157D}
+.sel{font:700 14px 'Nunito',sans-serif;color:#190e3e;border:1px solid #CFC8E0;border-radius:10px;min-height:44px;padding:0 8px;width:100%;background:#fff;margin-top:10px}
+.imgs{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+.im{height:40px;border-radius:5px;background:repeating-linear-gradient(135deg,#ECE8F4 0 6px,#F4F1F9 6px 12px);font-size:10px;font-weight:800;color:#5B5470;display:flex;align-items:flex-end;padding:2px 3px;box-sizing:border-box}
+.im.diff{outline:2px solid #D98A1F}
+.im.gone{background:#F8E1E1;color:#A12B2B;align-items:center;justify-content:center}
+.check{display:flex;gap:8px;font-size:14px;line-height:1.4;padding:6px 0;border-top:1px solid #F1EEF6}
+.ok{color:#1E6B3A;font-weight:800;flex:none;width:50px}
+.warn{color:#8A4B00;font-weight:800;flex:none;width:50px}
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:0 12px;border-radius:12px;font:800 15px 'Nunito',sans-serif;border:1px solid #CFC8E0;background:#fff;color:#190e3e;cursor:pointer;box-sizing:border-box;width:100%}
+.btn-p{background:#3D157D;border-color:#3D157D;color:#fff}
+.radio{display:flex;align-items:center;gap:10px;min-height:44px;font-size:15px;font-weight:700}
+.radio input{width:20px;height:20px;accent-color:#3D157D}
+details summary{font-size:15px;font-weight:800;min-height:44px;display:flex;align-items:center;cursor:pointer}
+</style>
+</helmet>
+<div style="width: 390px; min-height: 2300px; background: #F6F4FA; display: flex; flex-direction: column">
+  <div class="top">
+    <a href="ListingsPhone.dc.html" style="color: #fff; text-decoration: none; font-weight: 800; font-size: 15px; min-height: 44px; display: inline-flex; align-items: center">‹ Listings</a>
+    <span style="margin-left: auto; font-size: 13px; color: #DCD6EC; font-weight: 700">Read 07:15 today</span>
+  </div>
+  <div style="padding: 16px; display: flex; flex-direction: column; gap: 12px">
+    <div style="display: flex; gap: 6px; flex-wrap: wrap"><span class="chip" style="background: #F6E3EF; color: #7A1F5C">Amazon listing</span><span class="due">Due in 8h</span></div>
+    <h1 style="margin: 0; font-size: 22px; line-height: 1.25; font-weight: 800">Toddler 3-piece · Dusky Rose</h1>
+    <p style="margin: 0; font-size: 13px; color: #5B5470">ASIN B0[ASIN] · from Listing agent · approver Jon</p>
+
+    <div class="pills" role="group" aria-label="Market">
+      <sc-for list="{{mtabs}}" as="t" hint-placeholder-count="4"><button class="{{t.cls}}" onClick="{{t.pick}}">{{t.label}}</button></sc-for>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
+      <div class="panel" style="padding: 10px 12px"><p style="margin: 0; font-size: 12px; font-weight: 800; color: #5B5470">STATUS</p><p style="margin: 2px 0 0; font-weight: 800; color: #1E6B3A">Active, buyable</p></div>
+      <div class="panel" style="padding: 10px 12px"><p style="margin: 0; font-size: 12px; font-weight: 800; color: #5B5470">DIFFER</p><p style="margin: 2px 0 0; font-weight: 800; color: #8A4B00">4 of 15 fields</p></div>
+    </div>
+    <label class="radio"><input type="checkbox" checked="{{diff}}" onChange="{{toggleDiff}}"> Only fields that differ</label>
+
+    <sc-for list="{{rows}}" as="r" hint-placeholder-count="5">
+      <div class="fcard">
+        <div style="display: flex; justify-content: space-between; gap: 8px; align-items: center"><span style="font-weight: 800; font-size: 15px">{{r.f}}</span><span class="st {{r.stc}}">{{r.st}}</span></div>
+        <sc-if value="{{r.act}}" hint-placeholder-val="{{ true }}">
+          <p class="side">Live on Amazon now</p>
+          <div class="live">{{r.live}}<span style="display: block; font-size: 12px; color: #5B5470; font-weight: 600">{{r.lmeta}}</span></div>
+          <p class="side">Should be live</p>
+          <div class="should">{{r.should}}<span style="display: block; font-size: 12px; color: #5B5470; font-weight: 600">{{r.smeta}}</span></div>
+          <select class="sel" aria-label="Action for {{r.f}}"><option>Send should-be-live to Amazon</option><option>Keep Amazon’s version</option><option>Edit before sending</option></select>
+        </sc-if>
+        <sc-if value="{{r.same}}" hint-placeholder-val="{{ false }}">
+          <p class="same" style="margin: 8px 0 0">{{r.live}}</p>
+        </sc-if>
+      </div>
+    </sc-for>
+
+    <section class="panel">
+      <h2 class="h2">Images</h2>
+      <p class="side" style="margin-top: 0">Live</p>
+      <div class="imgs"><div class="im">1</div><div class="im">2</div><div class="im diff">3 old</div><div class="im">4</div><div class="im">5</div><div class="im gone">–</div><div class="im">7</div></div>
+      <p class="side">Should be live</p>
+      <div class="imgs"><div class="im">1</div><div class="im">2</div><div class="im diff">3 new</div><div class="im">4</div><div class="im">5</div><div class="im diff">6</div><div class="im">7</div></div>
+      <p style="margin: 8px 0 0; font-size: 13px; color: #5B5470">Image 3 is the old size chart; Amazon dropped image 6 on 28 Oct (too small).</p>
+    </section>
+
+    <section class="panel">
+      <details>
+        <summary>Checks on the should-be-live copy</summary>
+        <div class="check" style="border-top: 0"><span class="ok">Pass</span><span>Title 133 of 200, brand first</span></div>
+        <div class="check"><span class="ok">Pass</span><span>Search terms 231 of 249 bytes</span></div>
+        <div class="check"><span class="ok">Pass</span><span>Brand voice</span></div>
+        <div class="check"><span class="warn">Check</span><span>Bullet 2 self-feeding wording: keep it word for word</span></div>
+        <div class="check"><span class="ok">Pass</span><span>Images 2000px, main on white</span></div>
+      </details>
+    </section>
+
+    <section class="panel">
+      <details>
+        <summary>Search words it should win</summary>
+        <p style="margin: 0; font-size: 14px; line-height: 1.7">toddler cutlery · in title ✓<br>kids cutlery · missing live, bullet 1 after fix<br>toddler fork and spoon · moves into the title<br>self feeding cutlery · missing live, bullet 2 after fix</p>
+      </details>
+    </section>
+
+    <section class="panel">
+      <details>
+        <summary>History</summary>
+        <p style="margin: 0; font-size: 14px; line-height: 1.7">Today · 4 fields differ, card raised<br>3 Nov · Amazon shortened bullet 4<br>28 Oct · Amazon removed image 6<br>21 Oct · you approved bullets 1 and 2</p>
+      </details>
+    </section>
+  </div>
+
+  <div style="flex: 1"></div>
+  <div style="background: #fff; border-top: 1px solid #E4E0EE; padding: 12px 16px 16px; box-shadow: 0 -4px 16px rgba(25,14,62,.06); display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
+    <button class="btn btn-p">Send 4 fixes</button>
+    <button class="btn">Send back</button>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":2300}}'>
+class Component extends DCLogic {
+  constructor(p) { super(p); this.state = { m: 'UK', diff: true }; }
+  renderVals() {
+    const s = this.state;
+    const R = [
+      { f: 'Title', live: 'doddl Toddler Cutlery Set, Fork Spoon Knife, Dusky Rose', lmeta: '56 characters', should: 'doddl Toddler Cutlery Set, 3 Piece Fork, Spoon and Knife for Self Feeding, Short Handles for Small Hands, Dusky Rose, 2 to 4 Years', smeta: '133 characters', k: 'dr', st: 'Amazon changed it' },
+      { f: 'Bullet 1', live: 'DESIGNED FOR LITTLE HANDS: short, chunky handles toddlers can grip.', k: 'ok', st: 'Matches' },
+      { f: 'Bullet 2', live: 'SELF FEEDING: [wording from the claims register]', k: 'ok', st: 'Matches' },
+      { f: 'Bullet 3', live: 'THREE PIECES: fork, spoon and a rounded knife.', k: 'ok', st: 'Matches' },
+      { f: 'Bullet 4', live: 'EASY CARE: [care line, cut short]', lmeta: 'Cut short by Amazon on 3 Nov', should: 'EASY CARE: [care line from the product fact sheet]', smeta: '', k: 'dr', st: 'Amazon changed it' },
+      { f: 'Bullet 5', live: 'GIFT READY: comes in a gift box.', k: 'ok', st: 'Matches' },
+      { f: 'Search terms', live: 'kids cutlery toddler fork spoon childrens', lmeta: '41 bytes', should: 'kids cutlery childrens fork spoon knife set toddler eating utensils first cutlery nursery 2 year old 3 year old', smeta: '231 bytes', k: 'new', st: 'We propose a change' },
+      { f: 'Images', live: '6 of 7, image 3 out of date', lmeta: 'See below', should: '7 of 7', smeta: 'See below', k: 'dr', st: 'Amazon changed it' },
+      { f: 'A+ content', live: '5 modules, approved 2 Nov', k: 'ok', st: 'Matches' },
+      { f: 'Price', live: '£[price]', k: 'ok', st: 'Matches' },
+      { f: 'Variations', live: 'Colour: Fresh Green, Dusky Rose', k: 'ok', st: 'Matches' },
+      { f: 'Category', live: 'Baby › Feeding › Cutlery', k: 'ok', st: 'Matches' },
+      { f: 'Age range', live: '2 to 4 years', k: 'ok', st: 'Matches' },
+      { f: 'Description', live: 'Hidden behind A+ content', k: 'ok', st: 'Matches' },
+      { f: 'Safety documents', live: 'On file with Amazon', k: 'ok', st: 'Matches' }
+    ];
+    const cls = { ok: 's-ok', dr: 's-dr', new: 's-new' };
+    const rows = R.filter(r => !s.diff || r.k !== 'ok').map(r => ({ ...r, lmeta: r.lmeta || '', smeta: r.smeta || '', should: r.should || '', stc: cls[r.k], act: r.k !== 'ok', same: r.k === 'ok' }));
+    const mtabs = ['UK', 'US', 'Germany', 'France'].map(m => ({ label: 'Amazon ' + m, cls: s.m === m ? 'pill on' : 'pill', pick: () => this.setState({ m }) }));
+    return { rows, mtabs, diff: s.diff, toggleDiff: () => this.setState({ diff: !s.diff }) };
+  }
+}
+</script>
+</body>
+</html>

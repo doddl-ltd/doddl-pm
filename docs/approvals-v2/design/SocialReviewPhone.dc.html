@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Social week pack, phone</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&amp;display=swap">
+<style>
+body{margin:0;font-family:'Nunito',system-ui,sans-serif;color:#190e3e;background:#F6F4FA}
+a{color:#3D157D}a:hover{color:#190e3e}
+.top{background:#190e3e;color:#fff;padding:0 16px;min-height:56px;display:flex;align-items:center;gap:8px}
+.chip{display:inline-flex;align-items:center;font-size:12px;font-weight:800;border-radius:999px;padding:3px 10px;background:#EEE9F8;color:#3D157D;white-space:nowrap}
+.due{display:inline-flex;font-size:12px;font-weight:800;border-radius:999px;padding:3px 10px;white-space:nowrap;background:#E2F2E7;color:#1E6B3A}
+.panel{background:#fff;border:1px solid #E4E0EE;border-radius:14px;padding:14px}
+.h2{font-size:15px;font-weight:800;margin:0 0 8px}
+.pills{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px}
+.pill{flex:none;min-height:52px;min-width:48px;padding:0 10px;border-radius:12px;border:1px solid #CFC8E0;background:#fff;font:800 13px 'Nunito',sans-serif;color:#190e3e;cursor:pointer;line-height:1.15}
+.pill.on{background:#190e3e;border-color:#190e3e;color:#fff}
+.post{display:flex;gap:10px;align-items:center;width:100%;text-align:left;border:1px solid #E4E0EE;border-radius:12px;padding:8px;background:#fff;cursor:pointer;font:inherit;color:#190e3e;min-height:64px;box-sizing:border-box}
+.post.sel{border-color:#3D157D;box-shadow:0 0 0 2px #C9B6F2}
+.pth{width:40px;height:48px;flex:none;border-radius:6px;background:repeating-linear-gradient(135deg,#ECE8F4 0 6px,#F4F1F9 6px 12px)}
+.frame{width:250px;margin:0 auto;border:8px solid #190e3e;border-radius:28px;overflow:hidden;background:#fff;box-sizing:border-box}
+.ph{background:repeating-linear-gradient(135deg,#ECE8F4 0 8px,#F4F1F9 8px 16px);display:flex;align-items:center;justify-content:center;color:#5B5470;font-size:12px;font-weight:800;text-align:center}
+.mini{font-size:12px;line-height:1.4}
+.check{display:flex;gap:8px;font-size:14px;line-height:1.4;padding:6px 0;border-top:1px solid #F1EEF6}
+.ok{color:#1E6B3A;font-weight:800;flex:none;width:50px}
+.warn{color:#8A4B00;font-weight:800;flex:none;width:50px}
+.input{font:600 15px 'Nunito',sans-serif;color:#190e3e;border:1px solid #CFC8E0;border-radius:10px;padding:10px 12px;box-sizing:border-box;width:100%}
+.radio{display:flex;align-items:center;gap:10px;min-height:48px;font-size:16px;font-weight:800}
+.radio input{width:22px;height:22px;accent-color:#3D157D}
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:0 12px;border-radius:12px;font:800 15px 'Nunito',sans-serif;border:1px solid #CFC8E0;background:#fff;color:#190e3e;cursor:pointer;box-sizing:border-box;width:100%}
+.btn-p{background:#3D157D;border-color:#3D157D;color:#fff}
+details summary{font-size:15px;font-weight:800;min-height:44px;display:flex;align-items:center;cursor:pointer}
+</style>
+</helmet>
+<div style="width: 390px; min-height: 2050px; background: #F6F4FA; display: flex; flex-direction: column">
+  <div class="top">
+    <a href="StudioPhone.dc.html" style="color: #fff; text-decoration: none; font-weight: 800; font-size: 15px; min-height: 44px; display: inline-flex; align-items: center">‹ Studio</a>
+    <span style="margin-left: auto; font-size: 13px; color: #DCD6EC; font-weight: 700">{{ticked}} of 9 ticked</span>
+  </div>
+  <div style="padding: 16px; display: flex; flex-direction: column; gap: 12px">
+    <div style="display: flex; gap: 6px; flex-wrap: wrap"><span class="chip" style="background: #E2F2E7; color: #1E6B3A">Organic social</span><span class="due">Due in 21h</span></div>
+    <h1 style="margin: 0; font-size: 22px; line-height: 1.25; font-weight: 800">Social week pack · 9 to 15 Nov</h1>
+    <p style="margin: 0; font-size: 13px; color: #5B5470">From Social agent · approver Laura, backup Jon</p>
+
+    <div class="pills" role="group" aria-label="Day">
+      <sc-for list="{{days}}" as="d" hint-placeholder-count="7"><button class="{{d.cls}}" onClick="{{d.pick}}">{{d.short}}<br><span style="font-size: 11px; opacity: .8">{{d.n}}</span></button></sc-for>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 8px">
+      <sc-for list="{{dayPosts}}" as="p" hint-placeholder-count="2">
+        <button class="{{p.cls}}" onClick="{{p.pick}}"><span class="pth"></span><span style="flex: 1; min-width: 0"><span style="display: block; font-size: 14px; font-weight: 800">{{p.title}}</span><span style="display: block; font-size: 12px; color: #5B5470">{{p.chan}} · {{p.time}} · {{p.pillar}}</span></span><span style="font-size: 12px; font-weight: 800; color: {{p.tc}}">{{p.tick}}</span></button>
+      </sc-for>
+      <sc-if value="{{noPosts}}" hint-placeholder-val="{{ false }}"><p style="margin: 0; font-size: 14px; color: #5B5470">Nothing planned this day.</p></sc-if>
+    </div>
+
+    <section class="panel">
+      <div class="frame">
+        <div style="display: flex; align-items: center; gap: 8px; padding: 8px 10px"><span style="width: 22px; height: 22px; border-radius: 50%; background: #3D157D"></span><span class="mini"><b>doddl</b></span></div>
+        <div class="ph" style="height: {{p.h}}">{{p.img}}<br>{{p.fmt}}</div>
+        <p class="mini" style="margin: 0; padding: 8px 10px 12px"><b>doddl</b> {{p.caption}}</p>
+      </div>
+      <p style="margin: 10px 0 0; text-align: center; font-size: 13px; font-weight: 800; color: #5B5470">{{p.chan}} · {{p.dayname}} {{p.time}}</p>
+      <label class="radio" style="justify-content: center"><input type="checkbox" checked="{{p.ticked}}" onChange="{{p.toggle}}"> Tick: schedule it</label>
+    </section>
+
+    <section class="panel">
+      <details>
+        <summary>Edit caption, tags, alt text</summary>
+        <label for="cap" style="font-size: 13px; font-weight: 800">Caption</label>
+        <textarea id="cap" class="input" rows="4" style="margin-top: 6px">{{p.caption}}</textarea>
+        <label for="tg" style="display: block; font-size: 13px; font-weight: 800; margin-top: 10px">Hashtags</label>
+        <input id="tg" class="input" style="margin-top: 6px" value="{{p.tags}}">
+        <label for="alt" style="display: block; font-size: 13px; font-weight: 800; margin-top: 10px">Alt text</label>
+        <input id="alt" class="input" style="margin-top: 6px" value="{{p.alt}}">
+      </details>
+    </section>
+
+    <section class="panel">
+      <h2 class="h2">Checks</h2>
+      <sc-for list="{{p.checks}}" as="c" hint-placeholder-count="3"><div class="check"><span class="{{c.cls}}">{{c.res}}</span><span>{{c.text}}</span></div></sc-for>
+    </section>
+
+    <section class="panel">
+      <h2 class="h2">Balance this week</h2>
+      <p style="margin: 0; font-size: 14px; line-height: 1.6">Weaning 2 · Toddler 2 · Gift 2 · Proof 1 · Brand 1 · Community 1 · <b style="color: #8A4B00">SEN 0</b></p>
+      <p style="margin: 6px 0 0; font-size: 13px; color: #5B5470">SEN week adds three posts on 16 Nov.</p>
+    </section>
+  </div>
+
+  <div style="flex: 1"></div>
+  <div style="background: #fff; border-top: 1px solid #E4E0EE; padding: 12px 16px 16px; box-shadow: 0 -4px 16px rgba(25,14,62,.06); display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
+    <button class="btn" onClick="{{tickAll}}">Tick all 9</button>
+    <button class="btn btn-p">Schedule {{ticked}}</button>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":2050}}'>
+class Component extends DCLogic {
+  constructor(p) { super(p); this.state = { day: 1, sel: 1, ticks: [true, true, true, false, true, true, false, true, false] }; }
+  renderVals() {
+    const s = this.state;
+    const ok = t => ({ cls: 'ok', res: 'Pass', text: t });
+    const warn = t => ({ cls: 'warn', res: 'Check', text: t });
+    const D = ['Mon 9', 'Tue 10', 'Wed 11', 'Thu 12', 'Fri 13', 'Sat 14', 'Sun 15'];
+    const P = [
+      { d: 0, chan: 'Reels', time: '18:30', title: 'First spoon, first try', pillar: 'Weaning', fmt: '9:16', h: '380px', img: 'Video from screen 10', caption: 'First spoon, first try. Made for little hands learning to feed themselves.', tags: '#weaning #firstfoods', alt: 'A baby reaching for a green spoon', checks: [ok('Brand voice'), ok('Video approved'), ok('Model release on file')] },
+      { d: 1, chan: 'Instagram feed', time: '12:00', title: 'Lunch at grandma’s', pillar: 'Gift', fmt: '4:5', h: '292px', img: 'Grandparent and toddler', caption: 'Their own set for your house. Lunch at grandma’s just got easier.', tags: '#grandparents #toddlermeals', alt: 'A grandmother and toddler sharing lunch', checks: [ok('Brand voice'), ok('Picture cleared for Social'), ok('Same story as this week’s ads')] },
+      { d: 1, chan: 'TikTok', time: '19:00', title: 'What is in the lunchbox', pillar: 'Toddler', fmt: '9:16', h: '380px', img: 'Lunchbox build', caption: 'Building a toddler lunchbox in 20 seconds.', tags: '#toddlerlunch', alt: 'Hands packing a lunchbox', checks: [ok('Brand voice'), warn('Food wording checked against the claims register'), ok('Sound from the commercial library')] },
+      { d: 2, chan: 'Stories', time: '08:00', title: 'Poll: which colour?', pillar: 'Community', fmt: '9:16', h: '380px', img: 'Both colours side by side', caption: 'Fresh Green or Dusky Rose?', tags: '', alt: 'Two cutlery sets', checks: [ok('Brand voice'), warn('Poll sticker added by Laura in the app'), ok('Picture owned')] },
+      { d: 3, chan: 'Instagram feed', time: '12:00', title: 'Parent review of the week', pillar: 'Proof', fmt: '1:1', h: '234px', img: 'Review card', caption: '“[review quote]” Thank you for sharing.', tags: '#doddlreview', alt: 'A review quote on an indigo card', checks: [ok('Review permission on file'), ok('Brand template'), ok('No claims beyond the reviewer’s words')] },
+      { d: 4, chan: 'Reels', time: '18:30', title: 'Three ways to serve sweet potato', pillar: 'Weaning', fmt: '9:16', h: '380px', img: 'Recipe clip', caption: 'Three ways to serve sweet potato for 6 to 12 months. Recipe in the doddl app.', tags: '#weaningrecipes', alt: 'Sweet potato fingers on a plate', checks: [ok('Recipe approved in the app'), ok('Age stage matches'), ok('Footage owned')] },
+      { d: 5, chan: 'Facebook', time: '10:00', title: 'Christmas gift guide', pillar: 'Gift', fmt: '1:1', h: '234px', img: 'Gift flat lay', caption: 'Christmas gifts for little ones learning to feed themselves, from £[price].', tags: '', alt: 'Three sets wrapped as gifts', checks: [ok('Brand voice'), warn('Price must match the site on the day'), ok('Link works')] },
+      { d: 6, chan: 'Instagram feed', time: '19:00', title: 'Behind the scenes: packing day', pillar: 'Brand', fmt: 'Carousel', h: '292px', img: 'Packing, 5 slides', caption: 'Packing day at doddl.', tags: '#smallbusiness', alt: 'A team member packing orders', checks: [ok('Brand voice'), ok('Team consent on file'), ok('Pictures owned')] },
+      { d: 6, chan: 'TikTok', time: '17:00', title: 'Toddler tries the 3-piece', pillar: 'Toddler', fmt: '9:16', h: '380px', img: 'Creator clip', caption: 'Big kid cutlery for big kid dinners.', tags: '#toddlerdinner', alt: 'A toddler eating with a pink fork', checks: [ok('Creator rights cover organic and paid'), ok('Model release from the creator'), ok('No claims')] }
+    ];
+    const days = D.map((d, i) => ({ short: d, n: String(P.filter(p => p.d === i).length) + ' posts', cls: s.day === i ? 'pill on' : 'pill', pick: () => { const first = P.findIndex(p => p.d === i); this.setState({ day: i, sel: first >= 0 ? first : s.sel }); } }));
+    const dayPosts = P.map((p, i) => ({ ...p, i })).filter(p => p.d === s.day).map(p => ({ title: p.title, chan: p.chan, time: p.time, pillar: p.pillar, cls: s.sel === p.i ? 'post sel' : 'post', tick: s.ticks[p.i] ? 'Ticked' : 'Not yet', tc: s.ticks[p.i] ? '#1E6B3A' : '#8A4B00', pick: () => this.setState({ sel: p.i }) }));
+    const cur = P[s.sel];
+    const p = { ...cur, dayname: D[cur.d], ticked: s.ticks[s.sel], toggle: () => { const t = s.ticks.slice(); t[s.sel] = !t[s.sel]; this.setState({ ticks: t }); } };
+    return { days, dayPosts, noPosts: dayPosts.length === 0, p, ticked: String(s.ticks.filter(Boolean).length), tickAll: () => this.setState({ ticks: P.map(() => true) }) };
+  }
+}
+</script>
+</body>
+</html>

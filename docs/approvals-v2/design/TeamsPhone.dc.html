@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Teams card, phone</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&amp;display=swap">
+<style>
+body{margin:0;font-family:'Nunito',system-ui,sans-serif;color:#190e3e;background:#EDEBF2}
+a{color:#3D157D}a:hover{color:#190e3e}
+.hdr{background:#fff;border-bottom:1px solid #DDD8E8;padding:0 16px;min-height:56px;display:flex;align-items:center;gap:10px}
+.app{width:32px;height:32px;border-radius:9px;background:#3D157D;color:#fff;font-weight:800;font-size:11px;display:flex;align-items:center;justify-content:center;flex:none}
+.meta{font-size:12px;color:#4A4458;margin:0 0 6px}
+.card{background:#fff;border:1px solid #DDD8E8;border-radius:12px;overflow:hidden}
+.ch{background:#190e3e;color:#fff;padding:9px 14px;font-size:12px;font-weight:800;display:flex;justify-content:space-between;gap:8px}
+.cb{padding:12px 14px;display:flex;flex-direction:column;gap:8px;font-size:14px;line-height:1.45}
+.acts{display:flex;flex-direction:column;gap:8px;padding:12px 14px;border-top:1px solid #EFECF5}
+.btn{display:flex;align-items:center;justify-content:center;min-height:46px;border-radius:10px;font:800 15px 'Nunito',sans-serif;border:1px solid #CFC8E0;background:#fff;color:#190e3e;text-decoration:none;cursor:pointer;width:100%}
+.btn-p{background:#3D157D;border-color:#3D157D;color:#fff}
+.due{display:inline-flex;font-size:12px;font-weight:800;border-radius:999px;padding:2px 9px;white-space:nowrap}
+.due-ok{background:#E2F2E7;color:#1E6B3A}.due-warn{background:#FBE9D2;color:#8A4B00}.due-bad{background:#F8E1E1;color:#A12B2B}
+.row{display:flex;justify-content:space-between;gap:8px;align-items:flex-start;padding:6px 0;border-top:1px solid #EFECF5;font-size:13px}
+.input{font:600 15px 'Nunito',sans-serif;border:1px solid #CFC8E0;border-radius:10px;padding:10px 12px;box-sizing:border-box;width:100%}
+</style>
+</helmet>
+<div style="width: 390px; min-height: 1700px; background: #EDEBF2">
+  <div class="hdr"><span class="app">PM</span><b style="font-size: 16px">doddl PM</b><span style="margin-left: auto; font-size: 12px; color: #5B5470">App in Teams</span></div>
+  <div style="padding: 14px; display: flex; flex-direction: column; gap: 18px">
+    <div>
+      <p class="meta"><b>doddl PM</b> · Wed 08:00</p>
+      <div class="card">
+        <div class="ch"><span>Good morning, Jon</span><span>7 waiting</span></div>
+        <div class="cb">
+          <p style="margin: 0"><b>1 overdue and escalated to you.</b> Oldest first:</p>
+          <div>
+            <div class="row"><span><b>Email:</b> Black Friday early access</span><span class="due due-bad">25h left</span></div>
+            <div class="row"><span><b>Listing:</b> cutlery set, Dusky Rose</span><span class="due due-warn">9h</span></div>
+            <div class="row"><span><b>Website:</b> Black Friday hero</span><span class="due due-ok">15h</span></div>
+            <div class="row"><span>And 4 more, incl. the ads pack (12)</span><span class="due due-ok">tomorrow</span></div>
+          </div>
+        </div>
+        <div class="acts"><a class="btn btn-p" href="InboxPhone.dc.html">Open my approvals</a></div>
+      </div>
+    </div>
+
+    <div>
+      <p class="meta"><b>doddl PM</b> · Wed 09:00 · new pack</p>
+      <div class="card">
+        <div class="ch"><span>Amazon ads pack</span><span>Answer by Thu 09:00</span></div>
+        <div class="cb">
+          <p style="margin: 0; font-size: 16px; font-weight: 800">12 changes for the week of 9 Nov</p>
+          <p style="margin: 0">4 budgets, 5 bids, 3 sets of negatives. <b>UK +£21, US +$35</b> a week if all run.</p>
+          <p style="margin: 0; color: #4A4458">Every line within its own limit; 2 are at the limit. No freeze.</p>
+        </div>
+        <sc-if value="{{idle}}" hint-placeholder-val="{{ true }}">
+          <div class="acts">
+            <button class="btn btn-p" onClick="{{approve}}">Approve all 12</button>
+            <a class="btn" href="BatchPhone.dc.html">Open to tick line by line</a>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px"><button class="btn" onClick="{{back}}">Send back</button><button class="btn" onClick="{{reject}}">Reject all</button></div>
+          </div>
+        </sc-if>
+        <sc-if value="{{commenting}}" hint-placeholder-val="{{ false }}">
+          <div class="acts">
+            <label style="font-size: 14px; font-weight: 800" for="c">{{prompt}}</label>
+            <textarea class="input" id="c" rows="3"></textarea>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px"><button class="btn btn-p" onClick="{{finish}}">Send</button><button class="btn" onClick="{{reset}}">Cancel</button></div>
+          </div>
+        </sc-if>
+        <sc-if value="{{approved}}" hint-placeholder-val="{{ false }}">
+          <div class="acts"><p style="margin: 0; background: #E2F2E7; color: #1E6B3A; border-radius: 10px; padding: 10px 12px; font-weight: 800">All 12 approved. Each line runs once within 5 minutes.</p><button class="btn" onClick="{{reset}}">Reset the demo</button></div>
+        </sc-if>
+        <sc-if value="{{finished}}" hint-placeholder-val="{{ false }}">
+          <div class="acts"><p style="margin: 0; background: #F0EEF4; border-radius: 10px; padding: 10px 12px; font-weight: 800">Recorded in doddl PM. Nothing has run.</p><button class="btn" onClick="{{reset}}">Reset the demo</button></div>
+        </sc-if>
+      </div>
+    </div>
+
+    <div>
+      <p class="meta"><b>doddl PM</b> · Tue 17:30 · approval with a preview</p>
+      <div class="card">
+        <div class="ch"><span>Amazon listings</span><span>Answer by Wed 17:30</span></div>
+        <div class="cb">
+          <div style="height: 120px; border-radius: 8px; background: repeating-linear-gradient(135deg,#ECE8F4 0 8px,#F4F1F9 8px 16px); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; color: #5B5470">Preview image of the listing</div>
+          <p style="margin: 0; font-size: 16px; font-weight: 800">New title and bullets: toddler cutlery set, Dusky Rose</p>
+        </div>
+        <div class="acts"><a class="btn btn-p" href="CardPhone.dc.html">See the preview and decide</a></div>
+      </div>
+    </div>
+
+    <div>
+      <p class="meta"><b>doddl PM</b> · Wed 09:05</p>
+      <div class="card">
+        <div class="ch" style="background: #A12B2B"><span>Escalated to you · 48 hours</span></div>
+        <div class="cb"><p style="margin: 0">Laura has not answered <b>Black Friday early access email</b>. You are the backup. It expires in 24 hours.</p></div>
+        <div class="acts"><a class="btn btn-p" href="Card.dc.html">Open it</a></div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1700}}'>
+class Component extends DCLogic {
+  constructor(p) { super(p); this.state = { s: 'idle' }; }
+  renderVals() {
+    const s = this.state.s;
+    return {
+      idle: s === 'idle', commenting: s === 'back' || s === 'reject', approved: s === 'approved', finished: s === 'done',
+      prompt: s === 'reject' ? 'Why reject? (required)' : 'What should change?',
+      approve: () => this.setState({ s: 'approved' }), back: () => this.setState({ s: 'back' }), reject: () => this.setState({ s: 'reject' }),
+      finish: () => this.setState({ s: 'done' }), reset: () => this.setState({ s: 'idle' })
+    };
+  }
+}
+</script>
+</body>
+</html>

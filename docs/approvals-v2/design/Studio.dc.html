@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Creative studio</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&amp;display=swap">
+<style>
+body{margin:0;font-family:'Nunito',system-ui,sans-serif;color:#190e3e;background:#F6F4FA}
+a{color:#3D157D}a:hover{color:#190e3e}
+.shell{display:flex;flex-wrap:wrap;min-height:1500px;background:#F6F4FA}
+.side{flex:1 1 220px;max-width:248px;background:#190e3e;color:#fff;padding:20px 14px;box-sizing:border-box;display:flex;flex-direction:column;gap:2px}
+.brand{font-weight:800;font-size:21px;padding:4px 12px 18px}
+.brand span{color:#C9B6F2}
+.nav{display:flex;align-items:center;gap:10px;padding:0 12px;min-height:44px;border-radius:10px;color:#DCD6EC;text-decoration:none;font-weight:700;font-size:14px}
+.nav:hover{background:#2B2058;color:#fff}
+.nav.on{background:#3D157D;color:#fff}
+.navlbl{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:#ABA3C8;padding:16px 12px 4px;font-weight:800}
+.badge{margin-left:auto;background:#fff;color:#3D157D;border-radius:999px;font-size:12px;font-weight:800;padding:1px 8px}
+.main{flex:999 1 640px;min-width:0;padding:28px 36px 56px;box-sizing:border-box}
+.panel{background:#fff;border:1px solid #E4E0EE;border-radius:14px}
+.lbl{font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#5B5470;margin:0}
+.chip{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:800;border-radius:999px;padding:3px 10px;background:#EEE9F8;color:#3D157D;white-space:nowrap}
+.fchip{display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:0 14px;border-radius:999px;border:1px solid #CFC8E0;background:#fff;font:800 14px 'Nunito',sans-serif;color:#190e3e;cursor:pointer}
+.fchip.on{background:#190e3e;border-color:#190e3e;color:#fff}
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 18px;border-radius:10px;font:800 14px 'Nunito',sans-serif;border:1px solid #CFC8E0;background:#fff;color:#190e3e;cursor:pointer;text-decoration:none;box-sizing:border-box}
+.btn-p{background:#3D157D;border-color:#3D157D;color:#fff}
+.btn-p:hover{color:#fff;background:#190e3e}
+.board{overflow-x:auto;padding-bottom:8px}
+.cols{display:grid;grid-template-columns:repeat(6,minmax(214px,1fr));gap:12px;min-width:1340px}
+.col{background:#EFECF5;border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:10px}
+.card{display:block;background:#fff;border:1px solid #E4E0EE;border-radius:12px;padding:10px;text-decoration:none;color:#190e3e}
+.card:hover{border-color:#3D157D;color:#190e3e}
+.thumb{border-radius:8px;background:repeating-linear-gradient(135deg,#ECE8F4 0 10px,#F4F1F9 10px 20px);display:flex;align-items:center;justify-content:center;color:#5B5470;font-size:11px;font-weight:800;height:74px}
+.tw{overflow-x:auto}
+.tbl{width:100%;min-width:1080px;border-collapse:collapse;font-size:14px}
+.tbl th{text-align:left;font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#5B5470;padding:10px 12px;background:#F6F4FA}
+.tbl td{padding:12px;border-top:1px solid #EFECF5;vertical-align:top;line-height:1.45}
+.tbl td:first-child{font-weight:800}
+.where{display:inline-block;background:#3D157D;color:#fff;border-radius:8px;padding:2px 8px;font-size:13px;font-weight:800;text-decoration:none}
+.where:hover{background:#190e3e;color:#fff}
+</style>
+</helmet>
+<div class="shell">
+  <nav class="side" aria-label="doddl PM">
+    <div class="brand">doddl <span>PM</span></div>
+    <a class="nav" href="#">My work</a>
+    <a class="nav" href="#">Triage</a>
+    <a class="nav" href="#">Projects</a>
+    <div class="navlbl">doddl HQ</div>
+    <a class="nav" href="Main.dc.html">Approvals <span class="badge">7</span></a>
+    <a class="nav on" href="Studio.dc.html">Creative studio</a>
+    <a class="nav" href="Calendar.dc.html">Content calendar</a>
+    <a class="nav" href="Listings.dc.html">Amazon listings</a>
+    <a class="nav" href="Idea.dc.html">Give HQ an idea</a>
+    <div class="navlbl">Settings</div>
+    <a class="nav" href="Approvers.dc.html">Who approves what</a>
+  </nav>
+
+  <main class="main">
+    <div style="display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px; justify-content: space-between">
+      <div>
+        <p class="lbl" style="margin: 0 0 6px">Every ad, video, post, email and listing HQ is making</p>
+        <h1 style="margin: 0; font-size: 30px; font-weight: 800; letter-spacing: -0.01em">Creative studio</h1>
+        <p style="margin: 6px 0 0; color: #5B5470; font-size: 15px; max-width: 760px">One board from brief to results. Each card opens the review screen for its type, with a real preview of how it will look where it runs.</p>
+      </div>
+      <div style="display: flex; gap: 10px; flex-wrap: wrap">
+        <a class="btn" href="Calendar.dc.html">Calendar view</a>
+        <a class="btn btn-p" href="Idea.dc.html">Brief something new</a>
+      </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; margin-top: 22px">
+      <div class="panel" style="padding: 14px 16px"><p class="lbl">Ready for you</p><p style="margin: 4px 0 0; font-size: 26px; font-weight: 800; color: #3D157D">6</p><p style="margin: 2px 0 0; font-size: 13px; color: #5B5470">2 ads, 1 video, 1 email, 1 social pack, 1 listing</p></div>
+      <div class="panel" style="padding: 14px 16px"><p class="lbl">Stuck</p><p style="margin: 4px 0 0; font-size: 26px; font-weight: 800; color: #A12B2B">2</p><p style="margin: 2px 0 0; font-size: 13px; color: #5B5470">Longer than its stage allows</p></div>
+      <div class="panel" style="padding: 14px 16px"><p class="lbl">Going live this week</p><p style="margin: 4px 0 0; font-size: 26px; font-weight: 800">11</p><p style="margin: 2px 0 0; font-size: 13px; color: #5B5470">Approved and scheduled</p></div>
+      <div class="panel" style="padding: 14px 16px"><p class="lbl">Live, reporting</p><p style="margin: 4px 0 0; font-size: 26px; font-weight: 800">9</p><p style="margin: 2px 0 0; font-size: 13px; color: #5B5470">Readouts at 3, 7 and 14 days</p></div>
+      <div class="panel" style="padding: 14px 16px"><p class="lbl">Listings drifting</p><p style="margin: 4px 0 0; font-size: 26px; font-weight: 800; color: #8A4B00">4</p><p style="margin: 2px 0 0; font-size: 13px; color: #5B5470"><a href="Listings.dc.html">Live is not what should be live</a></p></div>
+    </div>
+
+    <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 24px; align-items: center" role="group" aria-label="Filter by type">
+      <sc-for list="{{filters}}" as="f" hint-placeholder-count="8">
+        <button class="{{f.cls}}" onClick="{{f.pick}}">{{f.label}} <span style="opacity: 0.75">{{f.n}}</span></button>
+      </sc-for>
+    </div>
+    <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; font-size: 14px">
+      <label style="display: flex; align-items: center; gap: 8px; font-weight: 800">Market
+        <select style="font: 700 14px 'Nunito', sans-serif; min-height: 40px; border: 1px solid #CFC8E0; border-radius: 10px; padding: 0 10px; background: #fff; color: #190e3e"><option>All markets</option><option>UK</option><option>US</option><option>Germany</option><option>France</option></select>
+      </label>
+      <label style="display: flex; align-items: center; gap: 8px; font-weight: 800">Approver
+        <select style="font: 700 14px 'Nunito', sans-serif; min-height: 40px; border: 1px solid #CFC8E0; border-radius: 10px; padding: 0 10px; background: #fff; color: #190e3e"><option>Anyone</option><option>Jon</option><option>Laura</option><option>Chris</option></select>
+      </label>
+    </div>
+
+    <div class="board" style="margin-top: 16px">
+      <div class="cols">
+        <sc-for list="{{cols}}" as="c" hint-placeholder-count="6">
+          <section class="col" aria-label="{{c.name}}">
+            <div>
+              <div style="display: flex; align-items: center; gap: 8px"><h2 style="margin: 0; font-size: 15px; font-weight: 800">{{c.name}}</h2><span class="chip" style="background: #fff">{{c.n}}</span></div>
+              <p style="margin: 2px 0 0; font-size: 12px; color: #5B5470">{{c.sub}}</p>
+            </div>
+            <sc-for list="{{c.cards}}" as="k" hint-placeholder-count="3">
+              <a class="card" href="{{k.href}}">
+                <div class="thumb" style="height: {{k.th}}">{{k.fmt}}</div>
+                <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px">
+                  <span class="chip" style="background: {{k.bg}}; color: {{k.fg}}">{{k.type}}</span>
+                  <span class="chip" style="background: #F0EEF4; color: #4A4458">{{k.mkt}}</span>
+                </div>
+                <p style="margin: 6px 0 2px; font-size: 14px; font-weight: 800; line-height: 1.3">{{k.title}}</p>
+                <p style="margin: 0; font-size: 12px; color: #5B5470">{{k.who}}</p>
+                <p style="margin: 6px 0 0; font-size: 12px; font-weight: 800; color: {{k.stc}}">{{k.status}}</p>
+              </a>
+            </sc-for>
+          </section>
+        </sc-for>
+      </div>
+    </div>
+
+    <section class="panel" style="margin-top: 26px; padding: 18px 20px">
+      <h2 style="margin: 0; font-size: 18px; font-weight: 800">Stuck: longer than the stage allows</h2>
+      <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 12px">
+        <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap; font-size: 14px"><span class="chip" style="background: #F8E1E1; color: #A12B2B">Waiting 3 days</span><b>Grandparents gift video</b><span style="color: #5B5470">No approved footage tagged Gift in the Media sort yet, so the editor cannot start. Fix: Laura approves 6+ Gift clips, or swap to the brand library.</span></div>
+        <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap; font-size: 14px"><span class="chip" style="background: #F8E1E1; color: #A12B2B">23h overdue</span><b>December content calendar</b><span style="color: #5B5470">With Laura. Reminder sent 09:00. Goes to Jon as backup at 48h.</span></div>
+      </div>
+    </section>
+
+    <section style="margin-top: 26px">
+      <h2 style="margin: 0; font-size: 20px; font-weight: 800">Where each type is made, checked and approved</h2>
+      <p style="margin: 4px 0 12px; color: #5B5470; font-size: 14px">Nothing goes live without a yes on its review screen. Agents never publish straight to a channel.</p>
+      <div class="panel tw">
+        <table class="tbl">
+          <thead><tr><th>Type</th><th>Made by</th><th>Checked before you see it</th><th>You approve on</th><th>Approver · backup</th><th>Goes live by</th><th>Results come back</th></tr></thead>
+          <tbody>
+            <tr><td>Meta and Instagram ads</td><td>Paid Media agent writes copy; image from 14 Media or a new design</td><td>Brand voice, claims register, image rights and channel, crops for every placement, landing page and price</td><td><a class="where" href="AdReview.dc.html">Ad review</a></td><td>Jon · Chris</td><td>Built paused in Ads Manager, switched on after your yes</td><td>On the card at 3, 7 and 14 days</td></tr>
+            <tr><td>TikTok ads</td><td>Paid Media agent</td><td>As above plus TikTok safe zones and sound licence</td><td><a class="where" href="AdReview.dc.html">Ad review</a></td><td>Jon · Chris</td><td>Built paused in TikTok Ads</td><td>3, 7 and 14 days</td></tr>
+            <tr><td>Videos for ads</td><td>Creative agent writes the script and cut list; Laura or an editor cuts it</td><td>Hook in 2 seconds, captions, safe zones, music licence, model release for every child</td><td><a class="where" href="VideoReview.dc.html">Video review</a></td><td>Laura, then Jon for paid</td><td>Into the Meta and TikTok libraries, then used by ads</td><td>Hook rate and hold rate per ad</td></tr>
+            <tr><td>Organic social posts</td><td>Social agent, weekly pack</td><td>Brand voice, claims, pillar balance, image rights</td><td><a class="where" href="SocialReview.dc.html">Social week pack</a></td><td>Laura · Jon</td><td>Scheduled in the social scheduler</td><td>Reach and saves in Monday’s note</td></tr>
+            <tr><td>Comment and DM replies</td><td>Community Manager, daily</td><td>Tone of voice; complaints and safety go to their own card</td><td><a class="where" href="Batch.dc.html">Daily replies pack</a></td><td>Laura · Jon</td><td>Posted by the agent after the tick</td><td>Response time in the weekly note</td></tr>
+            <tr><td>Emails (campaigns)</td><td>CRM agent builds a draft in Klaviyo</td><td>Brand, claims, every link and UTM, discount code live, inbox and dark-mode render</td><td><a class="where" href="EmailReview.dc.html">Email review</a></td><td>Laura · Jon</td><td>Scheduled in Klaviyo after your yes</td><td>Opens, clicks, revenue at 24 and 72 hours</td></tr>
+            <tr><td>Email flows</td><td>CRM agent</td><td>As above plus the flow trigger and timing</td><td><a class="where" href="EmailReview.dc.html">Email review, flow tab</a></td><td>Laura · Jon</td><td>Flow message set live in Klaviyo</td><td>Weekly flow report</td></tr>
+            <tr><td>Amazon listings</td><td>Listing agent from the product fact sheet</td><td>Amazon style rules, character and byte limits, claims, brand</td><td><a class="where" href="ListingDiff.dc.html">Live vs should be live</a></td><td>Jon · Laura</td><td>Sent through the Amazon listings API</td><td>Live check 24 hours later, then daily</td></tr>
+            <tr><td>Amazon ads creative</td><td>Amazon Ads agent (Sponsored Brands, video)</td><td>Amazon ad policy, store page, image rights</td><td><a class="where" href="AdReview.dc.html">Ad review, Amazon tab</a></td><td>Jon · Chris</td><td>Submitted to Amazon moderation</td><td>Weekly Amazon ads pack</td></tr>
+            <tr><td>Website changes</td><td>Website agent on the preview theme</td><td>Brand, links, mobile layout</td><td><a class="where" href="Card.dc.html">Approval card with preview link</a></td><td>Jon · Laura</td><td>Published by Jon in Shopify</td><td>UX report on the 2nd</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1500}}'>
+class Component extends DCLogic {
+  constructor(p) { super(p); this.state = { f: 'all' }; }
+  renderVals() {
+    const T = {
+      ad: { type: 'Paid ad', bg: '#EEE9F8', fg: '#3D157D', href: 'AdReview.dc.html' },
+      vid: { type: 'Ad video', bg: '#FBE9D2', fg: '#8A4B00', href: 'VideoReview.dc.html' },
+      soc: { type: 'Social', bg: '#E2F2E7', fg: '#1E6B3A', href: 'SocialReview.dc.html' },
+      em: { type: 'Email', bg: '#E1ECF8', fg: '#1D4E89', href: 'EmailReview.dc.html' },
+      lst: { type: 'Amazon listing', bg: '#F6E3EF', fg: '#7A1F5C', href: 'ListingDiff.dc.html' },
+      aad: { type: 'Amazon ads', bg: '#EEECF2', fg: '#4A4458', href: 'Batch.dc.html' }
+    };
+    const raw = [
+      ['brief', 'vid', 'Grandparents gift 15s, from the brand library', 'UK', 'Creative agent · brief sent Mon', 'Waiting for footage', '#A12B2B', '9:16 · 4:5', '96px'],
+      ['brief', 'em', 'Christmas last order dates', 'UK · US', 'CRM agent · from the trading calendar', 'Draft due Fri', '#5B5470', 'Email', '74px'],
+      ['brief', 'soc', 'SEN week: 3 posts from parent stories', 'UK', 'Social agent · idea from Laura', 'Draft due Thu', '#5B5470', '1:1 · Reel', '74px'],
+      ['make', 'ad', 'Kit for grandparents 45+, 3 statics', 'UK', 'Paid Media agent', 'Crops for Stories in progress', '#5B5470', '4:5 · 9:16', '74px'],
+      ['make', 'vid', 'Toddler 3-piece unboxing', 'UK · US', 'Laura editing · cut v1', 'Cut due Fri', '#5B5470', '9:16', '96px'],
+      ['make', 'lst', 'A+ content refresh, baby cutlery', 'Germany', 'Listing agent', '4 of 6 modules drafted', '#5B5470', 'A+ modules', '74px'],
+      ['check', 'em', 'US welcome flow, email 3 rewrite', 'US', 'Brand checker', '1 fix: too long before the product', '#8A4B00', 'Email', '74px'],
+      ['check', 'soc', 'Reel: what is in the lunchbox', 'UK', 'Claims check', 'Feeding wording checked against the register', '#8A4B00', 'Reel 9:16', '96px'],
+      ['ready', 'em', 'Black Friday early access', 'UK', 'Approver Jon (escalated)', 'Expires in 23h', '#A12B2B', 'Email', '74px'],
+      ['ready', 'ad', 'Kit for grandparents 45+, 3 ads', 'UK', 'Approver Jon', 'Due in 21h', '#1E6B3A', '4:5 · 9:16 · 1:1', '74px'],
+      ['ready', 'vid', 'First spoon, first try 15s, cut v2', 'UK', 'Approver Laura, then Jon', 'Due in 19h', '#1E6B3A', '9:16', '96px'],
+      ['ready', 'soc', 'Week pack 9 to 15 Nov, 9 posts', 'UK', 'Approver Laura', 'Due in 21h', '#1E6B3A', '9 posts', '74px'],
+      ['ready', 'lst', 'Toddler 3-piece, Dusky Rose: 3 fields', 'UK', 'Approver Jon', 'Due in 8h', '#8A4B00', 'Listing', '74px'],
+      ['ready', 'aad', 'Sponsored Brands video', 'UK', 'Approver Jon', 'Due in 23h', '#1E6B3A', '16:9', '74px'],
+      ['sched', 'soc', 'Halloween recap carousel', 'UK', 'Approved by Laura', 'Posts Sat 7 Nov 18:00', '#1E6B3A', 'Carousel', '74px'],
+      ['sched', 'em', 'Bundle reminder flow, email 2', 'UK', 'Approved by Laura', 'Live Mon 9 Nov', '#1E6B3A', 'Email', '74px'],
+      ['sched', 'ad', '£40 bundle ads, promo', 'UK', 'Approved by Jon', 'Switches on Mon 06:00', '#1E6B3A', '4:5 · 9:16', '74px'],
+      ['live', 'ad', 'Kit grandparents, first ad set', 'UK', 'Paid Media agent', 'Day 4 of 7 · readout Mon', '#3D157D', '4:5', '74px'],
+      ['live', 'em', 'Autumn newsletter', 'UK · US', 'CRM agent', '72-hour results are in', '#3D157D', 'Email', '74px'],
+      ['live', 'lst', 'Baby cutlery, Fresh Green: title', 'US', 'Listing agent', 'Live check passed', '#1E6B3A', 'Listing', '74px'],
+      ['live', 'vid', 'Weaning hook test, A vs B', 'UK', 'Paid Media agent', 'Hook rate readout Fri', '#3D157D', '9:16', '96px']
+    ];
+    const f = this.state.f;
+    const items = raw.map(r => ({ col: r[0], t: r[1], ...T[r[1]], title: r[2], mkt: r[3], who: r[4], status: r[5], stc: r[6], fmt: r[7], th: r[8] }));
+    const shown = items.filter(i => f === 'all' || i.t === f);
+    const colDefs = [
+      ['brief', 'Briefed', 'Brief agreed, nothing made yet'],
+      ['make', 'Being made', 'Agent or editor working'],
+      ['check', 'Checks', 'Brand, claims, rights, specs'],
+      ['ready', 'Ready for you', 'On a review screen'],
+      ['sched', 'Approved, scheduled', 'Will go live by itself'],
+      ['live', 'Live, reporting', 'Results land on the card']
+    ];
+    const cols = colDefs.map(c => { const cards = shown.filter(i => i.col === c[0]); return { name: c[1], sub: c[2], cards, n: String(cards.length) }; });
+    const fdefs = [['all', 'Everything'], ['ad', 'Paid ads'], ['vid', 'Ad videos'], ['soc', 'Organic social'], ['em', 'Email'], ['lst', 'Amazon listings'], ['aad', 'Amazon ads']];
+    const filters = fdefs.map(d => ({ label: d[1], n: String(d[0] === 'all' ? items.length : items.filter(i => i.t === d[0]).length), cls: f === d[0] ? 'fchip on' : 'fchip', pick: () => this.setState({ f: d[0] }) }));
+    return { cols, filters };
+  }
+}
+</script>
+</body>
+</html>

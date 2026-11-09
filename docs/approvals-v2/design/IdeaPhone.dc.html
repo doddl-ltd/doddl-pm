@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Give HQ an idea, phone</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&amp;display=swap">
+<style>
+body{margin:0;font-family:'Nunito',system-ui,sans-serif;color:#190e3e;background:#F6F4FA}
+a{color:#3D157D}a:hover{color:#190e3e}
+.top{background:#190e3e;color:#fff;padding:0 16px;min-height:56px;display:flex;align-items:center;font-weight:800;font-size:19px}
+.q{background:#fff;border:1px solid #E4E0EE;border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:8px}
+.qt{font-size:15px;font-weight:800;margin:0}
+.hint{font-size:13px;color:#5B5470;font-weight:700}
+.input{font:600 16px 'Nunito',sans-serif;color:#190e3e;border:1px solid #CFC8E0;border-radius:10px;padding:10px 12px;min-height:48px;box-sizing:border-box;width:100%;background:#fff}
+.pill{min-height:44px;padding:0 14px;border-radius:999px;border:1px solid #CFC8E0;background:#fff;font:800 14px 'Nunito',sans-serif;color:#190e3e;cursor:pointer}
+.pill.on{background:#3D157D;border-color:#3D157D;color:#fff}
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:50px;width:100%;border-radius:12px;font:800 16px 'Nunito',sans-serif;border:1px solid #3D157D;background:#3D157D;color:#fff;cursor:pointer}
+.bnav{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));background:#fff;border-top:1px solid #E4E0EE}
+.bnav a{min-height:56px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#5B5470;text-decoration:none}
+.bnav a.on{color:#3D157D}
+</style>
+</helmet>
+<div style="width: 390px; min-height: 1960px; background: #F6F4FA; display: flex; flex-direction: column">
+  <div class="top">doddl&#160;<span style="color: #C9B6F2">PM</span></div>
+  <div style="padding: 16px; display: flex; flex-direction: column; gap: 12px">
+    <h1 style="margin: 0; font-size: 24px; font-weight: 800">Give HQ an idea</h1>
+    <p style="margin: 0; font-size: 14px; color: #5B5470">Only the first box is needed. HQ asks for the rest.</p>
+
+    <div class="q"><label class="qt" for="idea">1 · The idea, in a sentence</label><textarea class="input" id="idea" rows="4" placeholder="For example: we’ve got 400 Dusky Rose sets ageing in the UK. What would you do?"></textarea></div>
+
+    <div class="q"><p class="qt">2 · Who it’s for</p>
+      <select class="input" aria-label="Persona"><option>Choose a persona</option></select>
+      <div style="display: flex; flex-wrap: wrap; gap: 8px"><sc-for list="{{stages}}" as="o" hint-placeholder-count="4"><button type="button" class="{{o.cls}}" onClick="{{o.toggle}}" aria-pressed="{{o.on}}">{{o.label}}</button></sc-for></div>
+    </div>
+
+    <div class="q"><p class="qt">3 · Channels and markets</p>
+      <div style="display: flex; flex-wrap: wrap; gap: 8px"><sc-for list="{{channels}}" as="o" hint-placeholder-count="6"><button type="button" class="{{o.cls}}" onClick="{{o.toggle}}" aria-pressed="{{o.on}}">{{o.label}}</button></sc-for></div>
+      <div style="display: flex; flex-wrap: wrap; gap: 8px"><sc-for list="{{markets}}" as="o" hint-placeholder-count="4"><button type="button" class="{{o.cls}}" onClick="{{o.toggle}}" aria-pressed="{{o.on}}">{{o.label}}</button></sc-for></div>
+    </div>
+
+    <div class="q"><p class="qt">4 · Timing and offer</p>
+      <label class="hint">When<input class="input" placeholder="For example: all of January" style="margin-top: 4px"></label>
+      <label class="hint">Offer<select class="input" style="margin-top: 4px"><option>No offer</option><option>Discount</option><option>Bundle</option><option>Free gift</option></select></label>
+    </div>
+
+    <div class="q"><p class="qt">5 · Must include, must avoid</p>
+      <label class="hint">Must include<input class="input" style="margin-top: 4px"></label>
+      <label class="hint">Must avoid<input class="input" style="margin-top: 4px"></label>
+    </div>
+
+    <div class="q"><p class="qt">6 · How we’ll know it worked</p>
+      <select class="input" aria-label="Measure"><option>Choose a measure</option><option>Sales of the products named</option><option>Email revenue per recipient</option><option>Amazon conversion</option></select>
+    </div>
+
+    <button type="button" class="btn" onClick="{{send}}">Send to HQ</button>
+    <sc-if value="{{sent}}" hint-placeholder-val="{{ false }}"><p style="margin: 0; background: #E2F2E7; color: #1E6B3A; border-radius: 10px; padding: 12px; font-weight: 800">Sent. HQ will reply on the idea.</p></sc-if>
+  </div>
+  <div style="flex: 1"></div>
+  <nav class="bnav" aria-label="doddl PM"><a href="#">My work</a><a href="InboxPhone.dc.html">Approvals</a><a href="CalendarPhone.dc.html">Calendar</a><a class="on" href="IdeaPhone.dc.html">Idea</a></nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1960}}'>
+class Component extends DCLogic {
+  constructor(p) { super(p); this.state = { on: { 'UK': true }, sent: false }; }
+  renderVals() {
+    const on = this.state.on;
+    const mk = (labels) => labels.map(label => ({ label, on: !!on[label], cls: on[label] ? 'pill on' : 'pill', toggle: () => this.setState({ on: { ...this.state.on, [label]: !this.state.on[label] } }) }));
+    return {
+      stages: mk(['6–12 months', '12–24 months', '2–4 years', 'SEN']),
+      channels: mk(['Amazon', 'Email', 'Instagram', 'Facebook', 'TikTok', 'Website', 'Paid', 'PR and creators']),
+      markets: mk(['UK', 'US', 'EU', 'Japan']),
+      sent: this.state.sent, send: () => this.setState({ sent: true })
+    };
+  }
+}
+</script>
+</body>
+</html>

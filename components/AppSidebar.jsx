@@ -27,6 +27,8 @@ function groupByProgramme(projects, programmes) {
   return [...groups.filter(g => g.projects.length), ...(other.projects.length ? [other] : [])]
 }
 
+const sectionLbl = { fontSize: 10, fontWeight: 700, color: '#a0aec0', textTransform: 'uppercase', letterSpacing: '0.06em', padding: '0 12px', marginBottom: 6 }
+
 function SidebarContent({ view, setView, projects, programmes, activeProject, setActiveProject, myFlowCount, unreadCount, approvalsCount, triageCount, big }) {
   const projBtn = (active) => ({
     width: '100%', textAlign: 'left', padding: big ? '10px 14px' : '6px 12px', borderRadius: big ? 8 : 6, border: 'none', cursor: 'pointer',
@@ -40,8 +42,19 @@ function SidebarContent({ view, setView, projects, programmes, activeProject, se
         <NavBtn big={big} view={view} setView={setView} activeKey="myprojects" label="📌 My Projects"   count={0} />
         <NavBtn big={big} view={view} setView={setView} activeKey="board"      label="📋 All Projects"  count={0} />
         <NavBtn big={big} view={view} setView={setView} activeKey="triage"     label="📥 Triage"        count={triageCount} />
-        <NavBtn big={big} view={view} setView={setView} activeKey="approvals"  label="✅ Approvals"     count={approvalsCount} />
         <NavBtn big={big} view={view} setView={setView} activeKey="inbox"      label="🔔 Notifications" count={unreadCount} />
+      </div>
+      <p style={sectionLbl}>doddl HQ</p>
+      <div style={{ marginBottom: 16 }}>
+        <NavBtn big={big} view={view} setView={setView} activeKey="approvals"  label="✅ Approvals"        count={approvalsCount} />
+        <NavBtn big={big} view={view} setView={setView} activeKey="studio"     label="🎬 Creative studio"  count={0} />
+        <NavBtn big={big} view={view} setView={setView} activeKey="calendar"   label="🗓️ Content calendar" count={0} />
+        <NavBtn big={big} view={view} setView={setView} activeKey="listings"   label="📦 Amazon listings"  count={0} />
+        <NavBtn big={big} view={view} setView={setView} activeKey="idea"       label="💡 Give HQ an idea"  count={0} />
+      </div>
+      <p style={sectionLbl}>Settings</p>
+      <div style={{ marginBottom: 20 }}>
+        <NavBtn big={big} view={view} setView={setView} activeKey="approvers"  label="⚙️ Who approves what" count={0} />
       </div>
       <p style={{ fontSize: 10, fontWeight: 700, color: '#a0aec0', textTransform: 'uppercase', letterSpacing: '0.06em', padding: '0 12px', marginBottom: 6 }}>Projects</p>
       <button onClick={() => setActiveProject(null)} style={projBtn(view === 'board' && !activeProject)}>All projects</button>

@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Content calendar, phone</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&amp;display=swap">
+<style>
+body{margin:0;font-family:'Nunito',system-ui,sans-serif;color:#190e3e;background:#F6F4FA}
+a{color:#3D157D}a:hover{color:#190e3e}
+.top{background:#190e3e;color:#fff;padding:0 16px;min-height:56px;display:flex;align-items:center;font-weight:800;font-size:19px}
+.pill{min-height:40px;padding:0 12px;border-radius:999px;border:1px solid #CFC8E0;background:#fff;font:800 13px 'Nunito',sans-serif;color:#190e3e;cursor:pointer;white-space:nowrap}
+.pill.on{background:#190e3e;border-color:#190e3e;color:#fff}
+.ev{display:grid;grid-template-columns:56px minmax(0,1fr);gap:10px;align-items:center;background:#fff;border-radius:12px;padding:10px 12px;text-decoration:none;color:#190e3e;border:1px solid #E4E0EE}
+.s-sched{border-left:6px solid #3D157D}
+.s-wait{border-left:6px solid #E2A75A}
+.s-plan{border-left:6px dashed #B3ABC8}
+.tag{font-size:11px;font-weight:800;border-radius:999px;padding:2px 8px;display:inline-block}
+.bnav{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));background:#fff;border-top:1px solid #E4E0EE}
+.bnav a{min-height:56px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#5B5470;text-decoration:none}
+.bnav a.on{color:#3D157D}
+</style>
+</helmet>
+<div style="width: 390px; min-height: 1560px; background: #F6F4FA; display: flex; flex-direction: column">
+  <div class="top">doddl&#160;<span style="color: #C9B6F2">PM</span></div>
+  <div style="padding: 16px; display: flex; flex-direction: column; gap: 12px">
+    <h1 style="margin: 0; font-size: 24px; font-weight: 800">Content calendar</h1>
+    <div style="display: flex; justify-content: space-between; align-items: center"><a href="#" class="pill" style="display: inline-flex; align-items: center; text-decoration: none" aria-label="Previous week">‹</a><b>9 – 15 November</b><a href="#" class="pill" style="display: inline-flex; align-items: center; text-decoration: none" aria-label="Next week">›</a></div>
+    <div style="display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px">
+      <sc-for list="{{filters}}" as="f" hint-placeholder-count="4"><button class="{{f.cls}}" onClick="{{f.pick}}">{{f.name}}</button></sc-for>
+    </div>
+    <div style="display: flex; gap: 12px; flex-wrap: wrap; font-size: 12px; font-weight: 700; color: #4A4458">
+      <span><span class="tag" style="background: #3D157D; color: #fff">Scheduled</span></span>
+      <span><span class="tag" style="background: #FFF6EA; color: #6B3A00">Waiting for approval</span></span>
+      <span><span class="tag" style="background: #F0EEF4; color: #4A4458">Planned</span></span>
+    </div>
+
+    <sc-for list="{{days}}" as="d" hint-placeholder-count="7">
+      <section style="display: flex; flex-direction: column; gap: 8px">
+        <h2 style="margin: 6px 0 0; font-size: 14px; font-weight: 800; color: #5B5470; text-transform: uppercase; letter-spacing: .06em">{{d.name}}</h2>
+        <sc-for list="{{d.items}}" as="e" hint-placeholder-count="2">
+          <a class="ev {{e.cls}}" href="{{e.href}}">
+            <span style="font-size: 13px; font-weight: 800">{{e.time}}</span>
+            <span style="min-width: 0"><span style="display: block; font-size: 14px; font-weight: 800">{{e.title}}</span><span style="font-size: 12px; color: #5B5470; font-weight: 700">{{e.channel}} · {{e.status}}</span></span>
+          </a>
+        </sc-for>
+      </section>
+    </sc-for>
+  </div>
+  <div style="flex: 1"></div>
+  <nav class="bnav" aria-label="doddl PM"><a href="#">My work</a><a href="InboxPhone.dc.html">Approvals</a><a class="on" href="CalendarPhone.dc.html">Calendar</a><a href="IdeaPhone.dc.html">Idea</a></nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1560}}'>
+class Component extends DCLogic {
+  constructor(p) { super(p); this.state = { f: 'All' }; }
+  renderVals() {
+    const S = { cls: 's-sched', status: 'Scheduled', href: 'CardPhone.dc.html' }, W = { cls: 's-wait', status: 'Waiting for approval', href: 'BatchPhone.dc.html' }, P = { cls: 's-plan', status: 'Planned', href: '#' };
+    const e = (time, title, channel, s) => ({ time, title, channel, ...s });
+    const D = [
+      { name: 'Monday 9', items: [e('07:00', 'Weekly newsletter', 'Email', S), e('19:30', 'First spoon, first mess', 'Instagram', W), e('20:00', 'First spoon, first mess', 'Facebook', W)] },
+      { name: 'Tuesday 10', items: [e('12:00', 'The pea challenge', 'TikTok', W), e('All day', 'Listing: cutlery set title', 'Amazon', W)] },
+      { name: 'Wednesday 11', items: [e('09:00', 'Gift guide page', 'Website', S), e('19:30', 'Gift sets carousel', 'Instagram', W)] },
+      { name: 'Thursday 12', items: [e('07:00', 'Black Friday early access', 'Email', W), e('08:00', 'Customer story: Sam', 'Instagram', W), e('19:30', 'Mealtimes at their own pace', 'Facebook', W)] },
+      { name: 'Friday 13', items: [e('17:00', '3 finger foods reel', 'Instagram', W), e('—', 'A+ refresh, 2-piece', 'Amazon', P)] },
+      { name: 'Saturday 14', items: [e('10:00', 'Community: your tips', 'Facebook', S), e('10:00', 'What’s in the box', 'TikTok', W)] },
+      { name: 'Sunday 15', items: [e('18:00', 'Sunday roast', 'Instagram', W)] }
+    ];
+    const f = this.state.f;
+    const names = ['All', 'Social', 'Email', 'Amazon', 'Website'];
+    const social = ['Instagram', 'Facebook', 'TikTok'];
+    const keep = (it) => f === 'All' || (f === 'Social' ? social.indexOf(it.channel) > -1 : it.channel === f);
+    return {
+      filters: names.map(n => ({ name: n, cls: n === f ? 'pill on' : 'pill', pick: () => this.setState({ f: n }) })),
+      days: D.map(d => ({ ...d, items: d.items.filter(keep) })).filter(d => d.items.length)
+    };
+  }
+}
+</script>
+</body>
+</html>

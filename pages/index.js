@@ -14,7 +14,12 @@ import MyWorkView from '../components/MyWorkView'
 import MyProjectsView from '../components/MyProjectsView'
 import InboxView from '../components/InboxView'
 import TriageView from '../components/TriageView'
-import ApprovalsView from '../components/ApprovalsView'
+import ApprovalsHub from '../components/approvals/ApprovalsHub'
+import ApproversView from '../components/approvals/ApproversView'
+import IdeaView from '../components/approvals/IdeaView'
+import StudioView from '../components/StudioView'
+import CalendarView from '../components/CalendarView'
+import ListingsView from '../components/ListingsView'
 import ProjectGallery from '../components/ProjectGallery'
 import ProjectSection from '../components/ProjectSection'
 
@@ -28,6 +33,10 @@ async function selectAll(build) {
     if (!data || data.length < 1000) return rows
   }
 }
+
+// Views that can be opened by URL (/?view=approvals&task=<id> is the Teams deep link).
+const URL_VIEWS = ['approvals', 'studio', 'calendar', 'listings', 'idea', 'approvers', 'mywork', 'myprojects', 'triage', 'inbox', 'board']
+const HQ_VIEWS = ['studio', 'calendar', 'listings', 'idea', 'approvers']
 
 export default function Home() {
   const [user, setUser]                         = useState(null)
@@ -49,6 +58,8 @@ export default function Home() {
   const [search, setSearch]                     = useState('')
   const [selectedTask, setSelectedTask]         = useState(null)
   const [taskPanelW, setTaskPanelW]             = useState(TASK_PANEL.DEFAULT)
+  const [approvalsBadge, setApprovalsBadge]     = useState(null)
+  const [openApproval, setOpenApproval]         = useState(null) // { id, n }: the card to open in the approvals view
   const isMobile = useIsMobile()
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -56,6 +67,16 @@ export default function Home() {
       const n = Number(window.sessionStorage.getItem(TASK_PANEL.STORAGE_KEY))
       if (Number.isFinite(n) && n >= TASK_PANEL.MIN && n <= TASK_PANEL.MAX) setTaskPanelW(n)
     } catch { /* ignore */ }
+  }, [])
+
+  // Deep link: /?view=<view>[&task=<approval id>] (Teams cards link to /?view=approvals&task=<id>).
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const params = new URLSearchParams(window.location.search)
+    const v = params.get('view')
+    const t = params.get('task')
+    if (v && URL_VIEWS.includes(v)) setView(v)
+    if (t && /^[0-9a-f-]{36}$/i.test(t)) { setView('approvals'); setOpenApproval({ id: t, n: Date.now() }) }
   }, [])
 
   useEffect(() => {
@@ -90,6 +111,13 @@ export default function Home() {
     } catch { /* badge only */ }
   }, [])
   useEffect(() => { if (user) loadTriageCount() }, [user, loadTriageCount])
+  const loadApprovalsBadge = useCallback(async () => {
+    try {
+      const resp = await apiFetch('/api/approvals?decided_days=1')
+      if (resp.ok) setApprovalsBadge((await resp.json()).badge || 0)
+    } catch { /* badge only */ }
+  }, [])
+  useEffect(() => { if (user) loadApprovalsBadge() }, [user, loadApprovalsBadge])
   useEffect(() => {
     if (!user) return
     setLoading(true)
@@ -108,6 +136,12 @@ export default function Home() {
   // into the next screen (e.g. an AI OS task still visible over My Work).
   // Browser Back lands here too because setActiveProject/setView drive the UI.
   useEffect(() => { setSelectedTask(null) }, [view, activeProject])
+  // Keep the address in step with the doddl HQ views (the approvals view manages its own ?task=).
+  useEffect(() => {
+    if (typeof window === 'undefined' || !user || view === 'approvals') return
+    const want = HQ_VIEWS.includes(view) ? `/?view=${view}` : '/'
+    if (window.location.pathname + window.location.search !== want) window.history.replaceState(window.history.state, '', want)
+  }, [view, user])
 
   // Optimistic single-task patch — used by row-level and sidebar edits so the
   // project-header progress bar (and any other derived count) updates in the
@@ -133,7 +167,9 @@ export default function Home() {
   // whichever view was open (before, it did nothing visible from My Work, Triage etc.).
   const openProject = (id) => { setView('board'); setActiveProject(id) }
   // Phone tabs: Projects always lands on the project list.
-  const navigate = (key) => { if (key === 'board') setActiveProject(null); setView(key) }
+  const navigate = (key) => { if (key === 'board') setActiveProject(null); setOpenApproval(null); setView(key) }
+  const goView = (key) => { setOpenApproval(null); setView(key) }
+  const openApprovalCard = (id) => { setOpenApproval({ id, n: Date.now() }); setView('approvals') }
 
   // Visibility: flow tasks only show to the assigned user unless linked to a project
   const visibleTasks = tasks.filter(t => (t.source === 'manual' || !t.source || t.project_id || !t.assigned_to) || t.assigned_to.toLowerCase() === userName.toLowerCase())
@@ -142,7 +178,7 @@ export default function Home() {
   // used as the sidebar badge next to My Work.
   const myOpenTasksCount = visibleTasks.filter(t => !t.is_group && t.status !== 'done' && t.assigned_to?.toLowerCase() === userName.toLowerCase()).length
   const unreadCount   = notifications.filter(n => !n.read).length
-  const approvalsCount = tasks.filter(t => t.task_type === 'approval' && !t.decision).length
+  const approvalsCount = approvalsBadge != null ? approvalsBadge : tasks.filter(t => t.task_type === 'approval' && !t.decision && (!t.assigned_to || t.assigned_to.toLowerCase() === userName.toLowerCase())).length
 
   if (authLoading) return (
     <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #3D157D 0%, #1a0a3a 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Nunito, sans-serif', color: '#fff', fontSize: 16, fontWeight: 600 }}>
@@ -161,7 +197,7 @@ export default function Home() {
       <AppShell isMobile={isMobile} scrollKey={`${view}|${activeProject || ''}`} onNavigate={navigate}
         mainRightPad={selectedTask && !isMobile ? taskPanelW : 0}
         header={{ search, setSearch, userName, handleLogout, onAddTaskClick: onHeaderAddTask, onAddProjectClick: () => setShowAddProject(true) }}
-        sidebar={{ view, setView, projects, programmes, activeProject, setActiveProject: openProject,
+        sidebar={{ view, setView: goView, projects, programmes, activeProject, setActiveProject: openProject,
           myFlowCount: myOpenTasksCount, unreadCount, approvalsCount, triageCount }}>
           {loading ? (
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '60%', color: '#6b778c', fontWeight: 600 }}>Loading...</div>
@@ -177,7 +213,18 @@ export default function Home() {
           ) : view === 'triage' ? (
             <TriageView projects={projects} tasks={tasks} onChanged={load} setTriageCount={setTriageCount} />
           ) : view === 'approvals' ? (
-            <ApprovalsView tasks={tasks} projects={projects} setSelectedTask={setSelectedTask} />
+            <ApprovalsHub key={openApproval?.n || 'inbox'} userName={userName} isMobile={isMobile} initialTaskId={openApproval?.id || null}
+              onBadge={setApprovalsBadge} onNavigate={goView} />
+          ) : view === 'approvers' ? (
+            <ApproversView userName={userName} isMobile={isMobile} onBack={() => goView('approvals')} />
+          ) : view === 'idea' ? (
+            <IdeaView isMobile={isMobile} />
+          ) : view === 'studio' ? (
+            <StudioView user={user} isMobile={isMobile} onOpenApproval={openApprovalCard} />
+          ) : view === 'calendar' ? (
+            <CalendarView user={user} isMobile={isMobile} onOpenApproval={openApprovalCard} />
+          ) : view === 'listings' ? (
+            <ListingsView user={user} isMobile={isMobile} onOpenApproval={openApprovalCard} />
           ) : activeProjectData ? (
             <>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>

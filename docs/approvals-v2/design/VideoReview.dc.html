@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Video for ads review</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&amp;display=swap">
+<style>
+body{margin:0;font-family:'Nunito',system-ui,sans-serif;color:#190e3e;background:#F6F4FA}
+a{color:#3D157D}a:hover{color:#190e3e}
+.shell{display:flex;flex-wrap:wrap;min-height:1800px;background:#F6F4FA}
+.side{flex:1 1 220px;max-width:248px;background:#190e3e;color:#fff;padding:20px 14px;box-sizing:border-box;display:flex;flex-direction:column;gap:2px}
+.brand{font-weight:800;font-size:21px;padding:4px 12px 18px}
+.brand span{color:#C9B6F2}
+.nav{display:flex;align-items:center;gap:10px;padding:0 12px;min-height:44px;border-radius:10px;color:#DCD6EC;text-decoration:none;font-weight:700;font-size:14px}
+.nav:hover{background:#2B2058;color:#fff}
+.nav.on{background:#3D157D;color:#fff}
+.navlbl{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:#ABA3C8;padding:16px 12px 4px;font-weight:800}
+.badge{margin-left:auto;background:#fff;color:#3D157D;border-radius:999px;font-size:12px;font-weight:800;padding:1px 8px}
+.main{flex:999 1 640px;min-width:0;padding:24px 36px 56px;box-sizing:border-box}
+.panel{background:#fff;border:1px solid #E4E0EE;border-radius:14px;padding:18px 20px}
+.lbl{font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#5B5470;margin:0}
+.h2{font-size:17px;font-weight:800;margin:0 0 10px}
+.chip{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:800;border-radius:999px;padding:3px 10px;background:#EEE9F8;color:#3D157D;white-space:nowrap}
+.due{display:inline-flex;align-items:center;font-size:13px;font-weight:800;border-radius:999px;padding:4px 12px;white-space:nowrap}
+.due-ok{background:#E2F2E7;color:#1E6B3A}
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:46px;padding:0 20px;border-radius:10px;font:800 15px 'Nunito',sans-serif;border:1px solid #CFC8E0;background:#fff;color:#190e3e;cursor:pointer;text-decoration:none;box-sizing:border-box}
+.btn:hover{border-color:#3D157D}
+.btn-p{background:#3D157D;border-color:#3D157D;color:#fff}
+.btn-p:hover{background:#190e3e;color:#fff}
+.btn-d{color:#A12B2B;border-color:#E3B9B9}
+.seg{display:inline-flex;border:1px solid #CFC8E0;border-radius:12px;overflow:hidden;background:#fff;flex-wrap:wrap}
+.seg button{border:0;background:#fff;font:800 14px 'Nunito',sans-serif;color:#190e3e;min-height:44px;padding:0 16px;cursor:pointer}
+.seg button.on{background:#190e3e;color:#fff}
+.player{position:relative;background:repeating-linear-gradient(135deg,#2A2440 0 12px,#332C4D 12px 24px);border-radius:14px;overflow:hidden;color:#DCD6EC;display:flex;align-items:center;justify-content:center;text-align:center;margin:0 auto}
+.safe-top{position:absolute;left:0;right:0;top:0;height:14%;background:rgba(232,120,120,.32);border-bottom:2px dashed #F2A0A0}
+.safe-bot{position:absolute;left:0;right:0;bottom:0;height:35%;background:rgba(232,120,120,.32);border-top:2px dashed #F2A0A0}
+.strip{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px}
+.fr{border:2px solid transparent;border-radius:10px;padding:0;background:none;cursor:pointer;text-align:left;font:inherit;color:#190e3e}
+.fr.on{border-color:#3D157D}
+.fth{height:92px;border-radius:8px;background:repeating-linear-gradient(135deg,#2A2440 0 8px,#332C4D 8px 16px);color:#DCD6EC;font-size:11px;font-weight:800;display:flex;align-items:flex-end;padding:6px;box-sizing:border-box}
+.beats{display:flex;height:30px;border-radius:8px;overflow:hidden;margin-top:10px;font-size:11px;font-weight:800}
+.beats span{display:flex;align-items:center;justify-content:center;color:#fff;white-space:nowrap;overflow:hidden}
+.cm{display:flex;gap:12px;padding:10px 0;border-top:1px solid #F1EEF6;font-size:14px;line-height:1.45}
+.ts{flex:none;font-weight:800;color:#3D157D;background:#EEE9F8;border-radius:6px;padding:1px 8px;height:22px;font-size:13px}
+.check{display:flex;gap:10px;align-items:flex-start;font-size:14px;line-height:1.45;padding:7px 0;border-top:1px solid #F1EEF6}
+.ok{color:#1E6B3A;font-weight:800;flex:none;width:58px}
+.warn{color:#8A4B00;font-weight:800;flex:none;width:58px}
+.bad{color:#A12B2B;font-weight:800;flex:none;width:58px}
+.tbl{width:100%;min-width:760px;border-collapse:collapse;font-size:14px}
+.tbl th{text-align:left;font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#5B5470;padding:8px 10px;background:#F6F4FA}
+.tbl td{padding:10px;border-top:1px solid #EFECF5;vertical-align:top;line-height:1.4}
+.input{font:600 14px 'Nunito',sans-serif;color:#190e3e;border:1px solid #CFC8E0;border-radius:10px;padding:10px 12px;min-height:44px;box-sizing:border-box;width:100%;background:#fff}
+.radio{display:flex;align-items:center;gap:10px;min-height:40px;font-size:14px;font-weight:700}
+.radio input{width:18px;height:18px;accent-color:#3D157D}
+</style>
+</helmet>
+<div class="shell">
+  <nav class="side" aria-label="doddl PM">
+    <div class="brand">doddl <span>PM</span></div>
+    <a class="nav" href="#">My work</a>
+    <a class="nav" href="#">Triage</a>
+    <a class="nav" href="#">Projects</a>
+    <div class="navlbl">doddl HQ</div>
+    <a class="nav on" href="Main.dc.html">Approvals <span class="badge">7</span></a>
+    <a class="nav" href="Studio.dc.html">Creative studio</a>
+    <a class="nav" href="Calendar.dc.html">Content calendar</a>
+    <a class="nav" href="Listings.dc.html">Amazon listings</a>
+    <a class="nav" href="Idea.dc.html">Give HQ an idea</a>
+    <div class="navlbl">Settings</div>
+    <a class="nav" href="Approvers.dc.html">Who approves what</a>
+  </nav>
+
+  <main class="main">
+    <a href="Studio.dc.html" style="font-size: 14px; font-weight: 800; text-decoration: none; display: inline-flex; min-height: 44px; align-items: center">‹ Creative studio</a>
+    <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center">
+      <span class="chip" style="background: #FBE9D2; color: #8A4B00">Ad video</span>
+      <span class="chip" style="background: #F0EEF4; color: #4A4458">Script by Creative agent · cut by Laura</span>
+      <span class="chip" style="background: #F0EEF4; color: #4A4458">Approvers: Laura, then Jon for paid</span>
+      <span class="due due-ok">Due in 19h</span>
+    </div>
+    <h1 style="margin: 12px 0 4px; font-size: 28px; font-weight: 800; letter-spacing: -0.01em">First spoon, first try · 15 seconds · cut v2</h1>
+    <p style="margin: 0; color: #5B5470; font-size: 14px">For Meta Reels and Stories UK, TikTok UK · will be used by 2 ads in the paid pack · v1 sent back by Laura on 3 Nov: “too slow at the start”</p>
+
+    <div style="display: flex; flex-wrap: wrap; gap: 20px; margin-top: 20px; align-items: flex-start">
+      <section class="panel" style="flex: 1 1 520px; min-width: 0">
+        <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center; justify-content: space-between">
+          <div class="seg" role="group" aria-label="Shape">
+            <sc-for list="{{shapes}}" as="a" hint-placeholder-count="3"><button class="{{a.cls}}" onClick="{{a.pick}}">{{a.label}}</button></sc-for>
+          </div>
+          <div class="seg" role="group" aria-label="Version">
+            <button class="{{v1cls}}" onClick="{{toV1}}">v1</button>
+            <button class="{{v2cls}}" onClick="{{toV2}}">v2 (this one)</button>
+          </div>
+        </div>
+        <div style="display: flex; gap: 18px; flex-wrap: wrap; margin-top: 8px">
+          <label class="radio"><input type="checkbox" checked="{{safe}}" onChange="{{toggleSafe}}"> Safe zones</label>
+          <label class="radio"><input type="checkbox" checked="{{caps}}" onChange="{{toggleCaps}}"> Captions</label>
+        </div>
+
+        <div class="player" style="width: {{pw}}; height: {{ph}}; margin-top: 10px">
+          <sc-if value="{{safe}}" hint-placeholder-val="{{ true }}"><span class="safe-top"></span><span class="safe-bot"></span></sc-if>
+          <div style="padding: 0 20px">
+            <p style="margin: 0; font-size: 12px; font-weight: 800; letter-spacing: .06em">{{f.time}} · {{f.beat}}</p>
+            <p style="margin: 8px 0 0; font-size: 14px">{{f.shot}}</p>
+            <p style="margin: 14px 0 0; font-size: 22px; font-weight: 800; color: #fff">{{f.text}}</p>
+          </div>
+          <sc-if value="{{caps}}" hint-placeholder-val="{{ true }}">
+            <p style="position: absolute; left: 12px; right: 12px; bottom: 38%; margin: 0; background: rgba(0,0,0,.55); color: #fff; font-size: 13px; padding: 4px 8px; border-radius: 6px">{{f.vo}}</p>
+          </sc-if>
+        </div>
+        <div style="display: flex; align-items: center; gap: 12px; margin-top: 12px">
+          <button class="btn" aria-label="Play" style="width: 46px; padding: 0"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2l10 6-10 6z" fill="#190e3e"></path></svg></button>
+          <div style="flex: 1; height: 6px; background: #EEE9F8; border-radius: 3px; position: relative"><span style="position: absolute; left: 0; top: 0; bottom: 0; width: {{f.pct}}; background: #3D157D; border-radius: 3px"></span></div>
+          <span style="font-size: 14px; font-weight: 800">{{f.time}} / 0:15</span>
+        </div>
+
+        <div class="strip" style="margin-top: 16px">
+          <sc-for list="{{frames}}" as="x" hint-placeholder-count="6">
+            <button class="{{x.cls}}" onClick="{{x.pick}}"><span class="fth">{{x.time}}</span><span style="display: block; font-size: 12px; font-weight: 800; padding: 4px 2px">{{x.beat}}</span></button>
+          </sc-for>
+        </div>
+        <div class="beats" aria-label="Beats">
+          <span style="width: 20%; background: #3D157D">Hook 0–3s</span>
+          <span style="width: 20%; background: #5B3A9C">Problem</span>
+          <span style="width: 27%; background: #7A5BB5">Product in use</span>
+          <span style="width: 20%; background: #9B83CC">Proof</span>
+          <span style="width: 13%; background: #190e3e">End card</span>
+        </div>
+      </section>
+
+      <div style="flex: 1 1 380px; min-width: 0; display: flex; flex-direction: column; gap: 16px">
+        <section class="panel">
+          <h2 class="h2">Comments on the timeline</h2>
+          <sc-for list="{{comments}}" as="c" hint-placeholder-count="4">
+            <div class="cm"><span class="ts">{{c.t}}</span><span><b>{{c.who}}</b> {{c.text}}<br><span style="font-size: 12px; color: #5B5470">{{c.state}}</span></span></div>
+          </sc-for>
+          <label for="nc" style="display: block; font-size: 13px; font-weight: 800; margin-top: 10px">Add a comment at {{f.time}}</label>
+          <div style="display: flex; gap: 8px; margin-top: 6px"><input id="nc" class="input" placeholder="What needs changing at this moment?"><button class="btn">Add</button></div>
+        </section>
+
+        <section class="panel">
+          <h2 class="h2">Checks</h2>
+          <sc-for list="{{checks}}" as="c" hint-placeholder-count="10">
+            <div class="check"><span class="{{c.cls}}">{{c.res}}</span><span>{{c.text}}</span></div>
+          </sc-for>
+        </section>
+      </div>
+    </div>
+
+    <section class="panel" style="margin-top: 20px">
+      <h2 class="h2">Script against the cut</h2>
+      <div style="overflow-x: auto">
+        <table class="tbl">
+          <thead><tr><th>Time</th><th>Beat</th><th>The brief asked for</th><th>On screen in v2</th><th>Words on screen</th><th>Footage from</th></tr></thead>
+          <tbody>
+            <tr><td><b>0:00–0:03</b></td><td>Hook</td><td>A face and the spoon in the first second</td><td>Close-up, baby reaching for the spoon</td><td>“First spoon. First try.”</td><td>14 Media › 03 Lifestyle › 6-12 months › clip 0141</td></tr>
+            <tr><td><b>0:03–0:06</b></td><td>Problem</td><td>Show the struggle, light touch</td><td>Adult spoon slipping, food on the tray</td><td>“Big spoons, little hands”</td><td>Brand library › doddl in use › 0007</td></tr>
+            <tr><td><b>0:06–0:10</b></td><td>Product in use</td><td>Baby cutlery, both colours</td><td>Baby feeding with Fresh Green spoon, Dusky Rose on the tray</td><td>“Made for little hands”</td><td>14 Media › 02 Baby cutlery (6-12 months) › Fresh Green</td></tr>
+            <tr><td><b>0:10–0:13</b></td><td>Proof</td><td>Review stars or a parent quote</td><td>Parent quote card over the clip</td><td>Quote from a real review, name shortened</td><td>Review on doddl.com (permission held)</td></tr>
+            <tr><td><b>0:13–0:15</b></td><td>End card</td><td>Logo, product, one call to action</td><td>Logo, baby set, “Shop doddl”</td><td>“Shop doddl”</td><td>Brand kit</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <div style="display: flex; flex-wrap: wrap; gap: 20px; margin-top: 20px; align-items: flex-start">
+      <section class="panel" style="flex: 1 1 360px; min-width: 0">
+        <h2 class="h2">Files the editor has delivered</h2>
+        <div class="check"><span class="ok">Ready</span><span>9:16 for Reels, Stories and TikTok · 1080×1920 · 15s</span></div>
+        <div class="check"><span class="ok">Ready</span><span>4:5 for feeds · 1080×1350</span></div>
+        <div class="check"><span class="bad">Missing</span><span>1:1 for Facebook feed and Marketplace. Without it Meta crops the 9:16.</span></div>
+        <div class="check"><span class="ok">Ready</span><span>Caption file (.srt) and a no-text version for other markets</span></div>
+        <p style="margin: 10px 0 0; font-size: 13px; color: #5B5470">Saved to 14 Media › 07 Campaigns › Weaning › First spoon (once approved)</p>
+      </section>
+      <section class="panel" style="flex: 1 1 360px; min-width: 0">
+        <h2 class="h2">Your answer</h2>
+        <label class="radio"><input type="radio" name="vd" checked="checked"> Approve for paid ads and organic</label>
+        <label class="radio"><input type="radio" name="vd"> Approve for organic only</label>
+        <label class="radio"><input type="radio" name="vd"> Send back with my timeline comments</label>
+        <label class="radio"><input type="radio" name="vd"> Reject: do not use this footage</label>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px">
+          <button class="btn btn-p">Send answer</button>
+          <button class="btn btn-d">Reject</button>
+        </div>
+        <p style="margin: 10px 0 0; font-size: 13px; color: #5B5470">Laura approves first. Paid use then goes to Jon with her comments attached.</p>
+      </section>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1800}}'>
+class Component extends DCLogic {
+  constructor(p) { super(p); this.state = { shape: '916', t: 0, safe: true, caps: true, ver: 2 }; }
+  renderVals() {
+    const s = this.state;
+    const F = [
+      { time: '0:00', beat: 'Hook', shot: 'Close-up: baby reaches for the spoon', text: 'First spoon. First try.', vo: 'First spoon, first try.', pct: '2%' },
+      { time: '0:03', beat: 'Problem', shot: 'Adult spoon slips, food on the tray', text: 'Big spoons, little hands', vo: 'Big spoons and little hands do not mix.', pct: '20%' },
+      { time: '0:06', beat: 'In use', shot: 'Baby feeds with the Fresh Green spoon', text: 'Made for little hands', vo: 'So we made them their own.', pct: '40%' },
+      { time: '0:09', beat: 'In use', shot: 'Dusky Rose set on the tray, wide', text: 'Made for little hands', vo: 'In Fresh Green and Dusky Rose.', pct: '60%' },
+      { time: '0:11', beat: 'Proof', shot: 'Parent quote card over the clip', text: '“[review quote]”', vo: '', pct: '73%' },
+      { time: '0:14', beat: 'End card', shot: 'Logo, baby set, button', text: 'Shop doddl', vo: 'doddl.', pct: '95%' }
+    ];
+    const f = F[s.t];
+    const dims = { '916': ['270px', '480px'], '45': ['360px', '450px'], '11': ['400px', '400px'] };
+    const shapes = [['916', '9:16'], ['45', '4:5'], ['11', '1:1']].map(a => ({ label: a[1], cls: s.shape === a[0] ? 'on' : '', pick: () => this.setState({ shape: a[0] }) }));
+    const frames = F.map((x, i) => ({ time: x.time, beat: x.beat, cls: s.t === i ? 'fr on' : 'fr', pick: () => this.setState({ t: i }) }));
+    const ok = t => ({ cls: 'ok', res: 'Pass', text: t });
+    const warn = t => ({ cls: 'warn', res: 'Check', text: t });
+    const bad = t => ({ cls: 'bad', res: 'Fix', text: t });
+    const checks = [
+      ok('Hook: a face and the product inside the first 2 seconds'),
+      ok('Captions burnt in; works with the sound off'),
+      warn('Words at 0:03 sit 20px into the bottom safe zone on TikTok'),
+      ok('Every child shown has a model release (14 Media index)'),
+      ok('All footage owned by doddl'),
+      ok('Music: licensed for paid social (Meta and TikTok libraries)'),
+      ok('Brand voice and end card match the brand book'),
+      ok('No health or development claims in words or voice'),
+      bad('1:1 version not delivered yet'),
+      ok('No 2027 products in shot')
+    ];
+    const comments = [
+      { t: '0:00', who: 'Laura', text: 'Much better start than v1. Keep.', state: 'Resolved' },
+      { t: '0:03', who: 'Brand checker', text: 'Text touches the TikTok caption area. Lift it 40px.', state: 'Open · editor to fix' },
+      { t: '0:11', who: 'Creative agent', text: 'Review quote needs the reviewer’s OK on file. It is on file.', state: 'Resolved' },
+      { t: '0:14', who: 'Laura', text: 'End card: use the indigo logo.', state: 'Open' }
+    ];
+    return {
+      f, shapes, frames, checks, comments, safe: s.safe, caps: s.caps,
+      pw: dims[s.shape][0], ph: dims[s.shape][1],
+      v1cls: s.ver === 1 ? 'on' : '', v2cls: s.ver === 2 ? 'on' : '',
+      toV1: () => this.setState({ ver: 1 }), toV2: () => this.setState({ ver: 2 }),
+      toggleSafe: () => this.setState({ safe: !s.safe }), toggleCaps: () => this.setState({ caps: !s.caps })
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Approvals inbox</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&amp;display=swap">
+<style>
+body{margin:0;font-family:'Nunito',system-ui,sans-serif;color:#190e3e;background:#F6F4FA}
+a{color:#3D157D}a:hover{color:#190e3e}
+.shell{display:flex;flex-wrap:wrap;min-height:1240px;background:#F6F4FA}
+.side{flex:1 1 220px;max-width:248px;background:#190e3e;color:#fff;padding:20px 14px;box-sizing:border-box;display:flex;flex-direction:column;gap:2px}
+.brand{font-weight:800;font-size:21px;padding:4px 12px 18px;letter-spacing:-.01em}
+.brand span{color:#C9B6F2}
+.nav{display:flex;align-items:center;gap:10px;padding:0 12px;min-height:44px;border-radius:10px;color:#DCD6EC;text-decoration:none;font-weight:700;font-size:14px}
+.nav:hover{background:#2B2058;color:#fff}
+.nav.on{background:#3D157D;color:#fff}
+.navlbl{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:#ABA3C8;padding:16px 12px 4px;font-weight:800}
+.badge{margin-left:auto;background:#fff;color:#3D157D;border-radius:999px;font-size:12px;font-weight:800;padding:1px 8px}
+.main{flex:999 1 640px;min-width:0;padding:28px 36px 56px;box-sizing:border-box}
+.panel{background:#fff;border:1px solid #E4E0EE;border-radius:14px}
+.lbl{font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#5B5470}
+.chip{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:800;border-radius:999px;padding:3px 10px;background:#EEE9F8;color:#3D157D;white-space:nowrap}
+.due{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:800;border-radius:999px;padding:4px 12px;white-space:nowrap}
+.due-ok{background:#E2F2E7;color:#1E6B3A}.due-warn{background:#FBE9D2;color:#8A4B00}.due-bad{background:#F8E1E1;color:#A12B2B}.due-grey{background:#EEECF2;color:#4A4458}
+.tab{background:none;border:0;border-bottom:3px solid transparent;font:800 14px 'Nunito',sans-serif;color:#5B5470;padding:0 4px;min-height:44px;cursor:pointer;display:inline-flex;align-items:center;gap:8px}
+.tab.on{color:#3D157D;border-bottom-color:#3D157D}
+.count{background:#EEE9F8;color:#3D157D;border-radius:999px;font-size:12px;padding:0 8px}
+.row{display:grid;grid-template-columns:minmax(0,1fr) 170px 150px 190px 20px;gap:16px;align-items:center;padding:14px 18px;border-top:1px solid #EFECF5;text-decoration:none;color:#190e3e}
+.row:hover{background:#FAF8FD;color:#190e3e}
+.tw{overflow-x:auto}
+.tw-in{min-width:860px}
+.dot{width:10px;height:10px;border-radius:50%;background:#3D157D;flex:none}
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 18px;border-radius:10px;font:800 14px 'Nunito',sans-serif;border:1px solid #CFC8E0;background:#fff;color:#190e3e;cursor:pointer;text-decoration:none;box-sizing:border-box}
+.btn-p{background:#3D157D;border-color:#3D157D;color:#fff}
+.btn-p:hover{color:#fff;background:#190e3e}
+</style>
+</helmet>
+<div class="shell">
+  <nav class="side" aria-label="doddl PM">
+    <div class="brand">doddl <span>PM</span></div>
+    <a class="nav" href="#">My work</a>
+    <a class="nav" href="#">Triage</a>
+    <a class="nav" href="#">Projects</a>
+    <div class="navlbl">doddl HQ</div>
+    <a class="nav on" href="Main.dc.html">Approvals <span class="badge">7</span></a>
+    <a class="nav" href="Studio.dc.html">Creative studio</a>
+    <a class="nav" href="Calendar.dc.html">Content calendar</a>
+    <a class="nav" href="Listings.dc.html">Amazon listings</a>
+    <a class="nav" href="Idea.dc.html">Give HQ an idea</a>
+    <div class="navlbl">Settings</div>
+    <a class="nav" href="Approvers.dc.html">Who approves what</a>
+  </nav>
+
+  <main class="main">
+    <div style="display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px; justify-content: space-between">
+      <div>
+        <p class="lbl" style="margin: 0 0 6px">Wednesday 4 November · signed in as Jon</p>
+        <h1 style="margin: 0; font-size: 30px; font-weight: 800; letter-spacing: -0.01em">Approvals</h1>
+        <p style="margin: 6px 0 0; color: #5B5470; font-size: 15px">Everything waiting for you, grouped by area, oldest first. Please answer within 24 hours.</p>
+      </div>
+      <div style="display: flex; gap: 10px; flex-wrap: wrap">
+        <a class="btn" href="Approvers.dc.html">Who approves what</a>
+        <a class="btn btn-p" href="Idea.dc.html">Give HQ an idea</a>
+      </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-top: 22px">
+      <div class="panel" style="padding: 14px 16px">
+        <p class="lbl" style="margin: 0">Overdue</p>
+        <p style="margin: 4px 0 0; font-size: 26px; font-weight: 800; color: #A12B2B">1</p>
+        <p style="margin: 2px 0 0; font-size: 13px; color: #5B5470">Past 24 hours. Reminder sent; backup at 48h.</p>
+      </div>
+      <div class="panel" style="padding: 14px 16px">
+        <p class="lbl" style="margin: 0">Due today</p>
+        <p style="margin: 4px 0 0; font-size: 26px; font-weight: 800; color: #8A4B00">2</p>
+        <p style="margin: 2px 0 0; font-size: 13px; color: #5B5470">Inside the next 12 hours</p>
+      </div>
+      <div class="panel" style="padding: 14px 16px">
+        <p class="lbl" style="margin: 0">Escalated to you</p>
+        <p style="margin: 4px 0 0; font-size: 26px; font-weight: 800">1</p>
+        <p style="margin: 2px 0 0; font-size: 13px; color: #5B5470">You are the backup approver</p>
+      </div>
+      <div class="panel" style="padding: 14px 16px">
+        <p class="lbl" style="margin: 0">The clock</p>
+        <p style="margin: 6px 0 0; font-size: 13px; color: #190e3e; line-height: 1.5"><b>24h</b> answer and reminder · <b>48h</b> goes to the backup · <b>72h</b> expires</p>
+      </div>
+    </div>
+
+    <div style="display: flex; gap: 22px; border-bottom: 1px solid #E4E0EE; margin-top: 26px; flex-wrap: wrap" role="tablist">
+      <button class="{{tabMine}}" onClick="{{showMine}}" role="tab">Waiting for me <span class="count">7</span></button>
+      <button class="{{tabOthers}}" onClick="{{showOthers}}" role="tab">Waiting on others <span class="count">4</span></button>
+      <button class="{{tabDecided}}" onClick="{{showDecided}}" role="tab">Decided</button>
+    </div>
+
+    <sc-if value="{{isMine}}" hint-placeholder-val="{{ true }}">
+      <div style="display: flex; flex-direction: column; gap: 22px; margin-top: 22px">
+        <sc-for list="{{groups}}" as="g" hint-placeholder-count="4">
+          <section>
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px; flex-wrap: wrap">
+              <span class="dot" style="background: {{g.colour}}"></span>
+              <h2 style="margin: 0; font-size: 16px; font-weight: 800">{{g.area}}</h2>
+              <span class="chip">{{g.count}}</span>
+              <span style="font-size: 13px; color: #5B5470">{{g.note}}</span>
+            </div>
+            <div class="panel tw">
+              <div class="tw-in">
+                <div style="display: grid; grid-template-columns: minmax(0,1fr) 170px 150px 190px 20px; gap: 16px; padding: 10px 18px" class="lbl">
+                  <span>What it is</span><span>From</span><span>Raised</span><span>Answer by</span><span></span>
+                </div>
+                <sc-for list="{{g.items}}" as="it" hint-placeholder-count="2">
+                  <a class="row" href="{{it.href}}">
+                    <span style="min-width: 0">
+                      <span style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap">
+                        <span style="font-weight: 800; font-size: 15px">{{it.title}}</span>
+                        <sc-for list="{{it.flags}}" as="f" hint-placeholder-count="1"><span class="chip">{{f}}</span></sc-for>
+                      </span>
+                      <span style="display: block; margin-top: 4px; font-size: 13px; color: #5B5470">{{it.change}}</span>
+                    </span>
+                    <span style="font-size: 14px; font-weight: 700">{{it.agent}}</span>
+                    <span style="font-size: 14px; color: #4A4458">{{it.raised}}</span>
+                    <span><span class="due {{it.dueCls}}">{{it.due}}</span></span>
+                    <span aria-hidden="true" style="color: #8F88A6; font-size: 20px">›</span>
+                  </a>
+                </sc-for>
+              </div>
+            </div>
+          </section>
+        </sc-for>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{isOthers}}" hint-placeholder-val="{{ false }}">
+      <div class="panel tw" style="margin-top: 22px">
+        <div class="tw-in">
+          <div style="display: grid; grid-template-columns: minmax(0,1fr) 170px 150px 190px 20px; gap: 16px; padding: 10px 18px" class="lbl">
+            <span>What it is</span><span>Waiting on</span><span>Raised</span><span>Answer by</span><span></span>
+          </div>
+          <sc-for list="{{others}}" as="it" hint-placeholder-count="4">
+            <a class="row" href="Card.dc.html">
+              <span style="min-width: 0">
+                <span style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap"><span style="font-weight: 800; font-size: 15px">{{it.title}}</span><span class="chip">{{it.area}}</span></span>
+                <span style="display: block; margin-top: 4px; font-size: 13px; color: #5B5470">{{it.change}}</span>
+              </span>
+              <span style="font-size: 14px; font-weight: 700">{{it.who}}</span>
+              <span style="font-size: 14px; color: #4A4458">{{it.raised}}</span>
+              <span><span class="due {{it.dueCls}}">{{it.due}}</span></span>
+              <span aria-hidden="true" style="color: #8F88A6; font-size: 20px">›</span>
+            </a>
+          </sc-for>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{isDecided}}" hint-placeholder-val="{{ false }}">
+      <div class="panel tw" style="margin-top: 22px">
+        <div class="tw-in">
+          <div style="display: grid; grid-template-columns: minmax(0,1fr) 170px 150px 190px 20px; gap: 16px; padding: 10px 18px" class="lbl">
+            <span>What it was</span><span>Decided by</span><span>When</span><span>Outcome</span><span></span>
+          </div>
+          <sc-for list="{{decided}}" as="it" hint-placeholder-count="4">
+            <a class="row" href="Card.dc.html">
+              <span style="min-width: 0">
+                <span style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap"><span style="font-weight: 800; font-size: 15px">{{it.title}}</span><span class="chip">{{it.area}}</span></span>
+                <span style="display: block; margin-top: 4px; font-size: 13px; color: #5B5470">{{it.note}}</span>
+              </span>
+              <span style="font-size: 14px; font-weight: 700">{{it.who}}</span>
+              <span style="font-size: 14px; color: #4A4458">{{it.when}}</span>
+              <span><span class="due {{it.cls}}">{{it.outcome}}</span></span>
+              <span aria-hidden="true" style="color: #8F88A6; font-size: 20px">›</span>
+            </a>
+          </sc-for>
+        </div>
+      </div>
+    </sc-if>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1240}}'>
+class Component extends DCLogic {
+  constructor(p) { super(p); this.state = { tab: 'mine' }; }
+  renderVals() {
+    const t = this.state.tab;
+    const groups = [
+      { area: 'Escalated to you', colour: '#A12B2B', note: 'Laura has not answered in 48 hours. You are the backup for Email.', items: [
+        { title: 'Black Friday early access email, UK list', change: 'Send Thu 12 Nov 07:00 to the UK engaged list. Subject, preview and body to approve.', agent: 'CRM agent', raised: 'Mon 2 Nov 09:05', due: 'Expires in 23h', dueCls: 'due-bad', flags: ['Preview', 'Was Laura’s'], href: 'EmailReview.dc.html' } ] },
+      { area: 'Amazon ads', colour: '#3D157D', note: 'Jon · backup Chris · weekly pack', items: [
+        { title: 'Amazon ads pack: 12 changes, week of 9 Nov', change: '4 budgets, 5 bids, 3 sets of negative keywords · UK and US · tick line by line', agent: 'Amazon Ads agent', raised: 'Wed 4 Nov 09:00', due: 'Due in 23h', dueCls: 'due-ok', flags: ['Pack of 12'], href: 'Batch.dc.html' } ] },
+      { area: 'Amazon listings', colour: '#3D157D', note: 'Jon · backup Laura', items: [
+        { title: 'New title and bullets: toddler cutlery set, Dusky Rose', change: 'Title and bullets 2 and 4 · one ASIN · Amazon UK', agent: 'Listing agent', raised: 'Tue 3 Nov 17:30', due: 'Due in 8h', dueCls: 'due-warn', flags: ['Preview', 'Brand checked'], href: 'ListingDiff.dc.html' } ] },
+      { area: 'Website', colour: '#3D157D', note: 'Jon · backup Laura', items: [
+        { title: 'Black Friday homepage hero on the preview theme', change: 'Hero image, headline and button · preview link on the card', agent: 'Website agent', raised: 'Tue 3 Nov 23:50', due: 'Due in 14h', dueCls: 'due-ok', flags: ['Preview', 'Brand checked'], href: 'Card.dc.html' } ] },
+      { area: 'App recipes', colour: '#3D157D', note: 'Two approvers', items: [
+        { title: 'Recipe: sweet potato fingers (6–12 months)', change: 'New recipe and feeding note for the app', agent: 'App Content agent', raised: 'Wed 4 Nov 02:15', due: 'Due in 17h', dueCls: 'due-ok', flags: ['1 of 2 approved'], href: 'Card.dc.html' } ] },
+      { area: 'Paid social and search', colour: '#3D157D', note: 'Jon · backup Chris · weekly pack', items: [
+        { title: 'Paid pack: 3 changes, week of 9 Nov', change: 'Pause 2 Meta ads, switch on 1 new ad · tick line by line', agent: 'Paid Media agent', raised: 'Wed 4 Nov 06:00', due: 'Due in 21h', dueCls: 'due-ok', flags: ['Pack of 3'], href: 'Batch.dc.html' } ] },
+      { area: 'B2B, PR and creators', colour: '#3D157D', note: 'Pack per outreach batch', items: [
+        { title: 'Creator outreach pack · 18 contacts', change: 'Approve all, or tick contact by contact', agent: 'Outreach agent', raised: 'Wed 4 Nov 07:00', due: 'Due in 22h', dueCls: 'due-ok', flags: ['Pack of 18'], href: 'Batch.dc.html' } ] }
+    ].map(g => ({ ...g, count: String(g.items.length) }));
+    const others = [
+      { title: 'Next week’s social posts · 9 posts', area: 'Organic social', change: 'Weekly batch for 9–15 Nov', who: 'Laura', raised: 'Wed 4 Nov 06:30', due: 'Due in 21h', dueCls: 'due-ok' },
+      { title: 'Today’s comment and DM replies · 5', area: 'Comments and DMs', change: 'Daily pack, same day · 2 urgent issues have their own cards', who: 'Laura', raised: 'Wed 4 Nov 07:00', due: 'Reply by 17:00', dueCls: 'due-warn' },
+      { title: 'December content calendar', area: 'Content calendar', change: '22 briefs across 5 channels', who: 'Laura', raised: 'Mon 2 Nov 10:00', due: 'Overdue 23h · reminded', dueCls: 'due-bad' },
+      { title: 'Recipe: sweet potato fingers (6–12 months)', area: 'App recipes', change: 'Second approver', who: 'Feeding reviewer', raised: 'Wed 4 Nov 02:15', due: 'Due in 17h', dueCls: 'due-ok' }
+    ];
+    const decided = [
+      { title: 'Halloween post: “Little monsters at the table”', area: 'Organic social', note: 'Approved with edits · Brand checker passed the edit · posted 31 Oct 18:00', who: 'Laura', when: 'Fri 30 Oct', outcome: 'Approved with edits', cls: 'due-ok' },
+      { title: 'Amazon ads pack, week of 2 Nov', area: 'Amazon ads', note: '9 of 11 lines approved and ran once · 2 sent back', who: 'Jon', when: 'Thu 29 Oct', outcome: 'Approved 9 of 11', cls: 'due-ok' },
+      { title: 'US welcome flow: new email 3', area: 'Email (Klaviyo)', note: '“Too long. Lead with the spoon, not the story.”', who: 'Laura', when: 'Wed 28 Oct', outcome: 'Sent back', cls: 'due-warn' },
+      { title: 'Homepage autumn banner', area: 'Website', note: 'Reason: off brand or wrong tone · “too busy”', who: 'Jon', when: 'Tue 27 Oct', outcome: 'Rejected', cls: 'due-bad' },
+      { title: 'Pitch to a parenting magazine', area: 'B2B, PR and creators', note: 'No answer in 72 hours · agent re-checks before asking again', who: '—', when: 'Mon 26 Oct', outcome: 'Expired', cls: 'due-grey' }
+    ];
+    return {
+      groups, others, decided,
+      isMine: t === 'mine', isOthers: t === 'others', isDecided: t === 'decided',
+      tabMine: t === 'mine' ? 'tab on' : 'tab', tabOthers: t === 'others' ? 'tab on' : 'tab', tabDecided: t === 'decided' ? 'tab on' : 'tab',
+      showMine: () => this.setState({ tab: 'mine' }), showOthers: () => this.setState({ tab: 'others' }), showDecided: () => this.setState({ tab: 'decided' })
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Content calendar</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&amp;display=swap">
+<style>
+body{margin:0;font-family:'Nunito',system-ui,sans-serif;color:#190e3e;background:#F6F4FA}
+a{color:#3D157D}a:hover{color:#190e3e}
+.shell{display:flex;flex-wrap:wrap;min-height:1160px;background:#F6F4FA}
+.side{flex:1 1 220px;max-width:248px;background:#190e3e;color:#fff;padding:20px 14px;box-sizing:border-box;display:flex;flex-direction:column;gap:2px}
+.brand{font-weight:800;font-size:21px;padding:4px 12px 18px}
+.brand span{color:#C9B6F2}
+.nav{display:flex;align-items:center;gap:10px;padding:0 12px;min-height:44px;border-radius:10px;color:#DCD6EC;text-decoration:none;font-weight:700;font-size:14px}
+.nav:hover{background:#2B2058;color:#fff}
+.nav.on{background:#3D157D;color:#fff}
+.navlbl{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:#ABA3C8;padding:16px 12px 4px;font-weight:800}
+.badge{margin-left:auto;background:#fff;color:#3D157D;border-radius:999px;font-size:12px;font-weight:800;padding:1px 8px}
+.main{flex:999 1 640px;min-width:0;padding:28px 36px 56px;box-sizing:border-box}
+.pill{min-height:40px;padding:0 14px;border-radius:999px;border:1px solid #CFC8E0;background:#fff;font:800 13px 'Nunito',sans-serif;color:#190e3e;cursor:pointer}
+.pill.on{background:#190e3e;border-color:#190e3e;color:#fff}
+.grid{display:grid;grid-template-columns:130px repeat(7,minmax(0,1fr));min-width:1040px}
+.grid > div{border-top:1px solid #EFECF5;border-left:1px solid #EFECF5;padding:8px;min-height:84px;box-sizing:border-box}
+.hd{min-height:0 !important;font-size:13px;font-weight:800;color:#4A4458;background:#F6F4FA}
+.ch{font-weight:800;font-size:14px;display:flex;align-items:flex-start}
+.ev{display:block;border-radius:8px;padding:6px 8px;font-size:12px;line-height:1.35;margin-bottom:6px;text-decoration:none}
+.s-sched{background:#3D157D;color:#fff}
+.s-wait{background:#FFF6EA;color:#6B3A00;border:1.5px solid #E2A75A}
+.s-plan{background:#fff;color:#4A4458;border:1.5px dashed #B3ABC8}
+.ev b{display:block;font-size:11px;letter-spacing:.03em}
+.key{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:700}
+.key span{width:14px;height:14px;border-radius:4px;display:inline-block}
+</style>
+</helmet>
+<div class="shell">
+  <nav class="side" aria-label="doddl PM">
+    <div class="brand">doddl <span>PM</span></div>
+    <a class="nav" href="#">My work</a>
+    <a class="nav" href="#">Triage</a>
+    <a class="nav" href="#">Projects</a>
+    <div class="navlbl">doddl HQ</div>
+    <a class="nav" href="Main.dc.html">Approvals <span class="badge">7</span></a>
+    <a class="nav on" href="Calendar.dc.html">Content calendar</a>
+    <a class="nav" href="Idea.dc.html">Give HQ an idea</a>
+    <div class="navlbl">Settings</div>
+    <a class="nav" href="Approvers.dc.html">Who approves what</a>
+  </nav>
+
+  <main class="main">
+    <div style="display: flex; flex-wrap: wrap; justify-content: space-between; gap: 16px; align-items: flex-end">
+      <div>
+        <h1 style="margin: 0; font-size: 30px; font-weight: 800">Content calendar</h1>
+        <p style="margin: 6px 0 0; color: #5B5470; font-size: 15px">Everything approved and scheduled, across channels. November plan approved by Laura on Fri 30 Oct.</p>
+      </div>
+      <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap">
+        <a href="#" class="pill" style="display: inline-flex; align-items: center; text-decoration: none" aria-label="Previous week">‹</a>
+        <span style="font-weight: 800; font-size: 16px; padding: 0 6px">9 – 15 November</span>
+        <a href="#" class="pill" style="display: inline-flex; align-items: center; text-decoration: none" aria-label="Next week">›</a>
+        <button class="pill on">Week</button><button class="pill">Month</button>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; align-items: center">
+      <span style="font-size: 13px; font-weight: 800; color: #5B5470; margin-right: 4px">Channels</span>
+      <sc-for list="{{chans}}" as="c" hint-placeholder-count="7"><button class="{{c.cls}}" onClick="{{c.toggle}}" aria-pressed="{{c.on}}">{{c.name}}</button></sc-for>
+      <span style="font-size: 13px; font-weight: 800; color: #5B5470; margin: 0 4px 0 12px">Market</span>
+      <button class="pill on">UK</button><button class="pill">US</button><button class="pill">EU</button>
+    </div>
+
+    <div style="display: flex; gap: 18px; margin-top: 14px; flex-wrap: wrap">
+      <span class="key"><span style="background: #3D157D"></span>Approved and scheduled</span>
+      <span class="key"><span style="background: #FFF6EA; border: 1.5px solid #E2A75A"></span>Waiting for approval</span>
+      <span class="key"><span style="background: #fff; border: 1.5px dashed #B3ABC8"></span>In the approved plan, not made yet</span>
+    </div>
+
+    <div style="background: #fff; border: 1px solid #E4E0EE; border-radius: 14px; margin-top: 14px; overflow-x: auto">
+      <div class="grid">
+        <div class="hd" style="border-left: 0; border-top: 0"></div>
+        <sc-for list="{{days}}" as="d" hint-placeholder-count="7"><div class="hd" style="border-top: 0">{{d}}</div></sc-for>
+      </div>
+      <sc-for list="{{rows}}" as="r" hint-placeholder-count="7">
+        <div class="grid">
+          <div class="ch" style="border-left: 0">{{r.name}}</div>
+          <sc-for list="{{r.cells}}" as="cell" hint-placeholder-count="7">
+            <div>
+              <sc-for list="{{cell}}" as="e" hint-placeholder-count="1">
+                <a class="ev {{e.cls}}" href="{{e.href}}"><b>{{e.time}}</b>{{e.title}}</a>
+              </sc-for>
+            </div>
+          </sc-for>
+        </div>
+      </sc-for>
+    </div>
+
+    <div style="display: flex; flex-wrap: wrap; gap: 12px; margin-top: 16px">
+      <p style="margin: 0; background: #fff; border: 1px solid #E4E0EE; border-radius: 12px; padding: 12px 14px; font-size: 14px; flex: 1 1 320px"><b>Gaps this week:</b> no email after Thursday; nothing on TikTok on Wednesday.</p>
+      <p style="margin: 0; background: #fff; border: 1px solid #E4E0EE; border-radius: 12px; padding: 12px 14px; font-size: 14px; flex: 1 1 320px"><b>Next plan:</b> December calendar waiting for Laura (overdue 23h). <a href="Card.dc.html" style="font-weight: 800">Open it ›</a></p>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1160}}'>
+class Component extends DCLogic {
+  constructor(p) { super(p); this.state = { off: {} }; }
+  renderVals() {
+    const S = 's-sched', W = 's-wait', P = 's-plan';
+    const e = (time, title, cls, href) => ({ time, title, cls, href: href || (cls === W ? 'Batch.dc.html' : 'Card.dc.html') });
+    const R = [
+      { name: 'Instagram', cells: [[e('19:30', 'First spoon, first mess', W)], [], [e('19:30', 'Gift sets carousel', W)], [e('08:00', 'Customer story: Sam', W), e('—', 'Weaning myths reel', P)], [e('17:00', '3 finger foods reel', W)], [], [e('18:00', 'Sunday roast', W)]] },
+      { name: 'Facebook', cells: [[e('20:00', 'First spoon, first mess', W)], [], [], [e('19:30', 'Mealtimes at their own pace', W)], [], [e('10:00', 'Community: your tips', S)], []] },
+      { name: 'TikTok', cells: [[], [e('12:00', 'The pea challenge', W)], [], [], [], [e('10:00', 'What’s in the box', W)], []] },
+      { name: 'Email', cells: [[e('07:00', 'Weekly newsletter', S)], [], [], [e('07:00', 'Black Friday early access', W, 'Card.dc.html')], [], [], []] },
+      { name: 'Amazon', cells: [[], [e('All day', 'Listing: cutlery set title', W, 'Card.dc.html')], [], [], [e('—', 'A+ refresh, 2-piece', P)], [], []] },
+      { name: 'Website', cells: [[], [], [e('09:00', 'Gift guide page', S)], [], [], [], []] },
+      { name: 'Paid social', cells: [[e('All week', 'Made for little hands', W, 'Card.dc.html')], [], [], [], [], [], []] }
+    ];
+    const off = this.state.off;
+    return {
+      days: ['Mon 9', 'Tue 10', 'Wed 11', 'Thu 12', 'Fri 13', 'Sat 14', 'Sun 15'],
+      chans: R.map(r => ({ name: r.name, on: !off[r.name], cls: off[r.name] ? 'pill' : 'pill on', toggle: () => this.setState({ off: { ...this.state.off, [r.name]: !this.state.off[r.name] } }) })),
+      rows: R.filter(r => !off[r.name])
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Approvals inbox, phone</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&amp;display=swap">
+<style>
+body{margin:0;font-family:'Nunito',system-ui,sans-serif;color:#190e3e;background:#F6F4FA}
+a{color:#3D157D}a:hover{color:#190e3e}
+.top{background:#190e3e;color:#fff;padding:14px 16px;display:flex;align-items:center;justify-content:space-between}
+.chip{display:inline-flex;align-items:center;font-size:12px;font-weight:800;border-radius:999px;padding:2px 9px;background:#EEE9F8;color:#3D157D;white-space:nowrap}
+.due{display:inline-flex;font-size:12px;font-weight:800;border-radius:999px;padding:3px 10px;white-space:nowrap}
+.due-ok{background:#E2F2E7;color:#1E6B3A}.due-warn{background:#FBE9D2;color:#8A4B00}.due-bad{background:#F8E1E1;color:#A12B2B}
+.card{display:block;background:#fff;border:1px solid #E4E0EE;border-radius:14px;padding:14px;text-decoration:none;color:#190e3e}
+.seg{flex:1;min-height:44px;border:0;background:none;font:800 14px 'Nunito',sans-serif;color:#5B5470;border-radius:10px;cursor:pointer}
+.seg.on{background:#fff;color:#3D157D;box-shadow:0 1px 2px rgba(25,14,62,.12)}
+.lbl{font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#5B5470}
+.bnav{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));background:#fff;border-top:1px solid #E4E0EE}
+.bnav a{min-height:56px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#5B5470;text-decoration:none}
+.bnav a.on{color:#3D157D}
+</style>
+</helmet>
+<div style="width: 390px; min-height: 1560px; background: #F6F4FA; display: flex; flex-direction: column">
+  <div class="top">
+    <span style="font-weight: 800; font-size: 19px">doddl <span style="color: #C9B6F2">PM</span></span>
+    <a href="Approvers.dc.html" style="color: #DCD6EC; font-size: 13px; font-weight: 700; min-height: 44px; display: inline-flex; align-items: center">Who approves what</a>
+  </div>
+  <div style="padding: 18px 16px 8px">
+    <h1 style="margin: 0; font-size: 26px; font-weight: 800">Approvals</h1>
+    <p style="margin: 4px 0 0; color: #5B5470; font-size: 14px">7 waiting for you · oldest first</p>
+    <div style="display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap">
+      <span class="due due-bad">1 overdue</span><span class="due due-warn">2 due today</span><span class="chip">1 escalated to you</span>
+    </div>
+    <div style="display: flex; gap: 4px; background: #ECE8F4; border-radius: 12px; padding: 4px; margin-top: 14px">
+      <button class="{{segMine}}" onClick="{{showMine}}">For me</button>
+      <button class="{{segOthers}}" onClick="{{showOthers}}">On others</button>
+      <button class="{{segDone}}" onClick="{{showDone}}">Decided</button>
+    </div>
+  </div>
+
+  <sc-if value="{{isMine}}" hint-placeholder-val="{{ true }}">
+    <div style="padding: 8px 16px 24px; display: flex; flex-direction: column; gap: 18px">
+      <sc-for list="{{groups}}" as="g" hint-placeholder-count="4">
+        <section style="display: flex; flex-direction: column; gap: 8px">
+          <div style="display: flex; align-items: center; gap: 8px">
+            <h2 class="lbl" style="margin: 0; color: {{g.colour}}">{{g.area}}</h2>
+            <span class="chip">{{g.count}}</span>
+          </div>
+          <sc-for list="{{g.items}}" as="it" hint-placeholder-count="1">
+            <a class="card" href="{{it.href}}">
+              <span style="display: flex; justify-content: space-between; gap: 8px; align-items: flex-start">
+                <span style="font-weight: 800; font-size: 15px; line-height: 1.3">{{it.title}}</span>
+                <span aria-hidden="true" style="color: #8F88A6; font-size: 20px; line-height: 1">›</span>
+              </span>
+              <span style="display: block; margin-top: 4px; font-size: 13px; color: #5B5470">{{it.change}}</span>
+              <span style="display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; align-items: center">
+                <span class="due {{it.dueCls}}">{{it.due}}</span>
+                <sc-for list="{{it.flags}}" as="f" hint-placeholder-count="1"><span class="chip">{{f}}</span></sc-for>
+                <span style="font-size: 12px; color: #5B5470">{{it.agent}}</span>
+              </span>
+            </a>
+          </sc-for>
+        </section>
+      </sc-for>
+    </div>
+  </sc-if>
+  <sc-if value="{{isOthers}}" hint-placeholder-val="{{ false }}">
+    <div style="padding: 8px 16px 24px; display: flex; flex-direction: column; gap: 10px">
+      <sc-for list="{{others}}" as="it" hint-placeholder-count="4">
+        <a class="card" href="Batch.dc.html">
+          <span style="font-weight: 800; font-size: 15px">{{it.title}}</span>
+          <span style="display: block; margin-top: 4px; font-size: 13px; color: #5B5470">{{it.area}} · waiting on {{it.who}}</span>
+          <span style="display: flex; margin-top: 10px"><span class="due {{it.dueCls}}">{{it.due}}</span></span>
+        </a>
+      </sc-for>
+    </div>
+  </sc-if>
+  <sc-if value="{{isDone}}" hint-placeholder-val="{{ false }}">
+    <div style="padding: 8px 16px 24px; display: flex; flex-direction: column; gap: 10px">
+      <sc-for list="{{decided}}" as="it" hint-placeholder-count="4">
+        <div class="card">
+          <span style="font-weight: 800; font-size: 15px">{{it.title}}</span>
+          <span style="display: block; margin-top: 4px; font-size: 13px; color: #5B5470">{{it.who}} · {{it.when}}</span>
+          <span style="display: flex; margin-top: 10px"><span class="due {{it.cls}}">{{it.outcome}}</span></span>
+        </div>
+      </sc-for>
+    </div>
+  </sc-if>
+
+  <div style="flex: 1"></div>
+  <nav class="bnav" aria-label="doddl PM">
+    <a href="#">My work</a>
+    <a class="on" href="InboxPhone.dc.html">Approvals</a>
+    <a href="CalendarPhone.dc.html">Calendar</a>
+    <a href="IdeaPhone.dc.html">Idea</a>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1560}}'>
+class Component extends DCLogic {
+  constructor(p) { super(p); this.state = { tab: 'mine' }; }
+  renderVals() {
+    const t = this.state.tab;
+    const groups = [
+      { area: 'Escalated to you', colour: '#A12B2B', items: [
+        { title: 'Black Friday early access email, UK list', change: 'Laura has not answered in 48h. You are the backup.', agent: 'CRM agent', due: 'Expires in 23h', dueCls: 'due-bad', flags: ['Preview'], href: 'Card.dc.html' } ] },
+      { area: 'Amazon ads', colour: '#5B5470', items: [
+        { title: 'Amazon ads pack: 12 changes', change: 'Budgets, bids, negatives · tick line by line', agent: 'Amazon Ads agent', due: 'Due in 23h', dueCls: 'due-ok', flags: ['Pack of 12'], href: 'BatchPhone.dc.html' } ] },
+      { area: 'Amazon listings', colour: '#5B5470', items: [
+        { title: 'New title and bullets: toddler cutlery set, Dusky Rose', change: 'One product · Amazon UK', agent: 'Listing agent', due: 'Due in 8h', dueCls: 'due-warn', flags: ['Preview'], href: 'CardPhone.dc.html' } ] },
+      { area: 'Website', colour: '#5B5470', items: [
+        { title: 'Black Friday homepage hero, preview theme', change: 'Hero image, headline and button', agent: 'Website agent', due: 'Due in 14h', dueCls: 'due-ok', flags: ['Preview'], href: 'Card.dc.html' } ] },
+      { area: 'App recipes', colour: '#5B5470', items: [
+        { title: 'Recipe: sweet potato fingers (6–12 months)', change: 'New recipe and feeding note', agent: 'App Content agent', due: 'Due in 17h', dueCls: 'due-ok', flags: ['1 of 2 approved'], href: 'Card.dc.html' } ] },
+      { area: 'Paid social and search', colour: '#5B5470', items: [
+        { title: 'Paid pack: 3 changes', change: 'Pause 2 Meta ads, switch on 1 · tick line by line', agent: 'Paid Media agent', due: 'Due in 21h', dueCls: 'due-ok', flags: ['Pack of 3'], href: 'BatchPhone.dc.html' } ] },
+      { area: 'B2B, PR and creators', colour: '#5B5470', items: [
+        { title: 'Creator outreach pack · 18 contacts', change: 'Approve all, or tick one by one', agent: 'Outreach agent', due: 'Due in 22h', dueCls: 'due-ok', flags: ['Pack of 18'], href: 'BatchPhone.dc.html' } ] }
+    ].map(g => ({ ...g, count: String(g.items.length) }));
+    const others = [
+      { title: 'Next week’s social posts · 9', area: 'Organic social', who: 'Laura', due: 'Due in 21h', dueCls: 'due-ok' },
+      { title: 'Today’s replies · 5', area: 'Comments and DMs', who: 'Laura', due: 'Reply by 17:00', dueCls: 'due-warn' },
+      { title: 'December content calendar', area: 'Content calendar', who: 'Laura', due: 'Overdue 23h', dueCls: 'due-bad' },
+      { title: 'Recipe: sweet potato fingers', area: 'App recipes', who: 'Feeding reviewer', due: 'Due in 17h', dueCls: 'due-ok' }
+    ];
+    const decided = [
+      { title: 'Halloween post', who: 'Laura', when: 'Fri 30 Oct', outcome: 'Approved with edits', cls: 'due-ok' },
+      { title: 'Amazon ads pack, week of 2 Nov', who: 'Jon', when: 'Thu 29 Oct', outcome: 'Approved 9 of 11', cls: 'due-ok' },
+      { title: 'US welcome flow: email 3', who: 'Laura', when: 'Wed 28 Oct', outcome: 'Sent back', cls: 'due-warn' },
+      { title: 'Homepage autumn banner', who: 'Jon', when: 'Tue 27 Oct', outcome: 'Rejected', cls: 'due-bad' }
+    ];
+    return {
+      groups, others, decided,
+      isMine: t === 'mine', isOthers: t === 'others', isDone: t === 'done',
+      segMine: t === 'mine' ? 'seg on' : 'seg', segOthers: t === 'others' ? 'seg on' : 'seg', segDone: t === 'done' ? 'seg on' : 'seg',
+      showMine: () => this.setState({ tab: 'mine' }), showOthers: () => this.setState({ tab: 'others' }), showDone: () => this.setState({ tab: 'done' })
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Who approves what, phone</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&amp;display=swap">
+<style>
+body{margin:0;font-family:'Nunito',system-ui,sans-serif;color:#190e3e;background:#F6F4FA}
+a{color:#3D157D}a:hover{color:#190e3e}
+.top{background:#190e3e;color:#fff;padding:0 16px;min-height:56px;display:flex;align-items:center}
+.chip{display:inline-flex;align-items:center;font-size:12px;font-weight:800;border-radius:999px;padding:2px 9px;background:#F0EEF4;color:#4A4458;white-space:nowrap}
+.warn{background:#FBE9D2;color:#8A4B00}.on{background:#E2F2E7;color:#1E6B3A}
+.card{background:#fff;border:1px solid #E4E0EE;border-radius:14px;padding:12px 14px;display:flex;flex-direction:column;gap:8px}
+.kv{display:grid;grid-template-columns:110px minmax(0,1fr);gap:4px 8px;font-size:14px;margin:0}
+.kv dt{color:#5B5470;font-weight:700;margin:0}.kv dd{margin:0;font-weight:800}
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 14px;border-radius:10px;font:800 14px 'Nunito',sans-serif;border:1px solid #CFC8E0;background:#fff;color:#190e3e;cursor:pointer;box-sizing:border-box}
+.btn-p{background:#3D157D;border-color:#3D157D;color:#fff}
+.input{font:600 15px 'Nunito',sans-serif;color:#190e3e;border:1px solid #CFC8E0;border-radius:10px;padding:0 12px;min-height:48px;box-sizing:border-box;width:100%;background:#fff}
+</style>
+</helmet>
+<div style="width: 390px; min-height: 1800px; background: #F6F4FA">
+  <div class="top"><a href="InboxPhone.dc.html" style="color: #fff; text-decoration: none; font-weight: 800; font-size: 15px; min-height: 44px; display: inline-flex; align-items: center">‹ Settings</a></div>
+  <div style="padding: 16px; display: flex; flex-direction: column; gap: 10px">
+    <h1 style="margin: 0; font-size: 24px; font-weight: 800">Who approves what</h1>
+    <p style="margin: 0; font-size: 14px; color: #5B5470">HQ reads this each time it raises a card. Last read 09:31.</p>
+    <p style="margin: 0; background: #FBE9D2; color: #6B3A00; border-radius: 10px; padding: 10px 12px; font-size: 13px"><b>App recipes</b> has no feeding reviewer yet.</p>
+    <p style="margin: 0; font-size: 13px; color: #5B5470">Prices are not approvals: pricing agents recommend only.</p>
+
+    <sc-for list="{{areas}}" as="a" hint-placeholder-count="11">
+      <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px">
+          <h2 style="margin: 0; font-size: 16px; font-weight: 800">{{a.name}}</h2>
+          <button class="btn" onClick="{{a.edit}}" aria-label="Change {{a.name}}">Change</button>
+        </div>
+        <dl class="kv">
+          <dt>Approver</dt><dd>{{a.approver}}</dd>
+          <dt>Backup at 48h</dt><dd>{{a.backup}}</dd>
+          <dt>Second</dt><dd>{{a.second}}</dd>
+        </dl>
+        <div style="display: flex; gap: 6px; flex-wrap: wrap"><span class="chip {{a.batchCls}}">Batch: {{a.batch}}</span><span class="chip {{a.thrCls}}">{{a.threshold}}</span></div>
+        <sc-if value="{{a.open}}" hint-placeholder-val="{{ false }}">
+          <div style="border-top: 1px solid #EFECF5; padding-top: 10px; display: flex; flex-direction: column; gap: 10px">
+            <label style="font-size: 13px; font-weight: 800">Approver<select class="input" style="margin-top: 4px"><option>{{a.approver}}</option><option>Jon</option><option>Laura</option><option>Cat</option><option>Chris</option><option>Cathy</option></select></label>
+            <label style="font-size: 13px; font-weight: 800">Backup<select class="input" style="margin-top: 4px"><option>{{a.backup}}</option><option>Jon</option><option>Laura</option><option>Cat</option><option>Chris</option><option>Cathy</option></select></label>
+            <label style="font-size: 13px; font-weight: 800">Reason (logged)<input class="input" style="margin-top: 4px"></label>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px"><button class="btn btn-p" onClick="{{close}}">Save</button><button class="btn" onClick="{{close}}">Cancel</button></div>
+          </div>
+        </sc-if>
+      </div>
+    </sc-for>
+
+    <h2 style="margin: 10px 0 0; font-size: 18px; font-weight: 800">Change log</h2>
+    <div class="card">
+      <p style="margin: 0; font-size: 14px"><b>Wed 09:20 · Jon</b><br>Organic social: approver Jon → Laura<br><span style="color: #5B5470">“Laura owns social from November”</span></p>
+      <p style="margin: 0; font-size: 14px; border-top: 1px solid #EFECF5; padding-top: 8px"><b>Wed 09:19 · Jon</b><br>Amazon ads, Paid: weekly pack on</p>
+      <p style="margin: 0; font-size: 14px; border-top: 1px solid #EFECF5; padding-top: 8px"><b>Wed 09:18 · Jon</b><br>Comments and DMs: daily pack, reply by 17:00</p>
+      <p style="margin: 0; font-size: 14px; border-top: 1px solid #EFECF5; padding-top: 8px"><b>Wed 09:15 · Jon</b><br>Email (Klaviyo): backup set to Jon</p>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1800}}'>
+class Component extends DCLogic {
+  constructor(p) { super(p); this.state = { open: null }; }
+  renderVals() {
+    const A = [
+      { id: 'ads', name: 'Amazon ads', approver: 'Jon', backup: 'Chris', second: 'None', threshold: 'Spend threshold not set', batch: 'weekly pack' },
+      { id: 'listings', name: 'Amazon listings', approver: 'Jon', backup: 'Laura', second: 'None', threshold: 'No spend', batch: 'always single' },
+      { id: 'paid', name: 'Paid social and search', approver: 'Jon', backup: 'Chris', second: 'None', threshold: 'Spend threshold not set', batch: 'weekly pack' },
+      { id: 'email', name: 'Email (Klaviyo)', approver: 'Laura', backup: 'Jon', second: 'None', threshold: 'No spend', batch: 'off' },
+      { id: 'social', name: 'Organic social', approver: 'Laura', backup: 'Cat', second: 'None', threshold: 'No spend', batch: 'weekly, Wed' },
+      { id: 'dms', name: 'Comments and DMs', approver: 'Laura', backup: 'Cathy', second: 'None', threshold: 'No spend', batch: 'daily, reply by 17:00' },
+      { id: 'web', name: 'Website', approver: 'Jon', backup: 'Laura', second: 'None', threshold: 'No spend', batch: 'always single' },
+      { id: 'cal', name: 'Content calendar', approver: 'Laura', backup: 'Jon', second: 'None', threshold: 'No spend', batch: 'monthly plan' },
+      { id: 'b2b', name: 'B2B, PR and creators', approver: 'Jon', backup: 'Laura', second: 'None', threshold: 'No spend', batch: 'max 25' },
+      { id: 'app', name: 'App recipes', approver: 'Not set', backup: 'Laura', second: 'Jon', threshold: 'No spend', batch: 'off' }
+    ];
+    const areas = A.map(a => ({ ...a, open: this.state.open === a.id,
+      batchCls: a.batch === 'always single' || a.batch === 'off' ? '' : 'on', thrCls: a.threshold.indexOf('not set') > -1 ? 'warn' : '',
+      edit: () => this.setState({ open: this.state.open === a.id ? null : a.id }) }));
+    return { areas, close: () => this.setState({ open: null }) };
+  }
+}
+</script>
+</body>
+</html>

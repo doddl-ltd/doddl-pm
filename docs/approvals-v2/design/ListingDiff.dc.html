@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Listing: live vs should be live</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&amp;display=swap">
+<style>
+body{margin:0;font-family:'Nunito',system-ui,sans-serif;color:#190e3e;background:#F6F4FA}
+a{color:#3D157D}a:hover{color:#190e3e}
+.shell{display:flex;flex-wrap:wrap;min-height:2300px;background:#F6F4FA}
+.side{flex:1 1 220px;max-width:248px;background:#190e3e;color:#fff;padding:20px 14px;box-sizing:border-box;display:flex;flex-direction:column;gap:2px}
+.brand{font-weight:800;font-size:21px;padding:4px 12px 18px}
+.brand span{color:#C9B6F2}
+.nav{display:flex;align-items:center;gap:10px;padding:0 12px;min-height:44px;border-radius:10px;color:#DCD6EC;text-decoration:none;font-weight:700;font-size:14px}
+.nav:hover{background:#2B2058;color:#fff}
+.nav.on{background:#3D157D;color:#fff}
+.navlbl{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:#ABA3C8;padding:16px 12px 4px;font-weight:800}
+.badge{margin-left:auto;background:#fff;color:#3D157D;border-radius:999px;font-size:12px;font-weight:800;padding:1px 8px}
+.main{flex:999 1 640px;min-width:0;padding:24px 36px 56px;box-sizing:border-box}
+.panel{background:#fff;border:1px solid #E4E0EE;border-radius:14px;padding:18px 20px}
+.lbl{font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#5B5470;margin:0}
+.h2{font-size:17px;font-weight:800;margin:0 0 10px}
+.chip{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:800;border-radius:999px;padding:3px 10px;background:#EEE9F8;color:#3D157D;white-space:nowrap}
+.due{display:inline-flex;align-items:center;font-size:13px;font-weight:800;border-radius:999px;padding:4px 12px;white-space:nowrap}
+.due-warn{background:#FBE9D2;color:#8A4B00}
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:46px;padding:0 20px;border-radius:10px;font:800 15px 'Nunito',sans-serif;border:1px solid #CFC8E0;background:#fff;color:#190e3e;cursor:pointer;text-decoration:none;box-sizing:border-box}
+.btn:hover{border-color:#3D157D}
+.btn-p{background:#3D157D;border-color:#3D157D;color:#fff}
+.btn-p:hover{background:#190e3e;color:#fff}
+.tab{background:none;border:0;border-bottom:3px solid transparent;font:800 14px 'Nunito',sans-serif;color:#5B5470;padding:0 4px;min-height:44px;cursor:pointer}
+.tab.on{color:#3D157D;border-bottom-color:#3D157D}
+.tw{overflow-x:auto}
+.df{display:grid;grid-template-columns:150px minmax(260px,1fr) minmax(260px,1fr) 210px;min-width:1000px}
+.df > div{padding:12px;border-top:1px solid #EFECF5;font-size:14px;line-height:1.5}
+.df .hd{border-top:0;background:#F6F4FA;font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#5B5470}
+.fname{font-weight:800}
+.live-diff{background:#FFF4E5}
+.should-diff{background:#F1ECFB;font-weight:700}
+.meta{display:block;font-size:12px;color:#5B5470;font-weight:600;margin-top:4px}
+.sel{font:700 13px 'Nunito',sans-serif;color:#190e3e;border:1px solid #CFC8E0;border-radius:8px;min-height:40px;padding:0 8px;width:100%;background:#fff}
+.st{display:inline-flex;align-items:center;font-size:12px;font-weight:800;border-radius:999px;padding:3px 10px;margin-bottom:6px}
+.s-ok{background:#E2F2E7;color:#1E6B3A}.s-dr{background:#FBE9D2;color:#8A4B00}.s-new{background:#EEE9F8;color:#3D157D}.s-bad{background:#F8E1E1;color:#A12B2B}
+.imgs{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
+.im{height:58px;border-radius:6px;background:repeating-linear-gradient(135deg,#ECE8F4 0 8px,#F4F1F9 8px 16px);font-size:10px;font-weight:800;color:#5B5470;display:flex;align-items:flex-end;padding:4px;box-sizing:border-box}
+.im.diff{outline:2px solid #D98A1F}
+.im.gone{background:#F8E1E1;color:#A12B2B;align-items:center;justify-content:center}
+.check{display:flex;gap:10px;align-items:flex-start;font-size:14px;line-height:1.45;padding:7px 0;border-top:1px solid #F1EEF6}
+.ok{color:#1E6B3A;font-weight:800;flex:none;width:58px}
+.warn{color:#8A4B00;font-weight:800;flex:none;width:58px}
+.kw{display:grid;grid-template-columns:minmax(0,1fr) 80px 80px;gap:8px;font-size:13px;padding:6px 0;border-top:1px solid #F1EEF6}
+.fchip{display:inline-flex;align-items:center;min-height:40px;padding:0 14px;border-radius:999px;border:1px solid #CFC8E0;background:#fff;font:800 14px 'Nunito',sans-serif;color:#190e3e;cursor:pointer}
+.fchip.on{background:#190e3e;border-color:#190e3e;color:#fff}
+.ev{display:flex;gap:12px;padding:8px 0;border-top:1px solid #F1EEF6;font-size:13px;line-height:1.45}
+.evt{flex:none;width:80px;color:#5B5470;font-weight:700}
+</style>
+</helmet>
+<div class="shell">
+  <nav class="side" aria-label="doddl PM">
+    <div class="brand">doddl <span>PM</span></div>
+    <a class="nav" href="#">My work</a>
+    <a class="nav" href="#">Triage</a>
+    <a class="nav" href="#">Projects</a>
+    <div class="navlbl">doddl HQ</div>
+    <a class="nav" href="Main.dc.html">Approvals <span class="badge">7</span></a>
+    <a class="nav" href="Studio.dc.html">Creative studio</a>
+    <a class="nav" href="Calendar.dc.html">Content calendar</a>
+    <a class="nav on" href="Listings.dc.html">Amazon listings</a>
+    <a class="nav" href="Idea.dc.html">Give HQ an idea</a>
+    <div class="navlbl">Settings</div>
+    <a class="nav" href="Approvers.dc.html">Who approves what</a>
+  </nav>
+
+  <main class="main">
+    <a href="Listings.dc.html" style="font-size: 14px; font-weight: 800; text-decoration: none; display: inline-flex; min-height: 44px; align-items: center">‹ Amazon listings</a>
+    <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center">
+      <span class="chip" style="background: #F6E3EF; color: #7A1F5C">Amazon listing</span>
+      <span class="chip" style="background: #F0EEF4; color: #4A4458">From Listing agent</span>
+      <span class="chip" style="background: #F0EEF4; color: #4A4458">Approver Jon · backup Laura</span>
+      <span class="due due-warn">Due in 8h</span>
+    </div>
+    <h1 style="margin: 12px 0 4px; font-size: 28px; font-weight: 800; letter-spacing: -0.01em">Toddler 3-piece cutlery set · Dusky Rose</h1>
+    <p style="margin: 0; color: #5B5470; font-size: 14px">ASIN B0[ASIN] · SKU [SKU] · parent: Toddler 3-piece (2 colours) · last read from Amazon today 07:15</p>
+
+    <div style="display: flex; gap: 22px; border-bottom: 1px solid #E4E0EE; margin-top: 18px; flex-wrap: wrap" role="tablist">
+      <sc-for list="{{mtabs}}" as="t" hint-placeholder-count="4"><button class="{{t.cls}}" onClick="{{t.pick}}" role="tab">{{t.label}}</button></sc-for>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-top: 16px">
+      <div class="panel" style="padding: 12px 16px"><p class="lbl">Listing status on {{mkt}}</p><p style="margin: 4px 0 0; font-size: 18px; font-weight: 800; color: #1E6B3A">Active, buyable</p></div>
+      <div class="panel" style="padding: 12px 16px"><p class="lbl">Fields that differ</p><p style="margin: 4px 0 0; font-size: 18px; font-weight: 800; color: #8A4B00">4 of 15</p></div>
+      <div class="panel" style="padding: 12px 16px"><p class="lbl">Buy Box</p><p style="margin: 4px 0 0; font-size: 18px; font-weight: 800">doddl holds it</p></div>
+      <div class="panel" style="padding: 12px 16px"><p class="lbl">Should-be-live source</p><p style="margin: 4px 0 0; font-size: 14px; font-weight: 800">Product fact sheet v3 + changes approved 21 Oct</p></div>
+    </div>
+
+    <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 16px" role="group" aria-label="Show">
+      <button class="{{fAll}}" onClick="{{toAll}}">Every field</button>
+      <button class="{{fDiff}}" onClick="{{toDiff}}">Only what differs</button>
+    </div>
+
+    <section class="panel tw" style="margin-top: 12px; padding: 0">
+      <div class="df">
+        <div class="hd">Field</div><div class="hd">Live on Amazon now</div><div class="hd">Should be live</div><div class="hd">What to do</div>
+        <sc-for list="{{rows}}" as="r" hint-placeholder-count="10">
+          <div class="fname">{{r.f}}<span class="meta">{{r.limit}}</span></div>
+          <div class="{{r.lc}}">{{r.live}}<span class="meta">{{r.lmeta}}</span></div>
+          <div class="{{r.sc}}">{{r.should}}<span class="meta">{{r.smeta}}</span></div>
+          <div><span class="st {{r.stc}}">{{r.st}}</span>
+            <sc-if value="{{r.act}}" hint-placeholder-val="{{ true }}">
+              <select class="sel" aria-label="Action for {{r.f}}"><option>Send should-be-live to Amazon</option><option>Keep Amazon’s version as the new should-be-live</option><option>Edit before sending</option></select>
+            </sc-if>
+          </div>
+        </sc-for>
+      </div>
+    </section>
+
+    <section class="panel" style="margin-top: 20px">
+      <h2 class="h2">Images</h2>
+      <p class="lbl">Live on Amazon now</p>
+      <div class="imgs" style="margin-top: 6px">
+        <div class="im">1 Main, white</div><div class="im">2 Set laid out</div><div class="im diff">3 Old size chart</div><div class="im">4 In hand</div><div class="im">5 Toddler eating</div><div class="im gone">Missing</div><div class="im">7 Box</div>
+      </div>
+      <p class="lbl" style="margin-top: 14px">Should be live (from 14 Media › 01 Product › Toddler 3-piece (2-4 years) › Dusky Rose › Amazon)</p>
+      <div class="imgs" style="margin-top: 6px">
+        <div class="im">1 Main, white</div><div class="im">2 Set laid out</div><div class="im diff">3 Size chart 2026</div><div class="im">4 In hand</div><div class="im">5 Toddler eating</div><div class="im diff">6 Both colours</div><div class="im">7 Box</div>
+      </div>
+      <p style="margin: 10px 0 0; font-size: 13px; color: #5B5470">Image 3 is the old size chart; image 6 was dropped by Amazon on 28 Oct (too small, 900px). The replacement is 2000px.</p>
+    </section>
+
+    <div style="display: flex; flex-wrap: wrap; gap: 20px; margin-top: 20px; align-items: flex-start">
+      <section class="panel" style="flex: 1 1 340px; min-width: 0">
+        <h2 class="h2">Checks on the should-be-live copy</h2>
+        <div class="check" style="border-top: 0"><span class="ok">Pass</span><span>Title 168 of 200 characters; brand first; no promo words</span></div>
+        <div class="check"><span class="ok">Pass</span><span>Bullets under 255 characters each</span></div>
+        <div class="check"><span class="ok">Pass</span><span>Search terms 231 of 249 bytes; no ASINs, brands or repeats</span></div>
+        <div class="check"><span class="ok">Pass</span><span>Brand voice</span></div>
+        <div class="check"><span class="warn">Check</span><span>Bullet 2 self-feeding wording: checked against the claims register; keep it word for word</span></div>
+        <div class="check"><span class="ok">Pass</span><span>Images 2000px, main image on pure white</span></div>
+        <div class="check"><span class="ok">Pass</span><span>Age range attribute filled: 2 to 4 years</span></div>
+      </section>
+      <section class="panel" style="flex: 1 1 340px; min-width: 0">
+        <h2 class="h2">Search words the listing should win</h2>
+        <div class="kw" style="border-top: 0; font-weight: 800; color: #5B5470"><span>Search term</span><span>Live</span><span>Should be</span></div>
+        <div class="kw"><span>toddler cutlery</span><span>Title</span><span>Title</span></div>
+        <div class="kw"><span>toddler cutlery set</span><span>Title</span><span>Title</span></div>
+        <div class="kw"><span>kids cutlery</span><span>–</span><span>Bullet 1</span></div>
+        <div class="kw"><span>toddler fork and spoon</span><span>Search terms</span><span>Title</span></div>
+        <div class="kw"><span>self feeding cutlery</span><span>–</span><span>Bullet 2</span></div>
+        <p style="margin: 8px 0 0; font-size: 13px; color: #5B5470">From Amazon search query data, last 30 days.</p>
+      </section>
+      <section class="panel" style="flex: 1 1 300px; min-width: 0">
+        <h2 class="h2">History</h2>
+        <div class="ev" style="border-top: 0"><span class="evt">Today</span><span>Agent found 4 fields differ; this card raised</span></div>
+        <div class="ev"><span class="evt">3 Nov</span><span>Amazon shortened bullet 4</span></div>
+        <div class="ev"><span class="evt">28 Oct</span><span>Amazon removed image 6 (too small)</span></div>
+        <div class="ev"><span class="evt">21 Oct</span><span>Jon approved new bullets 1 and 2; sent; live 22 Oct</span></div>
+        <div class="ev"><span class="evt">2 Oct</span><span>Price changed by Jon in Seller Central</span></div>
+      </section>
+    </div>
+
+    <section class="panel" style="margin-top: 20px">
+      <h2 class="h2">Your answer</h2>
+      <p style="margin: 0 0 12px; font-size: 14px; color: #4A4458">Each differing field uses the action you picked above. Nothing is sent to Amazon until you press the button.</p>
+      <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center">
+        <button class="btn btn-p">Send 4 fixes to Amazon {{mkt}}</button>
+        <button class="btn">Send back to the agent</button>
+        <span style="font-size: 13px; color: #5B5470">After sending: shown as “on its way”, checked again in 24 hours, and the result posted here.</span>
+      </div>
+    </section>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":2300}}'>
+class Component extends DCLogic {
+  constructor(p) { super(p); this.state = { m: 'UK', diff: false }; }
+  renderVals() {
+    const s = this.state;
+    const R = [
+      { f: 'Title', limit: '200 characters', live: 'doddl Toddler Cutlery Set, Fork Spoon Knife, Dusky Rose', lmeta: '56 characters', should: 'doddl Toddler Cutlery Set, 3 Piece Fork, Spoon and Knife for Self Feeding, Short Handles for Small Hands, Dusky Rose, 2 to 4 Years', smeta: '133 characters', k: 'dr', st: 'Amazon changed it' },
+      { f: 'Bullet 1', limit: '255 characters', live: 'DESIGNED FOR LITTLE HANDS: short, chunky handles toddlers can grip.', lmeta: '', should: 'DESIGNED FOR LITTLE HANDS: short, chunky handles toddlers can grip.', smeta: '', k: 'ok', st: 'Matches' },
+      { f: 'Bullet 2', limit: '255 characters', live: 'SELF FEEDING: [wording from the claims register]', lmeta: '', should: 'SELF FEEDING: [wording from the claims register]', smeta: '', k: 'ok', st: 'Matches' },
+      { f: 'Bullet 3', limit: '255 characters', live: 'THREE PIECES: fork, spoon and a rounded knife.', lmeta: '', should: 'THREE PIECES: fork, spoon and a rounded knife.', smeta: '', k: 'ok', st: 'Matches' },
+      { f: 'Bullet 4', limit: '255 characters', live: 'EASY CARE: [care line, cut short]', lmeta: 'Cut short by Amazon on 3 Nov', should: 'EASY CARE: [care line from the product fact sheet]', smeta: '', k: 'dr', st: 'Amazon changed it' },
+      { f: 'Bullet 5', limit: '255 characters', live: 'GIFT READY: comes in a gift box.', lmeta: '', should: 'GIFT READY: comes in a gift box.', smeta: '', k: 'ok', st: 'Matches' },
+      { f: 'Description', limit: 'Hidden when A+ is live', live: 'Hidden behind A+ content', lmeta: '', should: 'Hidden behind A+ content', smeta: '', k: 'ok', st: 'Matches' },
+      { f: 'Search terms', limit: '249 bytes, hidden', live: 'kids cutlery toddler fork spoon childrens', lmeta: '41 bytes', should: 'kids cutlery childrens fork spoon knife set toddler eating utensils first cutlery nursery 2 year old 3 year old', smeta: '231 bytes', k: 'new', st: 'We propose a change' },
+      { f: 'Images', limit: '7 slots', live: '6 of 7, image 3 out of date', lmeta: 'See below', should: '7 of 7', smeta: 'See below', k: 'dr', st: 'Amazon changed it' },
+      { f: 'A+ content', limit: '', live: '5 modules, approved 2 Nov', lmeta: '', should: '5 modules, approved 2 Nov', smeta: '', k: 'ok', st: 'Matches' },
+      { f: 'Price', limit: '', live: '£[price]', lmeta: 'No deal running', should: '£[price]', smeta: 'From the pricing sheet', k: 'ok', st: 'Matches' },
+      { f: 'Variations', limit: '', live: 'Colour: Fresh Green, Dusky Rose', lmeta: '', should: 'Colour: Fresh Green, Dusky Rose', smeta: '', k: 'ok', st: 'Matches' },
+      { f: 'Category', limit: '', live: 'Baby › Feeding › Cutlery', lmeta: '', should: 'Baby › Feeding › Cutlery', smeta: '', k: 'ok', st: 'Matches' },
+      { f: 'Age range', limit: 'Attribute', live: '2 to 4 years', lmeta: '', should: '2 to 4 years', smeta: '', k: 'ok', st: 'Matches' },
+      { f: 'Safety documents', limit: 'Compliance', live: 'On file with Amazon', lmeta: '', should: 'On file', smeta: '', k: 'ok', st: 'Matches' }
+    ];
+    const cls = { ok: 's-ok', dr: 's-dr', new: 's-new', bad: 's-bad' };
+    const rows = R.filter(r => !s.diff || r.k !== 'ok').map(r => ({ ...r, stc: cls[r.k], act: r.k !== 'ok', lc: r.k === 'ok' ? '' : 'live-diff', sc: r.k === 'ok' ? '' : 'should-diff' }));
+    const mtabs = ['UK', 'US', 'Germany', 'France'].map(m => ({ label: 'Amazon ' + m, cls: s.m === m ? 'tab on' : 'tab', pick: () => this.setState({ m }) }));
+    return {
+      rows, mtabs, mkt: s.m,
+      fAll: s.diff ? 'fchip' : 'fchip on', fDiff: s.diff ? 'fchip on' : 'fchip',
+      toAll: () => this.setState({ diff: false }), toDiff: () => this.setState({ diff: true })
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Ads pack, phone</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&amp;display=swap">
+<style>
+body{margin:0;font-family:'Nunito',system-ui,sans-serif;color:#190e3e;background:#F6F4FA}
+a{color:#3D157D}a:hover{color:#190e3e}
+.top{background:#190e3e;color:#fff;padding:0 16px;min-height:56px;display:flex;align-items:center}
+.chip{display:inline-flex;align-items:center;font-size:12px;font-weight:800;border-radius:999px;padding:3px 10px;background:#EEE9F8;color:#3D157D;white-space:nowrap}
+.grey{background:#F0EEF4;color:#4A4458}.ok{background:#E2F2E7;color:#1E6B3A}.warn{background:#FBE9D2;color:#8A4B00}
+.due{display:inline-flex;font-size:12px;font-weight:800;border-radius:999px;padding:3px 10px;background:#E2F2E7;color:#1E6B3A}
+.row{display:grid;grid-template-columns:36px minmax(0,1fr);gap:8px;align-items:start;background:#fff;border:2px solid #3D157D;border-radius:14px;padding:10px 12px;cursor:pointer}
+.row.off{border-color:#E4E0EE;opacity:.65}
+.row input{width:22px;height:22px;accent-color:#3D157D;margin:2px 0 0}
+.before{color:#5B5470;text-decoration:line-through}
+.after{background:#F1ECFB;font-weight:800;padding:0 4px;border-radius:4px}
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:0 12px;border-radius:12px;font:800 15px 'Nunito',sans-serif;border:1px solid #CFC8E0;background:#fff;color:#190e3e;cursor:pointer;box-sizing:border-box;width:100%}
+.btn-p{background:#3D157D;border-color:#3D157D;color:#fff}
+</style>
+</helmet>
+<div style="width: 390px; min-height: 1640px; background: #F6F4FA; display: flex; flex-direction: column">
+  <div class="top"><a href="InboxPhone.dc.html" style="color: #fff; text-decoration: none; font-weight: 800; font-size: 15px; min-height: 44px; display: inline-flex; align-items: center">‹ Approvals</a></div>
+  <div style="padding: 16px; display: flex; flex-direction: column; gap: 10px">
+    <div style="display: flex; gap: 6px; flex-wrap: wrap"><span class="chip">Amazon ads</span><span class="chip grey">Weekly pack</span><span class="due">Due in 23h</span></div>
+    <h1 style="margin: 0; font-size: 22px; font-weight: 800; line-height: 1.25">Amazon ads pack: 12 changes, week of 9 Nov</h1>
+    <p style="margin: 0; font-size: 13px; color: #5B5470">From Amazon Ads agent · each line has its own reason and limit. Tap a line to untick it.</p>
+
+    <sc-for list="{{groups}}" as="g" hint-placeholder-count="3">
+      <h2 style="margin: 8px 0 0; font-size: 13px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: #5B5470">{{g.name}} · {{g.tickedOf}}</h2>
+      <sc-for list="{{g.lines}}" as="l" hint-placeholder-count="4">
+        <label class="{{l.cls}}">
+          <input type="checkbox" checked="{{l.ticked}}" onChange="{{l.toggle}}" aria-label="Run: {{l.target}}">
+          <span style="min-width: 0">
+            <b style="display: block; font-size: 14px">{{l.target}}</b>
+            <span style="display: block; font-size: 14px; margin-top: 2px"><span class="before">{{l.before}}</span> → <span class="after">{{l.after}}</span> <span class="chip {{l.limCls}}" style="margin-left: 4px">{{l.limit}}</span></span>
+            <span style="display: block; font-size: 13px; color: #4A4458; margin-top: 4px; line-height: 1.4">{{l.why}}</span>
+          </span>
+        </label>
+      </sc-for>
+    </sc-for>
+  </div>
+  <div style="flex: 1"></div>
+  <div style="background: #fff; border-top: 1px solid #E4E0EE; padding: 12px 16px 16px; display: flex; flex-direction: column; gap: 8px">
+    <p style="margin: 0; font-size: 14px; font-weight: 800">{{ticked}} of 12 ticked · UK {{uk}}, US {{us}} a week</p>
+    <sc-if value="{{approved}}" hint-placeholder-val="{{ false }}">
+      <p style="margin: 0; background: #E2F2E7; color: #1E6B3A; border-radius: 10px; padding: 10px 12px; font-weight: 800">Done. {{ticked}} lines run once each; the rest go back to the agent.</p>
+    </sc-if>
+    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
+      <button class="btn" onClick="{{tickAll}}">Tick all</button>
+      <button class="btn btn-p" onClick="{{approve}}">{{label}}</button>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1640}}'>
+class Component extends DCLogic {
+  constructor(p) { super(p); this.state = { off: { b4: true }, approved: false }; }
+  renderVals() {
+    const G = [
+      { name: 'Budgets', lines: [
+        { id: 'b1', target: 'UK Toddler 2-piece, exact', before: '£40', after: '£46', limit: '+15%', limCls: 'ok', why: 'Budget ran out before 15:00 on [n] of 14 days.', uk: 42 },
+        { id: 'b2', target: 'US Toddler cutlery, exact', before: '$35', after: '$40', limit: '+14%', limCls: 'ok', why: 'Budget ran out early on [n] of 14 days.', us: 35 },
+        { id: 'b3', target: 'UK Baby spoon, broad', before: '£30', after: '£24', limit: '−20% at limit', limCls: 'warn', why: 'ACOS [x]%, above target 3 weeks running.', uk: -42 },
+        { id: 'b4', target: 'UK Brand defence', before: '£15', after: '£18', limit: '+20% at limit', limCls: 'warn', why: 'Losing [x]% of brand impressions to budget.', uk: 21 } ] },
+      { name: 'Bids', lines: [
+        { id: 'k1', target: '“toddler cutlery”, exact, UK', before: '£1.10', after: '£1.25', limit: '+14%', limCls: 'ok', why: 'Top-of-search share [x]%.' },
+        { id: 'k2', target: '“baby spoon”, broad, UK', before: '£0.85', after: '£0.68', limit: '−20%', limCls: 'ok', why: 'ACOS [x]% on this keyword.' },
+        { id: 'k3', target: '“kids cutlery set”, phrase, UK', before: '£0.95', after: '£1.05', limit: '+11%', limCls: 'ok', why: 'Search volume rising before Christmas.' },
+        { id: 'k4', target: '“toddler fork”, exact, US', before: '$1.20', after: '$1.40', limit: '+17%', limCls: 'ok', why: 'ACOS well under target.' },
+        { id: 'k5', target: '“weaning spoons”, exact, UK', before: '£0.70', after: '£0.80', limit: '+14%', limCls: 'ok', why: 'Best-converting spoon term.' } ] },
+      { name: 'Negative keywords', lines: [
+        { id: 'n1', target: 'US auto: 6 negatives', before: '—', after: '6 terms', limit: '6 of 25', limCls: 'ok', why: 'Spend with no sales in 30 days.' },
+        { id: 'n2', target: 'UK auto: 4 negatives', before: '—', after: '4 terms', limit: '10 of 25', limCls: 'ok', why: 'Spend with no sales in 30 days.' },
+        { id: 'n3', target: 'UK Baby spoon, broad: 2 negatives', before: '—', after: '2 terms', limit: '12 of 25', limCls: 'ok', why: 'Irrelevant matches.' } ] }
+    ];
+    const off = this.state.off;
+    let n = 0, uk = 0, us = 0;
+    const groups = G.map(g => {
+      const lines = g.lines.map(l => { const t = !off[l.id]; if (t) { n++; uk += l.uk || 0; us += l.us || 0; }
+        return { ...l, ticked: t, cls: t ? 'row' : 'row off', toggle: () => this.setState({ off: { ...this.state.off, [l.id]: t }, approved: false }) }; });
+      return { ...g, lines, tickedOf: lines.filter(l => l.ticked).length + ' of ' + lines.length };
+    });
+    const m = (v, c) => (v >= 0 ? '+' : '−') + c + Math.abs(v);
+    return {
+      groups, ticked: String(n), uk: m(uk, '£'), us: m(us, '$'), approved: this.state.approved,
+      label: n === 12 ? 'Approve all 12' : 'Approve ' + n,
+      tickAll: () => this.setState({ off: {}, approved: false }), approve: () => this.setState({ approved: true })
+    };
+  }
+}
+</script>
+</body>
+</html>

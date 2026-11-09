@@ -1,0 +1,303 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Batch approval</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&amp;display=swap">
+<style>
+body{margin:0;font-family:'Nunito',system-ui,sans-serif;color:#190e3e;background:#F6F4FA}
+a{color:#3D157D}a:hover{color:#190e3e}
+.shell{display:flex;flex-wrap:wrap;min-height:1320px;background:#F6F4FA}
+.side{flex:1 1 220px;max-width:248px;background:#190e3e;color:#fff;padding:20px 14px;box-sizing:border-box;display:flex;flex-direction:column;gap:2px}
+.brand{font-weight:800;font-size:21px;padding:4px 12px 18px}
+.brand span{color:#C9B6F2}
+.nav{display:flex;align-items:center;gap:10px;padding:0 12px;min-height:44px;border-radius:10px;color:#DCD6EC;text-decoration:none;font-weight:700;font-size:14px}
+.nav:hover{background:#2B2058;color:#fff}
+.nav.on{background:#3D157D;color:#fff}
+.navlbl{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:#ABA3C8;padding:16px 12px 4px;font-weight:800}
+.badge{margin-left:auto;background:#fff;color:#3D157D;border-radius:999px;font-size:12px;font-weight:800;padding:1px 8px}
+.main{flex:999 1 640px;min-width:0;padding:24px 36px 56px;box-sizing:border-box}
+.panel{background:#fff;border:1px solid #E4E0EE;border-radius:14px}
+.chip{display:inline-flex;align-items:center;font-size:12px;font-weight:800;border-radius:999px;padding:3px 10px;background:#EEE9F8;color:#3D157D;white-space:nowrap}
+.grey{background:#F0EEF4;color:#4A4458}
+.ok{background:#E2F2E7;color:#1E6B3A}.warn{background:#FBE9D2;color:#8A4B00}
+.due{display:inline-flex;font-size:13px;font-weight:800;border-radius:999px;padding:4px 12px;white-space:nowrap}
+.due-ok{background:#E2F2E7;color:#1E6B3A}.due-warn{background:#FBE9D2;color:#8A4B00}
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:46px;padding:0 20px;border-radius:10px;font:800 15px 'Nunito',sans-serif;border:1px solid #CFC8E0;background:#fff;color:#190e3e;cursor:pointer;text-decoration:none;box-sizing:border-box}
+.btn-p{background:#3D157D;border-color:#3D157D;color:#fff}
+.btn-p:hover{background:#190e3e;color:#fff}
+.btn-s{min-height:36px;padding:0 12px;font-size:13px}
+.seg{min-height:44px;border:0;background:none;font:800 14px 'Nunito',sans-serif;color:#5B5470;border-radius:10px;cursor:pointer;padding:0 16px}
+.seg.on{background:#fff;color:#3D157D;box-shadow:0 1px 2px rgba(25,14,62,.12)}
+.cols{display:grid;grid-template-columns:52px minmax(0,1.25fr) 190px minmax(0,1.5fr) 150px 120px;gap:14px;align-items:start}
+.line{padding:12px 16px;border-top:1px solid #EFECF5}
+.line.off{background:#FAFAFC}
+.line.off .what{color:#8F88A6}
+.ck{display:flex;min-height:44px;align-items:flex-start;padding-top:2px}
+.ck input{width:22px;height:22px;accent-color:#3D157D}
+.before{color:#5B5470;text-decoration:line-through}
+.after{background:#F1ECFB;font-weight:800;padding:1px 6px;border-radius:4px}
+.ghd{display:flex;align-items:center;gap:10px;padding:12px 16px;background:#F6F4FA;border-top:1px solid #EFECF5}
+.input{font:700 14px 'Nunito',sans-serif;color:#190e3e;border:1px solid #CFC8E0;border-radius:8px;padding:0 10px;min-height:36px;width:90px;box-sizing:border-box}
+.ph{background:repeating-linear-gradient(135deg,#ECE8F4 0 10px,#F4F1F9 10px 20px);display:flex;align-items:center;justify-content:center;color:#5B5470;font-size:12px;font-weight:800;text-align:center;padding:8px}
+</style>
+</helmet>
+<div class="shell">
+  <nav class="side" aria-label="doddl PM">
+    <div class="brand">doddl <span>PM</span></div>
+    <a class="nav" href="#">My work</a>
+    <a class="nav" href="#">Triage</a>
+    <a class="nav" href="#">Projects</a>
+    <div class="navlbl">doddl HQ</div>
+    <a class="nav on" href="Main.dc.html">Approvals <span class="badge">7</span></a>
+    <a class="nav" href="Calendar.dc.html">Content calendar</a>
+    <a class="nav" href="Idea.dc.html">Give HQ an idea</a>
+    <div class="navlbl">Settings</div>
+    <a class="nav" href="Approvers.dc.html">Who approves what</a>
+  </nav>
+
+  <main class="main">
+    <a href="Main.dc.html" style="font-size: 14px; font-weight: 800; text-decoration: none; display: inline-flex; min-height: 44px; align-items: center">‹ Approvals</a>
+    <div style="display: flex; flex-wrap: wrap; justify-content: space-between; gap: 16px; align-items: flex-end">
+      <div>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap"><span class="chip">{{p.area}}</span><span class="chip grey">Batch · {{p.cadence}}</span><span class="chip grey">From {{p.agent}}</span><span class="chip grey">Approver: {{p.approver}}</span><span class="due {{p.dueCls}}">{{p.due}}</span></div>
+        <h1 style="margin: 12px 0 4px; font-size: 28px; font-weight: 800">{{p.title}}</h1>
+        <p style="margin: 0; color: #5B5470; font-size: 14px">{{p.sub}}</p>
+      </div>
+      <div style="display: flex; gap: 4px; background: #ECE8F4; border-radius: 12px; padding: 4px; flex-wrap: wrap">
+        <button class="{{segAds}}" onClick="{{showAds}}">Amazon ads pack</button>
+        <button class="{{segSocial}}" onClick="{{showSocial}}">Weekly social pack</button>
+        <button class="{{segReplies}}" onClick="{{showReplies}}">Daily replies pack</button>
+      </div>
+    </div>
+
+    <div class="panel" style="margin-top: 18px; padding: 14px 18px; display: flex; flex-wrap: wrap; gap: 14px; align-items: center; border: 2px solid #3D157D">
+      <div style="flex: 1 1 360px">
+        <p style="margin: 0; font-size: 17px; font-weight: 800">{{tickedCount}} of {{total}} ticked</p>
+        <p style="margin: 2px 0 0; font-size: 14px; color: #5B5470">{{p.summary}}</p>
+      </div>
+      <sc-if value="{{isAds}}" hint-placeholder-val="{{ true }}">
+        <div style="display: flex; gap: 18px; flex-wrap: wrap">
+          <div><p class="chip grey" style="margin: 0 0 4px">Spend if ticked lines run</p><p style="margin: 0; font-size: 16px; font-weight: 800">UK {{ukWeek}} · US {{usWeek}} a week</p></div>
+        </div>
+      </sc-if>
+      <button class="btn" onClick="{{untickAll}}">{{untickLabel}}</button>
+      <button class="btn btn-p" onClick="{{approve}}">{{approveLabel}}</button>
+    </div>
+
+    <sc-if value="{{approved}}" hint-placeholder-val="{{ false }}">
+      <p style="margin: 14px 0 0; background: #E2F2E7; color: #1E6B3A; border-radius: 10px; padding: 12px 16px; font-weight: 800">Approved {{tickedCount}} lines. {{untickedCount}} went back to the agent with your comment. Each line runs once, on its own; if one fails, the others still run and this card shows which.</p>
+    </sc-if>
+
+    <sc-if value="{{isAds}}" hint-placeholder-val="{{ true }}">
+      <div class="panel" style="margin-top: 16px; overflow-x: auto">
+        <div style="min-width: 1060px">
+          <div class="cols" style="padding: 10px 16px; font-size: 12px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: #5B5470">
+            <span>Run</span><span>Change</span><span>Before → after</span><span>Why (and the data it’s based on)</span><span>Limit</span><span></span>
+          </div>
+          <sc-for list="{{groups}}" as="g" hint-placeholder-count="3">
+            <div class="ghd">
+              <label style="display: flex; align-items: center; gap: 10px; min-height: 36px; cursor: pointer"><input type="checkbox" checked="{{g.all}}" onChange="{{g.toggle}}" style="width: 20px; height: 20px; accent-color: #3D157D"><b style="font-size: 15px">{{g.name}}</b></label>
+              <span class="chip grey">{{g.tickedOf}}</span>
+              <span style="font-size: 13px; color: #5B5470">{{g.note}}</span>
+            </div>
+            <sc-for list="{{g.lines}}" as="l" hint-placeholder-count="4">
+              <div class="{{l.cls}}">
+                <div class="cols">
+                  <label class="ck"><input type="checkbox" checked="{{l.ticked}}" onChange="{{l.toggle}}" aria-label="Run line {{l.n}}"></label>
+                  <span class="what"><b style="font-size: 14px; display: block">{{l.n}}. {{l.target}}</b><span style="font-size: 13px; color: #5B5470">{{l.where}}</span></span>
+                  <span style="font-size: 14px; line-height: 1.6">
+                    <sc-if value="{{l.editing}}" hint-placeholder-val="{{ false }}">
+                      <span class="before">{{l.before}}</span> → <input class="input" defaultValue="{{l.after}}" aria-label="New value for line {{l.n}}">
+                    </sc-if>
+                    <sc-if value="{{l.notEditing}}" hint-placeholder-val="{{ true }}">
+                      <span class="before">{{l.before}}</span> → <span class="after">{{l.after}}</span><span style="display: block; font-size: 12px; color: #5B5470; font-weight: 700">{{l.delta}}</span>
+                    </sc-if>
+                  </span>
+                  <span style="font-size: 13px; line-height: 1.45">{{l.why}}<span style="display: block; font-size: 12px; font-weight: 800; color: #5B5470; margin-top: 2px">{{l.basis}}</span></span>
+                  <span><span class="chip {{l.limCls}}">{{l.limit}}</span></span>
+                  <span><button class="btn btn-s" onClick="{{l.edit}}">{{l.editLabel}}</button></span>
+                </div>
+              </div>
+            </sc-for>
+          </sc-for>
+        </div>
+      </div>
+      <div style="display: flex; flex-wrap: wrap; gap: 16px; margin-top: 16px">
+        <section class="panel" style="flex: 1 1 300px; padding: 16px 18px">
+          <h2 style="margin: 0 0 6px; font-size: 16px; font-weight: 800">Expected effect, whole pack</h2>
+          <p style="margin: 0; font-size: 14px; line-height: 1.5">ACOS back under the [y]% target on the baby spoon campaigns within 14 days; [n] more orders a week from the exact-match budgets. Each line has a stop condition the agent checks daily.</p>
+        </section>
+        <section class="panel" style="flex: 1 1 300px; padding: 16px 18px">
+          <h2 style="margin: 0 0 6px; font-size: 16px; font-weight: 800">Undo</h2>
+          <p style="margin: 0; font-size: 14px; line-height: 1.5">Every line stores its old value. Undo one line or the whole pack from this card, for 30 days. Negative keywords are removed again; nothing is ever deleted.</p>
+        </section>
+        <section class="panel" style="flex: 1 1 300px; padding: 16px 18px">
+          <h2 style="margin: 0 0 6px; font-size: 16px; font-weight: 800">Checks passed</h2>
+          <p style="margin: 0; font-size: 14px; line-height: 1.5">Each line within its own limit (budgets ±20%, bids ±30%) · 12 negative keywords (limit 25 per pack) · stock cover 14+ days on every product · no account-health freeze.</p>
+        </section>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{isSocial}}" hint-placeholder-val="{{ false }}">
+      <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-top: 16px">
+        <sc-for list="{{items}}" as="it" hint-placeholder-count="6">
+          <div style="background: #fff; border: 2px solid {{it.border}}; border-radius: 14px; overflow: hidden; display: flex; flex-direction: column; opacity: {{it.op}}">
+            <label style="display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 0 12px; font-weight: 800; font-size: 14px; cursor: pointer; border-bottom: 1px solid #EFECF5"><input type="checkbox" checked="{{it.ticked}}" onChange="{{it.toggle}}" style="width: 20px; height: 20px; accent-color: #3D157D">{{it.when}}<span style="margin-left: auto" class="chip">{{it.channel}}</span></label>
+            <div class="ph" style="height: 140px">{{it.image}}</div>
+            <div style="padding: 12px; display: flex; flex-direction: column; gap: 8px; flex: 1">
+              <p style="margin: 0; font-size: 14px; line-height: 1.45">{{it.caption}}</p>
+              <p style="margin: 0; font-size: 12px; color: #5B5470; font-weight: 700">{{it.brief}}</p>
+              <a href="Card.dc.html" style="margin-top: auto; font-size: 13px; font-weight: 800; min-height: 32px; display: inline-flex; align-items: center">Open full preview, edit or comment ›</a>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{isReplies}}" hint-placeholder-val="{{ false }}">
+      <div style="margin-top: 14px; display: flex; flex-wrap: wrap; gap: 12px">
+        <a href="Card.dc.html" style="flex: 1 1 300px; text-decoration: none; color: #7A1F1F; background: #F8E1E1; border-radius: 12px; padding: 12px 16px; font-size: 14px; line-height: 1.45"><b style="display: block">Urgent · safety · Laura</b>Instagram DM: “A piece came off the fork handle.” Not in this pack: it has its own card. ›</a>
+        <a href="Card.dc.html" style="flex: 1 1 300px; text-decoration: none; color: #7A1F1F; background: #F8E1E1; border-radius: 12px; padding: 12px 16px; font-size: 14px; line-height: 1.45"><b style="display: block">Urgent · order issue · Cathy</b>Facebook comment: “Ordered 10 days ago, still nothing.” Not in this pack: it has its own card. ›</a>
+      </div>
+      <div class="panel" style="margin-top: 14px; overflow-x: auto">
+        <div style="min-width: 1000px">
+          <div style="display: grid; grid-template-columns: 170px minmax(0, 1fr) minmax(0, 1.3fr) 120px 230px; gap: 14px; padding: 10px 16px; font-size: 12px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: #5B5470"><span>Where and when</span><span>They said</span><span>Our reply (edit in place)</span><span>Category</span><span>Decision</span></div>
+          <sc-for list="{{items}}" as="it" hint-placeholder-count="6">
+            <div style="display: grid; grid-template-columns: 170px minmax(0, 1fr) minmax(0, 1.3fr) 120px 230px; gap: 14px; padding: 14px 16px; border-top: 1px solid #EFECF5; align-items: start; opacity: {{it.op}}">
+              <span style="font-size: 13px; font-weight: 800">{{it.channel}}<span style="display: block; font-weight: 600; color: #5B5470">{{it.post}}</span><span style="display: block; font-weight: 600; color: #5B5470">{{it.when}}</span></span>
+              <span style="font-size: 14px; line-height: 1.45; color: #4A4458">“{{it.said}}”<span style="display: block; font-size: 12px; font-weight: 700; margin-top: 4px">{{it.who}}</span></span>
+              <span>
+                <sc-if value="{{it.editing}}" hint-placeholder-val="{{ false }}">
+                  <textarea rows="3" aria-label="Edit reply" defaultValue="{{it.reply}}" style="width: 100%; box-sizing: border-box; font: 600 14px 'Nunito', sans-serif; border: 2px solid #3D157D; border-radius: 10px; padding: 8px 10px; resize: vertical"></textarea>
+                  <span style="display: block; font-size: 12px; color: #5B5470; font-weight: 700; margin-top: 4px">Your edit is re-checked by the Brand checker before it sends.</span>
+                </sc-if>
+                <sc-if value="{{it.notEditing}}" hint-placeholder-val="{{ true }}">
+                  <span style="display: block; font-size: 14px; line-height: 1.45; background: #F6F4FA; border-radius: 10px; padding: 8px 10px">{{it.reply}}</span>
+                  <span style="display: block; font-size: 12px; color: #5B5470; font-weight: 700; margin-top: 4px">{{it.facts}}</span>
+                </sc-if>
+              </span>
+              <span><span class="chip grey">{{it.category}}</span></span>
+              <span style="display: flex; gap: 6px; flex-wrap: wrap">
+                <button class="{{it.aCls}}" onClick="{{it.approve}}" aria-pressed="{{it.isA}}">Approve</button>
+                <button class="{{it.eCls}}" onClick="{{it.edit}}" aria-pressed="{{it.isE}}">Edit</button>
+                <button class="{{it.sCls}}" onClick="{{it.skip}}" aria-pressed="{{it.isS}}">Skip</button>
+              </span>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{isSocial}}" hint-placeholder-val="{{ false }}">
+      <p style="margin: 14px 0 0; background: #FBE9D2; color: #6B3A00; border-radius: 12px; padding: 12px 16px; font-size: 14px; line-height: 1.5"><b>{{p.pulledTitle}}</b> {{p.pulledText}} <a href="Card.dc.html" style="font-weight: 800; color: #6B3A00">Open its card ›</a></p>
+    </sc-if>
+
+    <div class="panel" style="margin-top: 16px; padding: 16px 18px">
+      <label for="cm" style="font-size: 14px; font-weight: 800; display: block; margin-bottom: 6px">Comment for anything you untick (goes back to the agent)</label>
+      <textarea id="cm" rows="2" style="width: 100%; box-sizing: border-box; font: 600 14px 'Nunito', sans-serif; border: 1px solid #CFC8E0; border-radius: 10px; padding: 10px 12px" placeholder="For example: leave the brand defence budget until after Black Friday."></textarea>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1320}}'>
+class Component extends DCLogic {
+  constructor(p) { super(p); this.state = { pack: 'ads', off: { b4: true, s4: true }, editing: null, approved: false }; }
+  renderVals() {
+    const pack = this.state.pack, off = this.state.off;
+    const P = {
+      ads: { area: 'Amazon ads', cadence: 'weekly, Monday', agent: 'Amazon Ads agent', approver: 'Jon', due: 'Due in 23h', dueCls: 'due-ok',
+        title: 'Amazon ads pack: 12 changes for the week of 9 November', sub: 'Budgets, bids and negative keywords across Amazon UK and US · raised Wed 4 Nov 09:00',
+        summary: 'Every line has its own reason and limit check. Ticked lines run once; unticked lines go back to the agent.' },
+      social: { area: 'Organic social', cadence: 'weekly, Wednesday', agent: 'Social agent', approver: 'Laura', due: 'Due in 21h', dueCls: 'due-ok',
+        title: 'Next week’s social posts: 9–15 November', sub: 'From the approved November calendar · raised Wed 4 Nov 06:30',
+        summary: 'Ticked posts are scheduled as shown. Every post has passed the Brand checker.',
+        pulledTitle: 'One post was taken out of this pack.', pulledText: 'The Brand checker flagged a feeding-safety wording in the “gagging versus choking” post, so it has its own card.' },
+      replies: { area: 'Comments and DMs', cadence: 'daily, same day', agent: 'Community Manager', approver: 'Laura', due: 'Reply by 17:00 today', dueCls: 'due-warn',
+        title: 'Today’s replies: Wednesday 4 November', sub: 'Every comment and DM since 07:00 yesterday · written in doddl’s voice, facts from the FAQ and reply library · raised Wed 4 Nov 07:00',
+        summary: 'Approved replies send straight away. Skipped ones get no reply and are noted. Safety, complaint and order issues never come in a pack.' }
+    };
+    const ADS = [
+      { name: 'Budgets', note: 'Daily budgets · limit ±20% a line', lines: [
+        { id: 'b1', target: 'UK Toddler 2-piece, exact', where: 'Amazon UK · daily budget', before: '£40', after: '£46', delta: '+15% · +£42 a week', why: 'Budget ran out before 15:00 on [n] of 14 days; ACOS [x]% against the [y]% target.', basis: 'Amazon Ads · 14 days to 3 Nov', limit: '+15% · OK', limCls: 'ok', uk: 42 },
+        { id: 'b2', target: 'US Toddler cutlery, exact', where: 'Amazon US · daily budget', before: '$35', after: '$40', delta: '+14% · +$35 a week', why: 'Budget ran out early on [n] of 14 days; ACOS [x]%.', basis: 'Amazon Ads · 14 days to 3 Nov', limit: '+14% · OK', limCls: 'ok', us: 35 },
+        { id: 'b3', target: 'UK Baby spoon, broad', where: 'Amazon UK · daily budget', before: '£30', after: '£24', delta: '−20% · −£42 a week', why: 'ACOS [x]%, above target for 3 weeks running.', basis: 'Amazon Ads · 21 days to 3 Nov', limit: '−20% · at limit', limCls: 'warn', uk: -42 },
+        { id: 'b4', target: 'UK Brand defence', where: 'Amazon UK · daily budget', before: '£15', after: '£18', delta: '+20% · +£21 a week', why: 'Losing [x]% of brand-term impressions to budget.', basis: 'Amazon Ads · 14 days to 3 Nov', limit: '+20% · at limit', limCls: 'warn', uk: 21 } ] },
+      { name: 'Bids', note: 'Keyword bids · limit ±30% a line', lines: [
+        { id: 'k1', target: '“toddler cutlery”, exact', where: 'UK Toddler 2-piece, exact', before: '£1.10', after: '£1.25', delta: '+14%', why: 'Top-of-search share [x]%; converts at [y]%.', basis: 'Amazon Ads · 14 days to 3 Nov', limit: '+14% · OK', limCls: 'ok' },
+        { id: 'k2', target: '“baby spoon”, broad', where: 'UK Baby spoon, broad', before: '£0.85', after: '£0.68', delta: '−20%', why: 'ACOS [x]% on this keyword alone.', basis: 'Amazon Ads · 14 days to 3 Nov', limit: '−20% · OK', limCls: 'ok' },
+        { id: 'k3', target: '“kids cutlery set”, phrase', where: 'UK Generic, phrase', before: '£0.95', after: '£1.05', delta: '+11%', why: 'Rising search volume ahead of Christmas.', basis: 'Brand Analytics · 4 weeks to 31 Oct', limit: '+11% · OK', limCls: 'ok' },
+        { id: 'k4', target: '“toddler fork”, exact', where: 'US Toddler cutlery, exact', before: '$1.20', after: '$1.40', delta: '+17%', why: 'Impression share [x]%; ACOS well under target.', basis: 'Amazon Ads · 14 days to 3 Nov', limit: '+17% · OK', limCls: 'ok' },
+        { id: 'k5', target: '“weaning spoons”, exact', where: 'UK Baby spoon, exact', before: '£0.70', after: '£0.80', delta: '+14%', why: 'Converts at [x]%, best of the spoon terms.', basis: 'Amazon Ads · 14 days to 3 Nov', limit: '+14% · OK', limCls: 'ok' } ] },
+      { name: 'Negative keywords', note: 'Search terms with spend and no sales · limit 25 a pack', lines: [
+        { id: 'n1', target: 'Add 6 negatives to US auto', where: '“adult cutlery”, “chopsticks”, “metal straws” and 3 more', before: '—', after: '6 terms', delta: '£[x] spend, 0 sales', why: 'No sales from these terms in 30 days.', basis: 'Search term report · 30 days to 2 Nov', limit: '6 of 25 · OK', limCls: 'ok' },
+        { id: 'n2', target: 'Add 4 negatives to UK auto', where: '“dog bowl”, “camping cutlery” and 2 more', before: '—', after: '4 terms', delta: '£[x] spend, 0 sales', why: 'No sales from these terms in 30 days.', basis: 'Search term report · 30 days to 2 Nov', limit: '10 of 25 · OK', limCls: 'ok' },
+        { id: 'n3', target: 'Add 2 negatives to UK Baby spoon, broad', where: '“wooden spoon”, “serving spoon”', before: '—', after: '2 terms', delta: '£[x] spend, 0 sales', why: 'Irrelevant matches eating the broad budget.', basis: 'Search term report · 30 days to 2 Nov', limit: '12 of 25 · OK', limCls: 'ok' } ] }
+    ];
+    const social = [
+      { id: 's1', when: 'Mon 9 Nov 19:30', channel: 'Instagram', image: 'Photo: first spoon, 6–12 months', caption: 'First spoon, first mess, first “I did it”.', brief: 'Brief 7 · first foods' },
+      { id: 's2', when: 'Mon 9 Nov 20:00', channel: 'Facebook', image: 'Same photo, 4:5 crop', caption: 'First spoon, first mess. Short handles made for small hands.', brief: 'Brief 7 · first foods' },
+      { id: 's3', when: 'Tue 10 Nov 12:00', channel: 'TikTok', image: 'Video: toddler and peas, 9 seconds', caption: 'The pea challenge. Who wins?', brief: 'Brief 9 · toddler independence' },
+      { id: 's4', when: 'Wed 11 Nov 19:30', channel: 'Instagram', image: 'Carousel: 4 slides, gift sets', caption: 'Christmas gifts for little hands, sorted.', brief: 'Brief 12 · gifting' },
+      { id: 's5', when: 'Thu 12 Nov 08:00', channel: 'Instagram', image: 'Customer photo (permission on file)', caption: '“She finally eats with the family.”', brief: 'Brief 10 · customer stories' },
+      { id: 's6', when: 'Fri 13 Nov 17:00', channel: 'Instagram', image: 'Reel: 3 recipes in 30 seconds', caption: 'Three finger foods for the weekend.', brief: 'Brief 8 · app recipes' }
+    ];
+    const replies = [
+      { id: 'r1', when: 'Tue 14:12', channel: 'Instagram', post: 'On: “First spoon, first mess”', who: '@[parent]', said: 'Which age is the 2-piece set for?', reply: 'Great question! The 2-piece set is for [age range from the FAQ]. If your little one is just starting out, we’re happy to help you pick.', facts: 'Facts from: FAQ · ages and stages', category: 'Product question' },
+      { id: 'r2', when: 'Tue 15:40', channel: 'Facebook', post: 'On: “Sunday roast, cut by them”', who: '[Parent name]', said: 'Love these, my son uses them every day!', reply: 'This made our day. Thank you for telling us, and big high five to your son.', facts: 'No facts needed', category: 'Praise' },
+      { id: 'r3', when: 'Tue 16:05', channel: 'Instagram DM', post: 'Direct message', who: '@[parent]', said: 'Do you ship to Ireland?', reply: 'We do! Delivery times and costs are all here: doddl.com/delivery. Any questions, just ask.', facts: 'Facts from: FAQ · delivery', category: 'Delivery' },
+      { id: 'r4', when: 'Tue 20:47', channel: 'Instagram', post: 'On: “Christmas gifts for little hands”', who: '@[parent]', said: 'Is there a discount code?', reply: 'No code right now, but our email list hears about offers first: doddl.com/join.', facts: 'Facts from: reply library · offers', category: 'Offers' },
+      { id: 'r5', when: 'Wed 06:15', channel: 'TikTok', post: 'On: “The pea challenge”', who: '@[parent]', said: 'my daughter would 100% win this', reply: 'We believe it. Send us the evidence!', facts: 'No facts needed', category: 'Chat' }
+    ];
+    const tog = (id, t) => () => this.setState({ off: { ...this.state.off, [id]: t }, approved: false });
+    let total = 0, ticked = 0, uk = 0, us = 0;
+    const groups = ADS.map(g => {
+      const lines = g.lines.map((l, i) => {
+        const t = !off[l.id];
+        if (t) { uk += l.uk || 0; us += l.us || 0; }
+        const ed = this.state.editing === l.id;
+        return { ...l, n: String(ADS.slice(0, ADS.indexOf(g)).reduce((s, x) => s + x.lines.length, 0) + i + 1), ticked: t, cls: t ? 'line' : 'line off', toggle: tog(l.id, t),
+          editing: ed, notEditing: !ed, editLabel: ed ? 'Done' : 'Edit', edit: () => this.setState({ editing: ed ? null : l.id }) };
+      });
+      const n = lines.filter(l => l.ticked).length;
+      if (pack === 'ads') { total += lines.length; ticked += n; }
+      const all = n === lines.length;
+      return { ...g, lines, all, tickedOf: n + ' of ' + lines.length, toggle: () => { const o = {}; g.lines.forEach(l => { o[l.id] = all; }); this.setState({ off: { ...this.state.off, ...o }, approved: false }); } };
+    });
+    let items = [];
+    if (pack === 'social') {
+      items = social.map(it => { const t = !off[it.id]; return { ...it, ticked: t, op: t ? '1' : '0.6', border: t ? '#3D157D' : '#E4E0EE', toggle: tog(it.id, t) }; });
+      total = items.length; ticked = items.filter(i => i.ticked).length;
+    }
+    if (pack === 'replies') {
+      const rs = this.state.rs || {};
+      const setR = (id, v) => () => this.setState({ rs: { ...(this.state.rs || {}), [id]: v }, approved: false });
+      items = replies.map(it => { const s = rs[it.id] || 'approve';
+        return { ...it, isA: s === 'approve', isE: s === 'edit', isS: s === 'skip', editing: s === 'edit', notEditing: s !== 'edit', op: s === 'skip' ? '0.55' : '1',
+          aCls: s === 'approve' ? 'btn btn-s btn-p' : 'btn btn-s', eCls: s === 'edit' ? 'btn btn-s btn-p' : 'btn btn-s', sCls: s === 'skip' ? 'btn btn-s btn-p' : 'btn btn-s',
+          approve: setR(it.id, 'approve'), edit: setR(it.id, 'edit'), skip: setR(it.id, 'skip') }; });
+      total = items.length; ticked = items.filter(i => !i.isS).length;
+    }
+    const ids = pack === 'ads' ? ADS.flatMap(g => g.lines.map(l => l.id)) : items.map(i => i.id);
+    const money = (v, c) => (v >= 0 ? '+' : '−') + c + Math.abs(v);
+    return {
+      p: P[pack], groups, items, total: String(total), tickedCount: String(ticked), untickedCount: String(total - ticked),
+      ukWeek: money(uk, '£'), usWeek: money(us, '$'),
+      approveLabel: pack === 'replies' ? (ticked === total ? 'Send all ' + total + ' replies' : 'Send ' + ticked + ', skip ' + (total - ticked)) : (ticked === total ? 'Approve all ' + total : 'Approve ' + ticked + ', send back ' + (total - ticked)),
+      approved: this.state.approved, isAds: pack === 'ads', isSocial: pack === 'social', isReplies: pack === 'replies', hasPulled: pack !== 'ads',
+      segAds: pack === 'ads' ? 'seg on' : 'seg', segSocial: pack === 'social' ? 'seg on' : 'seg', segReplies: pack === 'replies' ? 'seg on' : 'seg',
+      showAds: () => this.setState({ pack: 'ads', approved: false }), showSocial: () => this.setState({ pack: 'social', approved: false }), showReplies: () => this.setState({ pack: 'replies', approved: false }),
+      untickAll: () => { const o = {}; ids.forEach(i => { o[i] = pack === 'replies' ? 'skip' : true; }); this.setState(pack === 'replies' ? { rs: { ...(this.state.rs || {}), ...o }, approved: false } : { off: { ...this.state.off, ...o }, approved: false }); },
+      untickLabel: pack === 'replies' ? 'Skip all' : 'Untick all',
+      approve: () => this.setState({ approved: true })
+    };
+  }
+}
+</script>
+</body>
+</html>

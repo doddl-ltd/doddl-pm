@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Teams card and 08:00 summary</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&amp;display=swap">
+<style>
+body{margin:0;font-family:'Nunito',system-ui,sans-serif;color:#190e3e;background:#EDEBF2}
+a{color:#3D157D}a:hover{color:#190e3e}
+.wrap{display:flex;flex-wrap:wrap;min-height:1260px;background:#EDEBF2}
+.list{flex:1 1 260px;max-width:300px;background:#fff;border-right:1px solid #DDD8E8;padding:18px 12px;box-sizing:border-box}
+.conv{display:flex;gap:10px;align-items:center;padding:10px;border-radius:10px;font-size:14px}
+.conv.on{background:#EEE9F8}
+.app{width:36px;height:36px;border-radius:10px;background:#3D157D;color:#fff;font-weight:800;font-size:12px;display:flex;align-items:center;justify-content:center;flex:none}
+.chat{flex:999 1 640px;min-width:0;padding:22px 32px 48px;box-sizing:border-box;display:flex;flex-direction:column;gap:22px}
+.msg{display:flex;gap:12px;align-items:flex-start;max-width:720px}
+.meta{font-size:13px;color:#4A4458;margin:0 0 6px}
+.card{background:#fff;border:1px solid #DDD8E8;border-radius:12px;overflow:hidden}
+.ch{background:#190e3e;color:#fff;padding:10px 16px;font-size:13px;font-weight:800;display:flex;justify-content:space-between;gap:8px}
+.cb{padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+.facts{display:grid;grid-template-columns:120px minmax(0,1fr);gap:6px 12px;font-size:14px;margin:0}
+.facts dt{color:#5B5470;font-weight:800;margin:0}.facts dd{margin:0}
+.acts{display:flex;flex-wrap:wrap;gap:8px;padding:12px 16px;border-top:1px solid #EFECF5}
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:0 16px;border-radius:8px;font:800 14px 'Nunito',sans-serif;border:1px solid #CFC8E0;background:#fff;color:#190e3e;text-decoration:none}
+.btn-p{background:#3D157D;border-color:#3D157D;color:#fff}
+.due{display:inline-flex;font-size:12px;font-weight:800;border-radius:999px;padding:3px 10px;white-space:nowrap}
+.due-ok{background:#E2F2E7;color:#1E6B3A}.due-warn{background:#FBE9D2;color:#8A4B00}.due-bad{background:#F8E1E1;color:#A12B2B}
+.sum{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 12px;font-size:14px;align-items:center;padding:6px 0;border-top:1px solid #EFECF5}
+.ph{background:repeating-linear-gradient(135deg,#ECE8F4 0 8px,#F4F1F9 8px 16px);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#5B5470;font-size:12px;font-weight:800}
+</style>
+</helmet>
+<div class="wrap">
+  <aside class="list" aria-label="Chats">
+    <p style="margin: 0 0 10px 10px; font-size: 13px; font-weight: 800; color: #5B5470">Chat</p>
+    <div class="conv on"><span class="app">PM</span><span><b>doddl PM</b><span style="display: block; font-size: 12px; color: #5B5470">Approvals and the 08:00 summary</span></span></div>
+    <div class="conv"><span class="app" style="background: #CFC8E0; color: #190e3e">L</span><span>Laura</span></div>
+    <div class="conv"><span class="app" style="background: #CFC8E0; color: #190e3e">C</span><span>Chris</span></div>
+  </aside>
+
+  <main class="chat">
+    <div class="msg">
+      <span class="app">PM</span>
+      <div style="flex: 1; min-width: 0">
+        <p class="meta"><b>doddl PM</b> · Wed 4 Nov 08:00 · morning summary</p>
+        <div class="card">
+          <div class="ch"><span>Good morning, Jon</span><span>Wednesday 4 November</span></div>
+          <div class="cb">
+            <p style="margin: 0; font-size: 15px"><b>7 approvals are waiting for you.</b> 1 is overdue and was escalated to you. Oldest first:</p>
+            <div>
+              <div class="sum"><span><b>Email:</b> Black Friday early access (Laura’s, escalated)</span><span class="due due-bad">Expires in 25h</span></div>
+              <div class="sum"><span><b>Amazon listings:</b> toddler cutlery set, Dusky Rose</span><span class="due due-warn">Due in 9h</span></div>
+              <div class="sum"><span><b>Website:</b> Black Friday homepage hero</span><span class="due due-ok">Due in 15h</span></div>
+              <div class="sum"><span><b>And 4 more:</b> Amazon ads pack (12 lines), paid pack (3), outreach pack (18), app recipe</span><span class="due due-ok">Due tomorrow</span></div>
+            </div>
+            <p style="margin: 0; font-size: 13px; color: #5B5470">Yesterday: you approved 4 and sent back 1. All 4 ran once. Waiting on others: 4, oldest is Laura’s December calendar. Laura’s replies pack is due by 17:00 today.</p>
+          </div>
+          <div class="acts"><a class="btn btn-p" href="Main.dc.html">Open my approvals</a><a class="btn" href="Calendar.dc.html">This week’s calendar</a></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="msg">
+      <span class="app">PM</span>
+      <div style="flex: 1; min-width: 0">
+        <p class="meta"><b>doddl PM</b> · Wed 4 Nov 09:00 · new pack</p>
+        <div class="card">
+          <div class="ch"><span>Amazon ads pack · from Amazon Ads agent</span><span>Answer by Thu 09:00</span></div>
+          <div class="cb">
+            <p style="margin: 0; font-size: 17px; font-weight: 800">12 changes for the week of 9 November</p>
+            <dl class="facts">
+              <dt>Budgets</dt><dd>4 lines · e.g. UK Toddler 2-piece, exact £40 → £46</dd>
+              <dt>Bids</dt><dd>5 lines · between −20% and +17%</dd>
+              <dt>Negatives</dt><dd>3 lines · 12 search terms with spend and no sales</dd>
+              <dt>Spend</dt><dd>UK +£21, US +$35 a week if every line runs</dd>
+              <dt>Checks</dt><dd>Every line within its own limit · 2 at the limit · no freeze</dd>
+            </dl>
+          </div>
+          <div class="acts"><span class="btn btn-p">Approve all 12</span><a class="btn" href="Batch.dc.html">Open to tick line by line</a><span class="btn">Send back</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="msg">
+      <span class="app">PM</span>
+      <div style="flex: 1; min-width: 0">
+        <p class="meta"><b>doddl PM</b> · Tue 3 Nov 17:30 · new approval with a preview</p>
+        <div class="card">
+          <div class="ch"><span>Amazon listings · from Listing agent</span><span>Answer by Wed 17:30</span></div>
+          <div class="cb" style="display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: 14px">
+            <div class="ph" style="height: 120px">Preview</div>
+            <div>
+              <p style="margin: 0; font-size: 17px; font-weight: 800">New title and bullets: toddler cutlery set, Dusky Rose</p>
+              <p style="margin: 6px 0 0; font-size: 14px">Title and bullets 2 and 4 · one ASIN · Amazon UK · Brand checker passed</p>
+            </div>
+          </div>
+          <div class="acts"><a class="btn btn-p" href="Card.dc.html">See the preview and decide</a><span class="btn">Approve as shown</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-wrap: wrap; gap: 16px; max-width: 720px">
+      <div class="card" style="flex: 1 1 300px">
+        <div class="ch" style="background: #8A4B00"><span>Reminder · 24 hours</span></div>
+        <div class="cb"><p style="margin: 0; font-size: 14px"><b>Still waiting:</b> new title and bullets, toddler cutlery set. It goes to Laura, your backup, in 24 hours.</p></div>
+        <div class="acts"><a class="btn btn-p" href="Card.dc.html">Decide now</a></div>
+      </div>
+      <div class="card" style="flex: 1 1 300px">
+        <div class="ch" style="background: #A12B2B"><span>Escalated to you · 48 hours</span></div>
+        <div class="cb"><p style="margin: 0; font-size: 14px">Laura has not answered <b>Black Friday early access email</b>. You are the backup. It expires in 24 hours.</p></div>
+        <div class="acts"><a class="btn btn-p" href="Card.dc.html">Open it</a></div>
+      </div>
+      <div class="card" style="flex: 1 1 300px">
+        <div class="ch" style="background: #1E6B3A"><span>Done</span></div>
+        <div class="cb"><p style="margin: 0; font-size: 14px">Ads pack: Jon approved 11 of 12 at 09:42. <b>11 lines ran once at 09:46.</b> 1 went back to the agent.</p></div>
+      </div>
+      <div class="card" style="flex: 1 1 300px">
+        <div class="ch" style="background: #4A4458"><span>Expired · 72 hours</span></div>
+        <div class="cb"><p style="margin: 0; font-size: 14px"><b>Pitch to a parenting magazine</b> expired with no answer. Nothing ran. The agent will re-check before asking again.</p></div>
+      </div>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1260}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>
