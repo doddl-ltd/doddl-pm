@@ -18,6 +18,7 @@ import ApprovalsHub from '../components/approvals/ApprovalsHub'
 import ApproversView from '../components/approvals/ApproversView'
 import IdeaView from '../components/approvals/IdeaView'
 import StudioView from '../components/StudioView'
+import B2BView from '../components/b2b/B2BView'
 import CalendarView from '../components/CalendarView'
 import ListingsView from '../components/ListingsView'
 import ProjectGallery from '../components/ProjectGallery'
@@ -35,8 +36,8 @@ async function selectAll(build) {
 }
 
 // Views that can be opened by URL (/?view=approvals&task=<id> is the Teams deep link).
-const URL_VIEWS = ['approvals', 'studio', 'calendar', 'listings', 'idea', 'approvers', 'mywork', 'myprojects', 'triage', 'inbox', 'board']
-const HQ_VIEWS = ['studio', 'calendar', 'listings', 'idea', 'approvers']
+const URL_VIEWS = ['approvals', 'studio', 'b2b', 'calendar', 'listings', 'idea', 'approvers', 'mywork', 'myprojects', 'triage', 'inbox', 'board']
+const HQ_VIEWS = ['studio', 'b2b', 'calendar', 'listings', 'idea', 'approvers']
 
 export default function Home() {
   const [user, setUser]                         = useState(null)
@@ -221,6 +222,8 @@ export default function Home() {
             <IdeaView isMobile={isMobile} />
           ) : view === 'studio' ? (
             <StudioView user={user} isMobile={isMobile} onOpenApproval={openApprovalCard} />
+          ) : view === 'b2b' ? (
+            <B2BView userName={userName} isMobile={isMobile} onOpenApproval={openApprovalCard} />
           ) : view === 'calendar' ? (
             <CalendarView user={user} isMobile={isMobile} onOpenApproval={openApprovalCard} />
           ) : view === 'listings' ? (

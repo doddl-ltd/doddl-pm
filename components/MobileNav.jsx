@@ -35,7 +35,7 @@ export default function MobileNav({ view, onNavigate, onMenu, menuOpen, myFlowCo
       <Tab icon="✅" label="Approvals" active={on('approvals')} count={approvalsCount} onClick={() => onNavigate('approvals')} />
       <Tab icon="🗓️" label="Calendar" active={on('calendar')} onClick={() => onNavigate('calendar')} />
       <Tab icon="🔔" label="Alerts"   active={on('inbox')}  count={unreadCount} onClick={() => onNavigate('inbox')} />
-      <Tab icon="☰"  label="Menu"     active={menuOpen || ['myprojects', 'triage', 'studio', 'listings', 'idea', 'approvers'].includes(view)} count={triageCount} onClick={onMenu} />
+      <Tab icon="☰"  label="Menu"     active={menuOpen || ['myprojects', 'triage', 'studio', 'b2b', 'listings', 'idea', 'approvers'].includes(view)} count={triageCount} onClick={onMenu} />
     </nav>
   )
 }

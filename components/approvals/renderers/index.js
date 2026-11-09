@@ -13,6 +13,10 @@ import VideoReview from './VideoReview'
 import SocialReview from './SocialReview'
 import EmailReview from './EmailReview'
 import ListingChangeReview from './ListingChangeReview'
+import B2BDefinitionReview from './B2BDefinitionReview'
+import B2BSampleReview from './B2BSampleReview'
+import B2BSequenceReview from './B2BSequenceReview'
+import B2BGoliveReview from './B2BGoliveReview'
 
 const RENDERERS = {
   pack: PackReview,
@@ -21,6 +25,12 @@ const RENDERERS = {
   social_pack: SocialReview,
   email: EmailReview,
   listing_change: ListingChangeReview,
+  // B2B campaigns (docs/b2b-campaigns/CONTRACT.md). A renderer may set a static approveLabel(tally, lines)
+  // for the card's main button.
+  b2b_definition: B2BDefinitionReview,
+  b2b_sample: B2BSampleReview,
+  b2b_sequence: B2BSequenceReview,
+  b2b_golive: B2BGoliveReview,
 }
 
 export function getRenderer(artefactType) {

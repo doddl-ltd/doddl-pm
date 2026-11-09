@@ -48,6 +48,7 @@ function SidebarContent({ view, setView, projects, programmes, activeProject, se
       <div style={{ marginBottom: 16 }}>
         <NavBtn big={big} view={view} setView={setView} activeKey="approvals"  label="✅ Approvals"        count={approvalsCount} />
         <NavBtn big={big} view={view} setView={setView} activeKey="studio"     label="🎬 Creative studio"  count={0} />
+        <NavBtn big={big} view={view} setView={setView} activeKey="b2b"        label="🤝 B2B campaigns"    count={0} />
         <NavBtn big={big} view={view} setView={setView} activeKey="calendar"   label="🗓️ Content calendar" count={0} />
         <NavBtn big={big} view={view} setView={setView} activeKey="listings"   label="📦 Amazon listings"  count={0} />
         <NavBtn big={big} view={view} setView={setView} activeKey="idea"       label="💡 Give HQ an idea"  count={0} />

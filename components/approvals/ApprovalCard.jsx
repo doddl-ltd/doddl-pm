@@ -146,7 +146,8 @@ export default function ApprovalCard({ taskId, initialTask, userName, isMobile, 
   const where = (artefact && typeof artefact.where === 'string' && artefact.where) || typeLabel(task.artefact_type)
   const msg = resultMessage(result, me, task)
   const iVoted = (task.votes || []).find(v => same(v.voter, me))
-  const approveLabel = hasLines ? (tally.no ? `Approve ${tally.yes}, send back ${tally.no}` : `Approve all ${tally.yes}`) : hasEdits ? 'Approve with your edits' : 'Approve'
+  const customLabel = Renderer && typeof Renderer.approveLabel === 'function' ? Renderer.approveLabel(tally, lines) : null
+  const approveLabel = customLabel || (hasLines ? (tally.no ? `Approve ${tally.yes}, send back ${tally.no}` : `Approve all ${tally.yes}`) : hasEdits ? 'Approve with your edits' : 'Approve')
 
   // Right after a decision the card shows what was just sent until the reload carries it.
   const shownTask = result && !task.decision ? { ...task, decision: result.decided ? result.decision : null, line_decisions: result.lines || task.line_decisions } : task
