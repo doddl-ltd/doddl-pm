@@ -191,3 +191,11 @@ Additions and the shapes the sections above leave open. Nothing above was rename
 **Screens (as built)**
 - The wizard does not have the board's "Sample budget", "Emails", "Sent as" or "Days and times" inputs: the contract has no field for them, and HQ proposes the emails, sender and send times on the `b2b_sequence` card. HQ's estimate shows once HQ sets `estimate`.
 - The approval card's main button takes its label from the renderer: "Approve and find a sample", "Approve n, find the rest", "Approve emails and flow" / "Approve with my edits", "Go live".
+
+
+## Area targeting (added 2026-11-09, Jon: "for nursery I just want to target UK only")
+
+- `market` is `{country, regions[], places[], language}`. **Empty `regions` and `places` = the whole country.** Otherwise both are HARD filters: a company outside every chosen region or place is never in the sample, the full list or a batch. HQ leaves out a candidate whose location it cannot resolve and counts it in `excluded_note` as "location unclear".
+- `regions` must come from the fixed list for the country in PM `lib/b2b.js` `COUNTRIES` (GB: 12 nations and English regions; FR: 13 regions; DE: 16 states; IE: 4 provinces; US: 50 states and DC). PM refuses any other value.
+- `places` is free text (max 20): towns, cities or UK postcode areas such as "Leeds" or "BS".
+- The wizard asks "The whole of the UK" (default) or "Only some regions or places". Cards, the list and the detail say "UK: the whole country" or "UK: only North West, Leeds".

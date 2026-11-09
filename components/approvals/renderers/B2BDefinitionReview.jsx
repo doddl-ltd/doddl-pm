@@ -2,7 +2,7 @@
 // HQ's estimate and what happens next (fixed step labels). A single decision: the card frame owns the buttons.
 import { C, Panel, H2, Lbl, Note, Checks, WhyBlock } from './reviewKit'
 import { DefRow, Tags } from '../../b2b/kit'
-import { DEFINE_GATES, ALWAYS_RULES, GOALS, COUNTRIES, goalName, offerName, channelName } from '../../../lib/b2b'
+import { DEFINE_GATES, ALWAYS_RULES, GOALS, COUNTRIES, goalName, offerName, channelName, areaText } from '../../../lib/b2b'
 
 function Gate({ n, who, title, sub, first }) {
   return (
@@ -46,7 +46,7 @@ export default function B2BDefinitionReview({ task, artefact, isMobile }) {
         <Note>What we want, and how we will know it worked.</Note>
         <div style={{ marginTop: 12 }}>{field('Goal', [goal.target || goalName(goal.id), goal.by].filter(Boolean).join(', '))}</div>
         <div style={grid}>
-          {field('Market', [country ? country.label : market.country, (market.regions || []).length ? `start with ${market.regions.join(' and ')}` : null, market.language].filter(Boolean).join(' · '))}
+          {field('Market', [areaText(market), market.language].filter(Boolean).join(' · '))}
           {field('Channels', (a.channels || []).map(channelName).join(', '))}
           {field('What we offer them', (a.offers || []).map(offerName).join(', '))}
           {field('Measure', measure)}
@@ -64,7 +64,7 @@ export default function B2BDefinitionReview({ task, artefact, isMobile }) {
           <DefRow first isMobile={isMobile} labelWidth={lw} label="Business type">{d.line || d.own_words || '–'}</DefRow>
           {(d.kinds || []).length > 0 && <DefRow isMobile={isMobile} labelWidth={lw} label="Kinds"><Tags items={d.kinds.filter(k => k.on !== false).map(k => k.t)} /></DefRow>}
           <DefRow isMobile={isMobile} labelWidth={lw} label="Size">{d.size || '–'}</DefRow>
-          <DefRow isMobile={isMobile} labelWidth={lw} label="Where">{country ? country.label : '–'}{(market.regions || []).length ? `; start with ${market.regions.join(' and ')}` : ''}</DefRow>
+          <DefRow isMobile={isMobile} labelWidth={lw} label="Where">{areaText(market)}{country && !((market.regions || []).length || (market.places || []).length) ? ` (${country.whole})` : ''}</DefRow>
           <DefRow isMobile={isMobile} labelWidth={lw} label="Must have"><Tags kind="must" items={d.must} /></DefRow>
           <DefRow isMobile={isMobile} labelWidth={lw} label="Nice to have"><Tags kind="nice" items={d.nice} /></DefRow>
           <DefRow isMobile={isMobile} labelWidth={lw} label="Rule out"><Tags kind="not" items={[...(d.rule_out || []), ...(d.extra_rules || [])]} /></DefRow>

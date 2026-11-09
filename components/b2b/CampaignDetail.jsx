@@ -5,7 +5,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { C, Panel, H2, Note, Chip, Btn, Pill, StateLine, th, td, dueText, fmtWhen } from '../approvals/renderers/reviewKit'
 import { BackLink } from '../approvals/ui'
 import { NextChip, Track, Nums, DefRow, Tags, font } from './kit'
-import { contactText, countryName, goalName, offerName, channelName, REASON_LABEL, draftEditable } from '../../lib/b2b'
+import { contactText, countryName, areaText, goalName, offerName, channelName, REASON_LABEL, draftEditable } from '../../lib/b2b'
 
 const KIND_LABEL = { definition: 'Who we talk to', sample: 'Sample', words: 'Emails and flow', golive: 'Go live' }
 const OUTCOME = {
@@ -79,7 +79,7 @@ export default function CampaignDetail({ id, isMobile, fetcher, userName, onBack
   const pages = Math.max(1, Math.ceil((pr.total || 0) / pr.page_size))
   const waitingReplies = (data.replies || []).filter(r => r.status === 'needs_person')
   const otherReplies = (data.replies || []).filter(r => r.status !== 'needs_person').slice(0, 10)
-  const chips = [data.business_type && data.business_type.name, countryName(c.market && c.market.country), (c.channels || []).map(channelName).join(', ')].filter(Boolean)
+  const chips = [data.business_type && data.business_type.name, c.market && c.market.country ? areaText(c.market) : null, (c.channels || []).map(channelName).join(', ')].filter(Boolean)
 
   const header = (
     <>

@@ -7,14 +7,14 @@ import { BackLink } from '../approvals/ui'
 import { DefRow, Tag, font } from './kit'
 import {
   GOALS, OFFERS, CHANNELS, COUNTRIES, COUNTRY_CODES, WIZARD_STEPS, ALWAYS_RULES, cleanDefinition, definitionFromType, submitProblems,
-  suggestedName, goalName, offerName, channelName, countryName,
+  suggestedName, goalName, offerName, channelName, countryName, areaText,
 } from '../../lib/b2b'
 
 const SAVE_FIELDS = ['name', 'business_type_id', 'definition', 'goal', 'offers', 'market', 'volume', 'sample_size', 'pace', 'channels', 'people', 'approver']
 
 function blankForm() {
   return {
-    name: '', business_type_id: null, definition: cleanDefinition({}), goal: { id: null, target: '', by: '' }, offers: [], market: { country: null, regions: [], language: null },
+    name: '', business_type_id: null, definition: cleanDefinition({}), goal: { id: null, target: '', by: '' }, offers: [], market: { country: null, regions: [], places: [], language: null },
     volume: null, sample_size: null, pace: '', channels: ['email', 'phone', 'post'], people: { replies: null, calls: null }, approver: null,
   }
 }
@@ -24,7 +24,7 @@ function fromCampaign(c) {
   for (const k of SAVE_FIELDS) if (c[k] != null) f[k] = c[k]
   f.definition = cleanDefinition(c.definition || {})
   f.goal = { id: null, target: '', by: '', ...(c.goal || {}) }
-  f.market = { country: null, regions: [], language: null, ...(c.market || {}) }
+  f.market = { country: null, regions: [], places: [], language: null, ...(c.market || {}) }
   f.people = { replies: null, calls: null, ...(c.people || {}) }
   return f
 }
@@ -39,7 +39,7 @@ function withType(f, t) {
     definition: { ...definitionFromType(t), own_words: f.definition.own_words },
     goal: { ...f.goal, id: d.goal || f.goal.id },
     offers: Array.isArray(d.offers) ? d.offers : f.offers,
-    market: country ? { country, regions: (COUNTRIES[country].regions || []).slice(0, 2), language: COUNTRIES[country].language } : f.market,
+    market: country ? { country, regions: [], places: [], language: COUNTRIES[country].language } : f.market,
     sample_size: d.sample_size || f.sample_size,
     channels: country && country !== 'GB' ? [...new Set([...f.channels, 'linkedin'])] : f.channels,
   }
@@ -93,6 +93,8 @@ export default function CreateWizard({ isMobile, fetcher, campaignId, typeId, on
   const [estimate, setEstimate] = useState(null)
   const [step, setStep] = useState(0)
   const [loadErr, setLoadErr] = useState('')
+  const [areaModeState, setAreaMode] = useState(null)   // 'whole' | 'some'; null = follow the saved market
+  const [placesDraft, setPlacesText] = useState(null)
   const [saveState, setSaveState] = useState('')   // '', 'saving', 'saved', error text
   const [saveType, setSaveType] = useState(false)
   const [typeSaved, setTypeSaved] = useState(false)
@@ -282,6 +284,9 @@ export default function CreateWizard({ isMobile, fetcher, campaignId, typeId, on
     </>
   )
 
+  const areaMode = areaModeState || ((form.market.regions.length || (form.market.places || []).length) ? 'some' : 'whole')
+  const placesText = placesDraft ?? (form.market.places || []).join(', ')
+
   // ── step 3 ──
   const step3 = (
     <>
@@ -292,7 +297,7 @@ export default function CreateWizard({ isMobile, fetcher, campaignId, typeId, on
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
             {COUNTRY_CODES.map(code => (
               <Pill key={code} on={form.market.country === code} style={{ minHeight: 40 }}
-                onClick={() => set({ market: { country: code, regions: COUNTRIES[code].regions.slice(0, 2), language: COUNTRIES[code].language }, channels: code !== 'GB' ? [...new Set([...form.channels, 'linkedin'])] : form.channels })}>
+                onClick={() => set({ market: { country: code, regions: [], places: [], language: COUNTRIES[code].language }, channels: code !== 'GB' ? [...new Set([...form.channels, 'linkedin'])] : form.channels })}>
                 {COUNTRIES[code].name}
               </Pill>
             ))}
@@ -300,14 +305,41 @@ export default function CreateWizard({ isMobile, fetcher, campaignId, typeId, on
         </DefRow>
         {country && (
           <>
-            <DefRow isMobile={isMobile} label="Start with">
-              {country.regions.map(r => (
-                <label key={r} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 700, borderRadius: 8, padding: '5px 10px', margin: '0 6px 6px 0', background: C.bg, border: `1px solid ${C.line}`, cursor: 'pointer', minHeight: 32 }}>
-                  <input type="checkbox" checked={form.market.regions.includes(r)} style={{ width: 16, height: 16, accentColor: C.indigo, margin: 0 }}
-                    onChange={e => set({ market: { ...form.market, regions: e.target.checked ? [...form.market.regions, r] : form.market.regions.filter(x => x !== r) } })} />{r}
-                </label>
-              ))}
-              <Note>None ticked means the whole country.</Note>
+            <DefRow isMobile={isMobile} label="Area">
+              {(() => {
+                const narrowed = areaMode === 'some'
+                const radio = (val, label, sub) => (
+                  <label key={val} style={{ display: 'flex', gap: 10, alignItems: 'flex-start', minHeight: 44, fontSize: 14, cursor: 'pointer' }}>
+                    <input type="radio" name="b2b-area" checked={areaMode === val} style={{ width: 18, height: 18, accentColor: C.indigo, marginTop: 2 }}
+                      onChange={() => { setAreaMode(val); if (val === 'whole') set({ market: { ...form.market, regions: [], places: [] } }) }} />
+                    <span><b>{label}</b><br /><span style={{ color: '#5B5470', fontSize: 13 }}>{sub}</span></span>
+                  </label>
+                )
+                return (
+                  <div>
+                    {radio('whole', `The whole of the ${country.name === 'UK' || country.name === 'US' ? country.name : country.label}`, country.whole)}
+                    {radio('some', `Only some ${country.regionWord}s or places`, `HQ only looks inside the ${country.regionWord}s, towns or postcode areas you choose`)}
+                    {narrowed && (
+                      <div style={{ marginTop: 8, padding: 12, borderRadius: 10, background: C.bg, border: `1px solid ${C.line}` }}>
+                        <div style={{ fontSize: 13, fontWeight: 800, marginBottom: 6 }}>{country.regionWord[0].toUpperCase() + country.regionWord.slice(1)}s</div>
+                        <div style={{ maxHeight: country.regions.length > 16 ? 220 : 'none', overflowY: country.regions.length > 16 ? 'auto' : 'visible' }}>
+                          {country.regions.map(r => (
+                            <label key={r} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 700, borderRadius: 8, padding: '5px 10px', margin: '0 6px 6px 0', background: '#fff', border: `1px solid ${C.line}`, cursor: 'pointer', minHeight: 32 }}>
+                              <input type="checkbox" checked={form.market.regions.includes(r)} style={{ width: 16, height: 16, accentColor: C.indigo, margin: 0 }}
+                                onChange={e => set({ market: { ...form.market, regions: e.target.checked ? [...form.market.regions, r] : form.market.regions.filter(x => x !== r) } })} />{r}
+                            </label>
+                          ))}
+                        </div>
+                        <label htmlFor="b2b-places" style={{ display: 'block', fontSize: 13, fontWeight: 800, margin: '10px 0 6px' }}>Towns, cities or postcode areas (optional)</label>
+                        <input id="b2b-places" value={placesText} onChange={e => setPlacesText(e.target.value)}
+                          onBlur={e => set({ market: { ...form.market, places: e.target.value.split(',').map(x => x.trim()).filter(Boolean).slice(0, 20) } })}
+                          placeholder={country.name === 'UK' ? 'For example: Manchester, Leeds, M, LS, BS' : 'Separate with commas'} style={inputStyle} />
+                        <Note style={{ marginTop: 6 }}>{areaText(form.market)}{(form.market.regions.length + (form.market.places || []).length) === 0 ? ': pick at least one, or choose the whole country' : ''}</Note>
+                      </div>
+                    )}
+                  </div>
+                )
+              })()}
             </DefRow>
             <DefRow isMobile={isMobile} label="Language">{form.market.language || country.language}</DefRow>
           </>
@@ -381,7 +413,7 @@ export default function CreateWizard({ isMobile, fetcher, campaignId, typeId, on
   )
 
   // ── step 5 ──
-  const regions = form.market.regions.length ? `start with ${form.market.regions.join(' and ')}` : 'the whole country'
+  const regions = areaText(form.market).replace(/^[^:]*: /, '')
   const summary = [
     ['Business type', `${curType ? curType.name : 'Your own words'}: ${d.line || d.own_words || '–'}`, 0],
     ['Goal', form.goal.id ? `${goalName(form.goal.id)}${form.goal.target ? `: ${form.goal.target}` : ''}${form.goal.by ? `, ${form.goal.by}` : ''}` : '–', 1],

@@ -224,3 +224,18 @@ test('validators: the four b2b types', () => {
 test('suggestedName reads like the board', () => {
   assert.equal(suggestedName('Nurseries and early years', 'trial', 'GB'), 'UK: nurseries and early years, trial orders')
 })
+
+import { cleanCampaignPatch as cleanArea, areaText as area } from '../lib/b2b.js'
+test('area: empty regions and places mean the whole country', () => {
+  const out = cleanArea({ market: { country: 'GB' } })
+  assert.deepEqual(out.market.regions, [])
+  assert.deepEqual(out.market.places, [])
+  assert.equal(area(out.market), 'UK: the whole country')
+})
+test('area: regions and places narrow the campaign and read as "only"', () => {
+  const out = cleanArea({ market: { country: 'GB', regions: ['North West', 'London'], places: ['Leeds', 'BS'] } })
+  assert.equal(area(out.market), 'UK: only North West, London, Leeds, BS')
+})
+test('area: a region from another country is refused', () => {
+  assert.throws(() => cleanArea({ market: { country: 'GB', regions: ['Bayern'] } }), /market.regions must be from the GB list/)
+})
