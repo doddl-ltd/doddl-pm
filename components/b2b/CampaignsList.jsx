@@ -3,12 +3,12 @@
 import { useEffect, useState } from 'react'
 import { C, Panel, H2, Note, Chip, Btn, StateLine } from '../approvals/renderers/reviewKit'
 import { NextChip, Track, Nums, Tile, font } from './kit'
-import { countryName, channelName, goalName } from '../../lib/b2b'
+import { countryName, areaText, channelName, goalName } from '../../lib/b2b'
 
 function chipsFor(c) {
   const out = []
   if (c.business_type) out.push(c.business_type.name.split(' and ')[0])
-  if (c.market && c.market.country) out.push(countryName(c.market.country))
+  if (c.market && c.market.country) out.push(((c.market.regions || []).length || (c.market.places || []).length) ? areaText(c.market) : countryName(c.market.country))
   if (c.channels && c.channels.length) out.push(c.channels.length > 1 ? `${channelName(c.channels[0]).split(' ')[0]} and ${c.channels.length - 1} more` : channelName(c.channels[0]).split(' ')[0])
   return out
 }
