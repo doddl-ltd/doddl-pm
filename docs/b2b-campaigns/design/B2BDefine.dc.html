@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Define a B2B campaign</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&amp;display=swap">
+<style>
+body{margin:0;font-family:'Nunito',system-ui,sans-serif;color:#190e3e;background:#F6F4FA}
+a{color:#3D157D}a:hover{color:#190e3e}
+.shell{display:flex;flex-wrap:wrap;min-height:1750px;background:#F6F4FA}
+.side{flex:1 1 220px;max-width:248px;background:#190e3e;color:#fff;padding:20px 14px;box-sizing:border-box;display:flex;flex-direction:column;gap:2px}
+.brand{font-weight:800;font-size:21px;padding:4px 12px 18px}
+.brand span{color:#C9B6F2}
+.nav{display:flex;align-items:center;gap:10px;padding:0 12px;min-height:44px;border-radius:10px;color:#DCD6EC;text-decoration:none;font-weight:700;font-size:14px}
+.nav:hover{background:#2B2058;color:#fff}
+.nav.on{background:#3D157D;color:#fff}
+.navlbl{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:#ABA3C8;padding:16px 12px 4px;font-weight:800}
+.badge{margin-left:auto;background:#fff;color:#3D157D;border-radius:999px;font-size:12px;font-weight:800;padding:1px 8px}
+.main{flex:999 1 640px;min-width:0;padding:24px 36px 56px;box-sizing:border-box}
+.panel{background:#fff;border:1px solid #E4E0EE;border-radius:14px;padding:18px 20px}
+.lbl{font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#5B5470;margin:0}
+.h2{font-size:17px;font-weight:800;margin:0 0 4px}
+.sub{font-size:13px;color:#5B5470;margin:0 0 12px}
+.chip{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:800;border-radius:999px;padding:3px 10px;background:#EEE9F8;color:#3D157D;white-space:nowrap}
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:46px;padding:0 20px;border-radius:10px;font:800 15px 'Nunito',sans-serif;border:1px solid #CFC8E0;background:#fff;color:#190e3e;cursor:pointer;text-decoration:none;box-sizing:border-box}
+.btn-p{background:#3D157D;border-color:#3D157D;color:#fff}
+.btn-p:hover{background:#190e3e;color:#fff}
+.seg{display:inline-flex;border:1px solid #CFC8E0;border-radius:12px;overflow:hidden;background:#fff;flex-wrap:wrap}
+.seg button{border:0;background:#fff;font:800 14px 'Nunito',sans-serif;color:#190e3e;min-height:44px;padding:0 16px;cursor:pointer}
+.seg button.on{background:#190e3e;color:#fff}
+.field{display:flex;flex-direction:column;gap:6px;margin-top:12px}
+.field label{font-size:13px;font-weight:800}
+.input{font:600 14px 'Nunito',sans-serif;color:#190e3e;border:1px solid #CFC8E0;border-radius:10px;padding:10px 12px;min-height:44px;box-sizing:border-box;width:100%;background:#fff;resize:vertical}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.crit{display:grid;grid-template-columns:110px minmax(0,1fr);gap:10px;align-items:start;padding:10px 0;border-top:1px solid #F1EEF6;font-size:14px;line-height:1.45}
+.crit:first-of-type{border-top:0}
+.tag{display:inline-flex;align-items:center;font-size:13px;font-weight:700;border-radius:8px;padding:4px 10px;margin:0 6px 6px 0;background:#F6F4FA;border:1px solid #E4E0EE}
+.must{background:#E2F2E7;border-color:#BFE3CB}.nice{background:#EEE9F8;border-color:#D9CEF1}.not{background:#F8E1E1;border-color:#EBC2C2}
+.gate{display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-top:1px solid #F1EEF6;font-size:14px;line-height:1.4}
+.gate:first-of-type{border-top:0}
+.dot{flex:none;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800}
+.d-you{background:#3D157D;color:#fff}.d-hq{background:#EEE9F8;color:#3D157D}
+</style>
+</helmet>
+<div class="shell">
+  <nav class="side" aria-label="doddl PM">
+    <div class="brand">doddl <span>PM</span></div>
+    <a class="nav" href="#">My work</a>
+    <a class="nav" href="#">Triage</a>
+    <a class="nav" href="#">Projects</a>
+    <div class="navlbl">doddl HQ</div>
+    <a class="nav" href="Main.dc.html">Approvals <span class="badge">7</span></a>
+    <a class="nav" href="Studio.dc.html">Creative studio</a>
+    <a class="nav on" href="B2BCampaigns.dc.html">B2B campaigns</a>
+    <a class="nav" href="Calendar.dc.html">Content calendar</a>
+    <a class="nav" href="Listings.dc.html">Amazon listings</a>
+    <a class="nav" href="Idea.dc.html">Give HQ an idea</a>
+    <div class="navlbl">Settings</div>
+    <a class="nav" href="Approvers.dc.html">Who approves what</a>
+  </nav>
+
+  <main class="main">
+    <a href="B2BCampaigns.dc.html" style="font-size: 14px; font-weight: 800; text-decoration: none; display: inline-flex; min-height: 44px; align-items: center">‹ B2B campaigns</a>
+    <div style="display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; align-items: flex-end">
+      <div>
+        <p class="lbl">Definition card · made in Create a campaign, waiting for approval</p>
+        <h1 style="margin: 6px 0 4px; font-size: 28px; font-weight: 800">{{t.name}}</h1>
+        <p style="margin: 0; color: #5B5470; font-size: 14px">Drafted by the B2B Partnerships agent from your idea. Change anything, then approve the definition. Nothing is searched for until you do.</p>
+      </div>
+      <div class="seg" role="group" aria-label="Example">
+        <button class="{{tNur}}" onClick="{{toNur}}">UK nurseries</button>
+        <button class="{{tFr}}" onClick="{{toFr}}">France distributors</button>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-wrap: wrap; gap: 20px; margin-top: 20px; align-items: flex-start">
+      <div style="flex: 1 1 600px; min-width: 0; display: flex; flex-direction: column; gap: 16px">
+        <section class="panel">
+          <h2 class="h2">The campaign</h2>
+          <p class="sub">What we want, and how we will know it worked.</p>
+          <div class="field"><label for="goal">Goal</label><input id="goal" class="input" value="{{t.goal}}"></div>
+          <div class="grid2">
+            <div class="field"><label for="mk">Market</label><input id="mk" class="input" value="{{t.market}}"></div>
+            <div class="field"><label for="ch">Channels</label><input id="ch" class="input" value="{{t.channels}}"></div>
+          </div>
+          <div class="grid2">
+            <div class="field"><label for="of">What we offer them</label><input id="of" class="input" value="{{t.offer}}"></div>
+            <div class="field"><label for="me">Measure</label><input id="me" class="input" value="{{t.measure}}"></div>
+          </div>
+          <div class="grid2">
+            <div class="field"><label for="vol">How many to contact</label><input id="vol" class="input" value="{{t.volume}}"></div>
+            <div class="field"><label for="sm">Sample to check first</label><input id="sm" class="input" value="{{t.sample}}"></div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <h2 class="h2">Who we want to talk to</h2>
+          <p class="sub">HQ scores every business it finds against this. Green must all be true, purple raise the score, red rule a business out.</p>
+          <div class="crit"><b>Business type</b><span>{{t.type}}</span></div>
+          <div class="crit"><b>Size</b><span>{{t.size}}</span></div>
+          <div class="crit"><b>Where</b><span>{{t.where}}</span></div>
+          <div class="crit"><b>Must have</b><span><sc-for list="{{t.must}}" as="x" hint-placeholder-count="3"><span class="tag must">{{x}}</span></sc-for></span></div>
+          <div class="crit"><b>Nice to have</b><span><sc-for list="{{t.nice}}" as="x" hint-placeholder-count="3"><span class="tag nice">{{x}}</span></sc-for></span></div>
+          <div class="crit"><b>Rule out</b><span><sc-for list="{{t.not}}" as="x" hint-placeholder-count="3"><span class="tag not">{{x}}</span></sc-for></span></div>
+          <div class="crit"><b>Person to reach</b><span>{{t.who}}</span></div>
+          <div class="field"><label for="add">Add a rule in your own words</label><input id="add" class="input" placeholder="For example: no nurseries that are part of a chain with more than 10 sites"></div>
+        </section>
+
+        <section class="panel">
+          <h2 class="h2">Where HQ looks</h2>
+          <p class="sub">Public business sources only. Every prospect shows where it came from.</p>
+          <sc-for list="{{t.sources}}" as="s" hint-placeholder-count="4">
+            <label style="display: flex; gap: 10px; align-items: flex-start; min-height: 40px; font-size: 14px"><input type="checkbox" checked="checked" style="width: 18px; height: 18px; accent-color: #3D157D; margin-top: 2px"><span><b>{{s.name}}</b><br><span style="color: #5B5470">{{s.what}}</span></span></label>
+          </sc-for>
+        </section>
+
+        <section class="panel">
+          <h2 class="h2">Rules for contacting them</h2>
+          <sc-for list="{{t.rules}}" as="r" hint-placeholder-count="4"><p style="margin: 0; padding: 8px 0; border-top: 1px solid #F1EEF6; font-size: 14px; line-height: 1.45">{{r}}</p></sc-for>
+        </section>
+      </div>
+
+      <div style="flex: 1 1 340px; min-width: 0; display: flex; flex-direction: column; gap: 16px">
+        <section class="panel" style="border: 2px solid #3D157D">
+          <p class="lbl">HQ’s estimate</p>
+          <p style="margin: 6px 0 0; font-size: 28px; font-weight: 800">{{t.estimate}}</p>
+          <p style="margin: 2px 0 0; font-size: 13px; color: #5B5470">{{t.estNote}}</p>
+        </section>
+
+        <section class="panel">
+          <h2 class="h2">What happens next, and who decides</h2>
+          <div class="gate"><span class="dot d-you">1</span><span><b>You approve this definition</b><br><span style="color: #5B5470">{{t.app}}</span></span></div>
+          <div class="gate"><span class="dot d-hq">2</span><span><b>HQ finds a sample of {{t.sampleN}}</b><br><span style="color: #5B5470">With why each one matches and where it was found</span></span></div>
+          <div class="gate"><span class="dot d-you">3</span><span><b>You tick or reject the sample</b><br><span style="color: #5B5470">Your rejections tighten the rules before the full search</span></span></div>
+          <div class="gate"><span class="dot d-hq">4</span><span><b>HQ finds the rest and drafts the words</b><br><span style="color: #5B5470">Up to {{t.volume}}</span></span></div>
+          <div class="gate"><span class="dot d-you">5</span><span><b>You approve the emails and the flow</b><br><span style="color: #5B5470">Including when a person steps in</span></span></div>
+          <div class="gate"><span class="dot d-you">6</span><span><b>You press go</b><br><span style="color: #5B5470">Sends start slowly and build up over 2 weeks</span></span></div>
+        </section>
+
+        <section class="panel">
+          <h2 class="h2">Your answer</h2>
+          <div class="field" style="margin-top: 0"><label for="nt">Note to the agent</label><textarea id="nt" class="input" rows="2" placeholder="For example: start with the North West only"></textarea></div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px">
+            <a class="btn btn-p" href="B2BSample.dc.html">Approve and find a sample</a>
+            <button class="btn">Save draft</button>
+          </div>
+        </section>
+      </div>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1750}}'>
+class Component extends DCLogic {
+  constructor(p) { super(p); this.state = { t: 'nur' }; }
+  renderVals() {
+    const T = {
+      nur: {
+        name: 'UK nurseries: sample sets and bulk price',
+        goal: '[n] nurseries order a trial pack by end of January',
+        market: 'United Kingdom', channels: 'Email, then a call for warm replies', offer: 'A free sample set for the room, then a bulk price per set', measure: 'Trial packs ordered', volume: '400 nurseries', sample: '25', sampleN: '25',
+        type: 'Day nurseries and pre-schools caring for babies and toddlers (6 months to 4 years). Not childminders working from home.',
+        size: '20 or more registered places', where: 'England, Scotland and Wales; start with the North West and London',
+        must: ['Takes children under 2', 'Serves meals on site', 'Registered and currently open'],
+        nice: ['Rated Good or Outstanding', 'Small group of 2 to 10 sites', 'Mentions baby-led weaning or healthy eating', 'Active on Instagram or Facebook'],
+        not: ['Childminder or sole trader', 'Large national chain head office', 'Already a doddl customer', 'Asked us not to contact them'],
+        who: 'Owner, manager or cook; a named person where we can find one, otherwise the nursery’s main email',
+        sources: [{ name: 'Childcare registers', what: 'Ofsted, Care Inspectorate and Care Inspectorate Wales public registers: name, address, places, rating' }, { name: 'Nursery websites', what: 'Menus, weaning approach, named managers, contact page' }, { name: 'Google Maps', what: 'Still open, reviews, website link' }, { name: 'doddl customers and HubSpot', what: 'To rule out anyone we already deal with' }],
+        rules: ['Companies and partnerships only. Sole traders and childminders are left out, because emailing them needs their consent first.', 'Every email says who we are and has a one-click opt-out. Anyone who opts out is never contacted again.', 'Sent from a separate outreach address, not the doddl.com address customers know, so replies and opt-outs never touch the customer email account.', 'At most 3 emails per nursery, then stop.'],
+        estimate: 'About [n] nurseries', estNote: 'Match the must-haves in the registers; about [n] have a findable email.', app: 'Approver: Jon (B2B, PR and creators)'
+      },
+      fr: {
+        name: 'France: baby and nursery distributors',
+        goal: '3 intro calls with distributors that could take doddl into French pharmacies and baby stores',
+        market: 'France', channels: 'Email and LinkedIn, in French', offer: 'An intro call and a sample box', measure: 'Intro calls held', volume: '60 distributors', sample: '15', sampleN: '15',
+        type: 'Distributors and wholesalers of baby, nursery or feeding products that sell to pharmacies, baby stores or department stores.',
+        size: 'More than 5 staff; already carries at least 3 brands', where: 'All of France; Paris and Lyon first',
+        must: ['Sells to pharmacies or baby retailers', 'Carries feeding or tableware brands', 'Trading for 2 years or more'],
+        nice: ['Exhibits at Paris baby and nursery trade shows', 'Also covers Belgium or Switzerland', 'Carries premium or design-led brands'],
+        not: ['Sells only to supermarkets', 'Already distributes a direct competitor of doddl', 'Online marketplace sellers only'],
+        who: 'Purchasing or brand director; managing director at smaller firms',
+        sources: [{ name: 'French company register (SIRENE)', what: 'Trading status, activity code, size band' }, { name: 'Trade show exhibitor lists', what: 'Baby and nursery shows in Paris' }, { name: 'LinkedIn', what: 'Named buyers and directors' }, { name: 'Distributor websites', what: 'Brands carried and retail channels' }],
+        rules: ['Business emails only, about something relevant to the person’s job, with a clear opt-out in every message.', 'Written in French, checked by a French speaker before it goes to you.', 'At most 3 emails and one LinkedIn message, then stop.', 'Any reply goes to a person within one working day.'],
+        estimate: 'About [n] distributors', estNote: 'Match the must-haves; about [n] have a named buyer.', app: 'Approver: Jon (B2B, PR and creators)'
+      }
+    };
+    const s = this.state.t;
+    return { t: T[s], tNur: s === 'nur' ? 'on' : '', tFr: s === 'fr' ? 'on' : '', toNur: () => this.setState({ t: 'nur' }), toFr: () => this.setState({ t: 'fr' }) };
+  }
+}
+</script>
+</body>
+</html>

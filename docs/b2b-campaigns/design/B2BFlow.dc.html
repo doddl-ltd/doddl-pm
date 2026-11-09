@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Words, flow and people</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&amp;display=swap">
+<style>
+body{margin:0;font-family:'Nunito',system-ui,sans-serif;color:#190e3e;background:#F6F4FA}
+a{color:#3D157D}a:hover{color:#190e3e}
+.shell{display:flex;flex-wrap:wrap;min-height:2000px;background:#F6F4FA}
+.side{flex:1 1 220px;max-width:248px;background:#190e3e;color:#fff;padding:20px 14px;box-sizing:border-box;display:flex;flex-direction:column;gap:2px}
+.brand{font-weight:800;font-size:21px;padding:4px 12px 18px}
+.brand span{color:#C9B6F2}
+.nav{display:flex;align-items:center;gap:10px;padding:0 12px;min-height:44px;border-radius:10px;color:#DCD6EC;text-decoration:none;font-weight:700;font-size:14px}
+.nav:hover{background:#2B2058;color:#fff}
+.nav.on{background:#3D157D;color:#fff}
+.navlbl{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:#ABA3C8;padding:16px 12px 4px;font-weight:800}
+.badge{margin-left:auto;background:#fff;color:#3D157D;border-radius:999px;font-size:12px;font-weight:800;padding:1px 8px}
+.main{flex:999 1 640px;min-width:0;padding:24px 36px 56px;box-sizing:border-box}
+.panel{background:#fff;border:1px solid #E4E0EE;border-radius:14px;padding:18px 20px}
+.lbl{font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#5B5470;margin:0}
+.h2{font-size:17px;font-weight:800;margin:0 0 6px}
+.chip{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:800;border-radius:999px;padding:3px 10px;background:#EEE9F8;color:#3D157D;white-space:nowrap}
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:46px;padding:0 20px;border-radius:10px;font:800 15px 'Nunito',sans-serif;border:1px solid #CFC8E0;background:#fff;color:#190e3e;cursor:pointer;text-decoration:none;box-sizing:border-box}
+.btn-p{background:#3D157D;border-color:#3D157D;color:#fff}
+.btn-p:hover{background:#190e3e;color:#fff}
+.flow{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:30px;padding:4px 0 6px;align-items:stretch}
+.node{position:relative;min-width:0;display:flex;flex-direction:column;border:2px solid #CFC8E0;border-radius:12px;background:#fff;padding:10px 12px;cursor:pointer;text-align:left;font:inherit;color:#190e3e}
+.node.on{border-color:#3D157D;box-shadow:0 0 0 3px #E3D9F7}
+.node.person{border-style:dashed;border-color:#D98A1F;background:#FFF8EE}
+.node.next::after{content:"→";position:absolute;right:-24px;top:50%;transform:translateY(-50%);color:#8F88A6;font-size:18px;font-weight:800}
+.then{margin-top:auto;padding-top:8px;font-size:12px;font-weight:800;color:#3D157D}
+.mail{border:1px solid #E4E0EE;border-radius:12px;overflow:hidden}
+.mailhd{background:#F6F4FA;padding:10px 14px;font-size:13px;line-height:1.6}
+.branch{display:grid;grid-template-columns:200px minmax(0,1fr) 170px 150px;gap:12px;align-items:start;padding:12px 0;border-top:1px solid #F1EEF6;font-size:14px;line-height:1.45}
+.branch.hd{font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#5B5470;border-top:0;padding-top:0}
+.who{display:inline-flex;align-items:center;font-size:12px;font-weight:800;border-radius:999px;padding:3px 10px}
+.w-hq{background:#EEE9F8;color:#3D157D}.w-p{background:#FBE9D2;color:#8A4B00}.w-stop{background:#F0EEF4;color:#4A4458}
+.gate{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:10px 0;border-top:1px solid #F1EEF6;font-size:14px}
+.gate:first-of-type{border-top:0}
+.ok{background:#E2F2E7;color:#1E6B3A}.wait{background:#FBE9D2;color:#8A4B00}.todo{background:#F0EEF4;color:#5B5470}
+.warnbox{background:#FBE9D2;color:#6B3A00;border-radius:12px;padding:12px 14px;font-size:14px;line-height:1.5}
+.input{font:600 14px 'Nunito',sans-serif;color:#190e3e;border:1px solid #CFC8E0;border-radius:10px;padding:10px 12px;min-height:44px;box-sizing:border-box;width:100%;background:#fff;resize:vertical}
+</style>
+</helmet>
+<div class="shell">
+  <nav class="side" aria-label="doddl PM">
+    <div class="brand">doddl <span>PM</span></div>
+    <a class="nav" href="#">My work</a>
+    <a class="nav" href="#">Triage</a>
+    <a class="nav" href="#">Projects</a>
+    <div class="navlbl">doddl HQ</div>
+    <a class="nav" href="Main.dc.html">Approvals <span class="badge">7</span></a>
+    <a class="nav" href="Studio.dc.html">Creative studio</a>
+    <a class="nav on" href="B2BCampaigns.dc.html">B2B campaigns</a>
+    <a class="nav" href="Calendar.dc.html">Content calendar</a>
+    <a class="nav" href="Listings.dc.html">Amazon listings</a>
+    <a class="nav" href="Idea.dc.html">Give HQ an idea</a>
+    <div class="navlbl">Settings</div>
+    <a class="nav" href="Approvers.dc.html">Who approves what</a>
+  </nav>
+
+  <main class="main">
+    <a href="B2BCampaigns.dc.html" style="font-size: 14px; font-weight: 800; text-decoration: none; display: inline-flex; min-height: 44px; align-items: center">‹ UK nurseries campaign</a>
+    <div style="display: flex; gap: 8px; flex-wrap: wrap"><span class="chip">Steps 5 and 6 · Words, flow, go live</span><span class="chip" style="background: #F0EEF4; color: #4A4458">[n] nurseries on the list</span></div>
+    <h1 style="margin: 10px 0 4px; font-size: 28px; font-weight: 800">The emails, the flow, and when a person steps in</h1>
+    <p style="margin: 0; color: #5B5470; font-size: 14px; max-width: 900px">Click a step to read and edit it. Dashed steps are where a person takes over. Every reply stops the sequence for that nursery.</p>
+
+    <section class="panel" style="margin-top: 18px">
+      <h2 class="h2">The flow</h2>
+      <div class="flow">
+        <sc-for list="{{nodes}}" as="n" hint-placeholder-count="5">
+          <button class="{{n.cls}}" onClick="{{n.pick}}"><span class="lbl" style="font-size: 11px">{{n.when}}</span><span style="display: block; font-weight: 800; font-size: 15px; margin-top: 2px">{{n.title}}</span><span style="display: block; font-size: 12px; color: #5B5470; margin-top: 4px">{{n.sub}}</span><span class="then">{{n.then}}</span></button>
+                  </sc-for>
+      </div>
+    </section>
+
+    <div style="display: flex; flex-wrap: wrap; gap: 20px; margin-top: 20px; align-items: flex-start">
+      <section class="panel" style="flex: 1 1 560px; min-width: 0">
+        <div style="display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; align-items: baseline"><h2 class="h2">{{cur.title}}</h2><span class="chip">{{cur.when}}</span></div>
+        <sc-if value="{{cur.isMail}}" hint-placeholder-val="{{ true }}">
+          <div class="mail">
+            <div class="mailhd"><b>From</b> Jon at doddl &lt;partners@[outreach address]&gt;<br><b>To</b> {{cur.to}}<br><b>Subject</b> {{cur.subject}}</div>
+            <div style="padding: 16px 18px; font-size: 15px; line-height: 1.6; white-space: pre-line">{{cur.body}}</div>
+            <div style="padding: 10px 18px; font-size: 12px; color: #5B5470; border-top: 1px solid #EFECF5">doddl Ltd · [address] · Not for you? Reply “stop” or click here and we won’t email again.</div>
+          </div>
+          <p style="margin: 10px 0 0; font-size: 13px; color: #5B5470">Words in square brackets are filled from each nursery’s record. Brand checker: passed. Claims: none.</p>
+        </sc-if>
+        <sc-if value="{{cur.isPerson}}" hint-placeholder-val="{{ false }}">
+          <p style="margin: 0; font-size: 15px; line-height: 1.6; white-space: pre-line">{{cur.body}}</p>
+        </sc-if>
+      </section>
+
+      <div style="flex: 1 1 360px; min-width: 0; display: flex; flex-direction: column; gap: 16px">
+        <section class="panel">
+          <h2 class="h2">How it sends</h2>
+          <p style="margin: 0; font-size: 14px; line-height: 1.7"><b>Sent through</b> HubSpot sequences, from a separate outreach address<br><b>Pace</b> 20 a day in week 1, then 50 a day<br><b>Days</b> Tuesday to Thursday, 09:30 to 11:30 UK<br><b>Stops when</b> they reply, opt out, bounce or book a call</p>
+        </section>
+        <section class="warnbox"><b>Why not Klaviyo for this?</b> Klaviyo is for people who signed up to hear from doddl. Its rules don’t allow emailing lists we found ourselves, and a breach could put the customer email account at risk. Nurseries who reply and want to hear more can be added to Klaviyo with their permission.</section>
+        <section class="panel">
+          <h2 class="h2">Approvals for this campaign</h2>
+          <div class="gate"><span>Who we talk to</span><span class="who ok">Approved by Jon, 6 Nov</span></div>
+          <div class="gate"><span>Sample of 25</span><span class="who ok">Approved, 21 ticked</span></div>
+          <div class="gate"><span>Full list of [n]</span><span class="who ok">Checked by HQ</span></div>
+          <div class="gate"><span>3 emails</span><span class="who wait">Waiting for you</span></div>
+          <div class="gate"><span>Flow and hand-offs</span><span class="who wait">Waiting for you</span></div>
+          <div class="gate"><span>Go live</span><span class="who todo">After the two above</span></div>
+        </section>
+      </div>
+    </div>
+
+    <section class="panel" style="margin-top: 20px">
+      <h2 class="h2">When someone replies: who does what</h2>
+      <div class="branch hd"><span>They say</span><span>What happens</span><span>Who</span><span>How fast</span></div>
+      <sc-for list="{{branches}}" as="b" hint-placeholder-count="7">
+        <div class="branch"><b>{{b.say}}</b><span>{{b.what}}</span><span><span class="who {{b.cls}}">{{b.who}}</span></span><span>{{b.fast}}</span></div>
+      </sc-for>
+    </section>
+
+    <section class="panel" style="margin-top: 20px">
+      <h2 class="h2">Your answer</h2>
+      <label for="nt" style="font-size: 13px; font-weight: 800">Note to the agent</label>
+      <textarea id="nt" class="input" rows="2" style="margin-top: 6px" placeholder="For example: email 2 is too long; mention the SEN range in email 3"></textarea>
+      <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px">
+        <button class="btn btn-p">Approve emails and flow</button>
+        <button class="btn">Approve with my edits</button>
+        <button class="btn">Send back</button>
+      </div>
+      <p style="margin: 10px 0 0; font-size: 13px; color: #5B5470">Then a final “Go live” card shows the full list, the first day’s 20 nurseries and the send times.</p>
+    </section>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":2000}}'>
+class Component extends DCLogic {
+  constructor(p) { super(p); this.state = { sel: 0 }; }
+  renderVals() {
+    const N = [
+      { when: 'Day 0', title: 'Email 1: hello', sub: 'Who we are, the free sample set', arrow: 'no reply · 4 days', mail: true, to: '[Manager name], [Nursery name]', subject: 'A free cutlery set for [Nursery name]’s little ones?',
+        body: 'Hi [first name],\n\nI’m Jon, founder of doddl. We make cutlery for little hands learning to feed themselves, and [n] nurseries already use it at mealtimes.\n\nI noticed [personal line from their website, e.g. your menu changes with the seasons]. Would you like a free set for one of your rooms, so your team can see how the children get on?\n\nJust reply “yes” with the best delivery address.\n\nJon' },
+      { when: 'Day 4', title: 'Email 2: a nudge', sub: 'Short, one question', arrow: 'no reply · 6 days', mail: true, to: '[Manager name], [Nursery name]', subject: 'Re: A free cutlery set for [Nursery name]’s little ones?',
+        body: 'Hi [first name],\n\nJust checking this reached you. Happy to send a free set for one room, no strings.\n\nShall I pop one in the post?\n\nJon' },
+      { when: 'Day 10', title: 'Email 3: last one', sub: 'Bulk price, then stop', arrow: 'positive reply', mail: true, to: '[Manager name], [Nursery name]', subject: 'Cutlery for every room at [Nursery name]',
+        body: 'Hi [first name],\n\nLast note from me. If a free set isn’t right just now, we also do a nursery price for a set per child: [bulk price].\n\nIf the timing’s wrong, no problem. I won’t email again.\n\nJon' },
+      { when: 'Within 1 working day', title: 'A person answers', sub: 'Laura, with a reply drafted by HQ', arrow: 'sample sent', person: true,
+        body: 'HQ drafts the reply, checks the address and creates the sample order. Laura reads, edits if needed and sends it from the outreach inbox.\n\nIf they ask about prices, safety or anything not in the approved answers, it goes to Laura without a draft.' },
+      { when: '14 days after the sample', title: 'Follow-up call', sub: 'Laura or Jon books a call', person: true,
+        body: 'HQ reminds the owner of the conversation 14 days after the sample is delivered, with the nursery’s details and what they said. A person calls or emails to ask how the children got on and offers the nursery price.' }
+    ];
+    const sel = this.state.sel;
+    const nodes = N.map((n, i) => ({ ...n, cls: 'node' + (n.person ? ' person' : '') + (sel === i ? ' on' : '') + (i < N.length - 1 ? ' next' : ''), then: n.arrow ? 'Then: ' + n.arrow : 'End of the flow', pick: () => this.setState({ sel: i }) }));
+    const c = N[sel];
+    const cur = { ...c, isMail: !!c.mail, isPerson: !!c.person };
+    const branches = [
+      { say: '“Yes please” or asks for a sample', what: 'Sequence stops. HQ drafts the reply and the sample order; a person sends it.', who: 'Laura', cls: 'w-p', fast: '1 working day' },
+      { say: 'A question', what: 'HQ drafts an answer from the approved answers; a person checks and sends. Anything new goes to a person with no draft.', who: 'Laura', cls: 'w-p', fast: '1 working day' },
+      { say: 'Wants to talk to the owner or order in bulk', what: 'Goes to Jon with the full history and HQ’s suggested price.', who: 'Jon', cls: 'w-p', fast: 'Same day' },
+      { say: 'Out of office', what: 'Pauses the sequence until they are back.', who: 'HQ', cls: 'w-hq', fast: 'Automatic' },
+      { say: 'Not interested', what: 'Stops. HQ sends nothing further and records why.', who: 'HQ', cls: 'w-hq', fast: 'Automatic' },
+      { say: '“Stop” or opt-out link', what: 'Stops and adds them to the do-not-contact list for every campaign.', who: 'HQ', cls: 'w-stop', fast: 'Immediately' },
+      { say: 'Email bounces', what: 'Removed from the list; HQ looks for another contact once.', who: 'HQ', cls: 'w-hq', fast: 'Automatic' }
+    ];
+    return { nodes, cur, branches };
+  }
+}
+</script>
+</body>
+</html>
