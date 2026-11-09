@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>B2B campaigns</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&amp;display=swap">
+<style>
+body{margin:0;font-family:'Nunito',system-ui,sans-serif;color:#190e3e;background:#F6F4FA}
+a{color:#3D157D}a:hover{color:#190e3e}
+.shell{display:flex;flex-wrap:wrap;min-height:1400px;background:#F6F4FA}
+.side{flex:1 1 220px;max-width:248px;background:#190e3e;color:#fff;padding:20px 14px;box-sizing:border-box;display:flex;flex-direction:column;gap:2px}
+.brand{font-weight:800;font-size:21px;padding:4px 12px 18px}
+.brand span{color:#C9B6F2}
+.nav{display:flex;align-items:center;gap:10px;padding:0 12px;min-height:44px;border-radius:10px;color:#DCD6EC;text-decoration:none;font-weight:700;font-size:14px}
+.nav:hover{background:#2B2058;color:#fff}
+.nav.on{background:#3D157D;color:#fff}
+.navlbl{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:#ABA3C8;padding:16px 12px 4px;font-weight:800}
+.badge{margin-left:auto;background:#fff;color:#3D157D;border-radius:999px;font-size:12px;font-weight:800;padding:1px 8px}
+.main{flex:999 1 640px;min-width:0;padding:28px 36px 56px;box-sizing:border-box}
+.panel{background:#fff;border:1px solid #E4E0EE;border-radius:14px}
+.lbl{font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#5B5470;margin:0}
+.chip{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:800;border-radius:999px;padding:3px 10px;background:#EEE9F8;color:#3D157D;white-space:nowrap}
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 18px;border-radius:10px;font:800 14px 'Nunito',sans-serif;border:1px solid #CFC8E0;background:#fff;color:#190e3e;cursor:pointer;text-decoration:none;box-sizing:border-box}
+.btn-p{background:#3D157D;border-color:#3D157D;color:#fff}
+.btn-p:hover{color:#fff;background:#190e3e}
+.camp{display:block;text-decoration:none;color:#190e3e;padding:18px 20px;border-top:1px solid #EFECF5}
+.camp:hover{background:#FAF8FD;color:#190e3e}
+.track{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;margin-top:12px}
+.step{border-radius:8px;padding:6px 8px;font-size:12px;font-weight:800;line-height:1.25}
+.s-done{background:#E2F2E7;color:#1E6B3A}.s-now{background:#3D157D;color:#fff}.s-wait{background:#FBE9D2;color:#8A4B00}.s-todo{background:#F0EEF4;color:#5B5470}
+.nums{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin-top:12px}
+.num{background:#F6F4FA;border-radius:10px;padding:8px 10px}
+.num b{display:block;font-size:18px}
+.num span{font-size:12px;color:#5B5470;font-weight:700}
+.tpl{display:block;text-decoration:none;color:#190e3e;background:#fff;border:1px solid #E4E0EE;border-radius:14px;padding:16px}
+.tpl:hover{border-color:#3D157D;color:#190e3e}
+</style>
+</helmet>
+<div class="shell">
+  <nav class="side" aria-label="doddl PM">
+    <div class="brand">doddl <span>PM</span></div>
+    <a class="nav" href="#">My work</a>
+    <a class="nav" href="#">Triage</a>
+    <a class="nav" href="#">Projects</a>
+    <div class="navlbl">doddl HQ</div>
+    <a class="nav" href="Main.dc.html">Approvals <span class="badge">7</span></a>
+    <a class="nav" href="Studio.dc.html">Creative studio</a>
+    <a class="nav on" href="B2BCampaigns.dc.html">B2B campaigns</a>
+    <a class="nav" href="Calendar.dc.html">Content calendar</a>
+    <a class="nav" href="Listings.dc.html">Amazon listings</a>
+    <a class="nav" href="Idea.dc.html">Give HQ an idea</a>
+    <div class="navlbl">Settings</div>
+    <a class="nav" href="Approvers.dc.html">Who approves what</a>
+  </nav>
+
+  <main class="main">
+    <div style="display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px; justify-content: space-between">
+      <div>
+        <p class="lbl" style="margin: 0 0 6px">B2B, partnerships and outreach</p>
+        <h1 style="margin: 0; font-size: 30px; font-weight: 800; letter-spacing: -0.01em">B2B campaigns</h1>
+        <p style="margin: 6px 0 0; color: #5B5470; font-size: 15px; max-width: 780px">Each campaign is one kind of business, in one place, for one goal. You define who; HQ finds a sample for you to check; you approve the words and the flow; people step in when someone replies.</p>
+      </div>
+      <a class="btn btn-p" href="B2BCreate.dc.html">New campaign</a>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-top: 22px">
+      <div class="panel" style="padding: 14px 16px"><p class="lbl">Waiting for you</p><p style="margin: 4px 0 0; font-size: 26px; font-weight: 800; color: #3D157D">3</p><p style="margin: 2px 0 0; font-size: 13px; color: #5B5470">1 sample list, 1 email sequence, 1 reply</p></div>
+      <div class="panel" style="padding: 14px 16px"><p class="lbl">Replies for a person</p><p style="margin: 4px 0 0; font-size: 26px; font-weight: 800; color: #8A4B00">[n]</p><p style="margin: 2px 0 0; font-size: 13px; color: #5B5470">Answer within 1 working day</p></div>
+      <div class="panel" style="padding: 14px 16px"><p class="lbl">Meetings booked</p><p style="margin: 4px 0 0; font-size: 26px; font-weight: 800">[n]</p><p style="margin: 2px 0 0; font-size: 13px; color: #5B5470">Across live campaigns</p></div>
+      <div class="panel" style="padding: 14px 16px"><p class="lbl">Live campaigns</p><p style="margin: 4px 0 0; font-size: 26px; font-weight: 800">1</p><p style="margin: 2px 0 0; font-size: 13px; color: #5B5470">2 in set-up</p></div>
+    </div>
+
+    <section class="panel" style="margin-top: 22px">
+      <div style="padding: 16px 20px 4px"><h2 style="margin: 0; font-size: 18px; font-weight: 800">Campaigns</h2></div>
+      <sc-for list="{{camps}}" as="c" hint-placeholder-count="3">
+        <a class="camp" href="{{c.href}}">
+          <div style="display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; align-items: flex-start">
+            <div>
+              <div style="display: flex; gap: 6px; flex-wrap: wrap"><sc-for list="{{c.chips}}" as="x" hint-placeholder-count="3"><span class="chip">{{x}}</span></sc-for></div>
+              <p style="margin: 6px 0 0; font-size: 17px; font-weight: 800">{{c.name}}</p>
+              <p style="margin: 2px 0 0; font-size: 13px; color: #5B5470">{{c.goal}}</p>
+            </div>
+            <span class="chip" style="background: {{c.nbg}}; color: {{c.nfg}}">{{c.next}}</span>
+          </div>
+          <div class="track">
+            <sc-for list="{{c.steps}}" as="s" hint-placeholder-count="7"><span class="{{s.cls}}">{{s.label}}<span style="display: block; font-weight: 700; opacity: .85">{{s.note}}</span></span></sc-for>
+          </div>
+          <div class="nums">
+            <sc-for list="{{c.nums}}" as="n" hint-placeholder-count="5"><div class="num"><b>{{n.v}}</b><span>{{n.l}}</span></div></sc-for>
+          </div>
+        </a>
+      </sc-for>
+    </section>
+
+    <section style="margin-top: 26px">
+      <h2 style="margin: 0 0 4px; font-size: 18px; font-weight: 800">Start from a template</h2>
+      <p style="margin: 0 0 12px; font-size: 14px; color: #5B5470">Each template fills in the business definition, the sources HQ searches and a starting email sequence. Change anything.</p>
+      <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px">
+        <a class="tpl" href="B2BCreate.dc.html"><b>Nurseries and early years</b><p style="margin: 6px 0 0; font-size: 13px; color: #5B5470">Email outreach to nursery owners and managers. Sample sets and a bulk price.</p></a>
+        <a class="tpl" href="B2BCreate.dc.html"><b>Distributors</b><p style="margin: 6px 0 0; font-size: 13px; color: #5B5470">Find baby and nursery distributors in a new country. Intro call.</p></a>
+        <a class="tpl" href="B2BCreate.dc.html"><b>Independent retailers</b><p style="margin: 6px 0 0; font-size: 13px; color: #5B5470">Baby boutiques and gift shops. Wholesale terms and a starter pack.</p></a>
+        <a class="tpl" href="B2BCreate.dc.html"><b>Therapists and SEN settings</b><p style="margin: 6px 0 0; font-size: 13px; color: #5B5470">Occupational therapists, SEN schools and charities. Samples for their families.</p></a>
+      </div>
+    </section>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1400}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const names = ['Define', 'Find a sample', 'Approve sample', 'Find the rest', 'Words', 'Flow', 'Live'];
+    const mk = (states, notes) => names.map((label, i) => ({ label, note: notes[i] || '', cls: 'step s-' + states[i] }));
+    const camps = [
+      { name: 'UK nurseries: sample sets and bulk price', goal: 'Goal: [n] nurseries order a trial pack by end of January', href: 'B2BSample.dc.html', chips: ['Nurseries', 'UK', 'Email'],
+        next: 'Sample list waiting for you', nbg: '#FBE9D2', nfg: '#8A4B00',
+        steps: mk(['done', 'done', 'wait', 'todo', 'todo', 'todo', 'todo'], ['Approved 6 Nov', '25 found', 'Due in 20h']),
+        nums: [{ v: '25', l: 'in the sample' }, { v: '[n]', l: 'likely in total' }, { v: '0', l: 'emailed' }, { v: '0', l: 'replied' }, { v: '0', l: 'meetings' }] },
+      { name: 'France: baby and nursery distributors', goal: 'Goal: 3 intro calls with distributors that already sell to French pharmacies or baby stores', href: 'B2BDefine.dc.html', chips: ['Distributors', 'France', 'Email and LinkedIn'],
+        next: 'Definition waiting for you', nbg: '#FBE9D2', nfg: '#8A4B00',
+        steps: mk(['wait', 'todo', 'todo', 'todo', 'todo', 'todo', 'todo'], ['Drafted by HQ']),
+        nums: [{ v: '–', l: 'in the sample' }, { v: '–', l: 'likely in total' }, { v: '0', l: 'emailed' }, { v: '0', l: 'replied' }, { v: '0', l: 'calls' }] },
+      { name: 'UK independent baby shops: Christmas wholesale', goal: 'Goal: [n] new stockists before 1 December', href: 'B2BFlow.dc.html', chips: ['Retailers', 'UK', 'Email'],
+        next: '2 replies need a person', nbg: '#F8E1E1', nfg: '#A12B2B',
+        steps: mk(['done', 'done', 'done', 'done', 'done', 'done', 'now'], ['', '', '', '[n] found', '', '', 'Day 9']),
+        nums: [{ v: '[n]', l: 'approved' }, { v: '[n]', l: 'emailed' }, { v: '[n]', l: 'opened' }, { v: '[n]', l: 'replied' }, { v: '[n]', l: 'orders' }] }
+    ];
+    return { camps };
+  }
+}
+</script>
+</body>
+</html>

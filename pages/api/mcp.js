@@ -20,6 +20,8 @@ import * as prog from '../../lib/pm/programmes'
 import { retryAutoTriage } from '../../lib/pm/autoTriage'
 import * as appr from '../../lib/pm/approvals'
 import * as hq from '../../lib/pm/hq'
+import * as b2b from '../../lib/pm/b2b'
+import { PROSPECT_STATUSES, CONTACT_TYPES, REPLY_KINDS } from '../../lib/b2b'
 import { createTeams } from '../../lib/server/teams'
 
 const INSTRUCTIONS = `doddl PM tool: programmes contain projects; projects contain tasks (optionally in groups). People: use list_people for valid assignees.
@@ -368,6 +370,104 @@ function buildServer(principal) {
       },
     }, tool(({ id, ...rest }) => hq.replyIdea(db, principal, id, rest, { notify: appr.notify })))
   }
+
+  if (can('b2b:read')) {
+    server.registerTool('b2b_work', {
+      title: 'B2B campaigns needing HQ',
+      description: "B2B campaigns whose stage needs HQ, each with needs: sample | resubmit_sample | find_and_words | resubmit_words | golive | resubmit_golive | run, plus the approved definition, country rules, the business type's learned rules and the sample's approved / rejected hq_refs with reasons. Same as GET /api/agent/b2b/work.",
+      inputSchema: {},
+      annotations: { readOnlyHint: true },
+    }, tool(() => b2b.agentWork(db)))
+  }
+
+  if (can('b2b:write')) {
+    const prospect = z.object({
+      hq_ref: z.string().min(1).describe('HubSpot company id or HQ id; unique per campaign'),
+      name: z.string().min(1).describe('The business, never a person'),
+      place: z.string().optional(),
+      details: z.record(z.any()).optional().describe('places, rating, size signal, website'),
+      sources: z.array(z.object({ label: z.string(), url: z.string().optional() })).optional(),
+      match: z.array(z.object({ t: z.string(), ok: z.boolean().optional() })).optional(),
+      fit: z.number().int().min(0).max(100).optional(),
+      contact: z.object({ role: z.string().max(60).optional(), type: z.enum(CONTACT_TYPES), in_hubspot: z.boolean().optional() }).strict().optional()
+        .describe('ROLE and type only. Never a name, e-mail or phone.'),
+      status: z.enum(PROSPECT_STATUSES).optional(),
+      excluded_reason: z.string().optional(),
+    })
+    const checks = z.array(z.object({ result: z.enum(['pass', 'check', 'fix']), text: z.string() })).optional()
+
+    server.registerTool('b2b_post_sample', {
+      title: 'Post a B2B sample',
+      description: 'Store a campaign\'s sample prospects and create the b2b_sample approval (stage sampling -> sample_review). Line ids are the hq_refs; the decision\'s line_decisions carry "<hq_ref>": approved|rejected and "<hq_ref>:reason" (too_small, chain_head_office, wrong_type, no_meals, other) plus "<hq_ref>:note".',
+      inputSchema: { campaign_id: z.string().uuid(), prospects: z.array(prospect).min(1).max(200), excluded_count: z.number().int().min(0).optional(), excluded_note: z.string().optional(), checks },
+    }, tool(({ campaign_id, ...rest }) => b2b.postSample(db, principal, campaign_id, rest, { teams: createTeams() })))
+
+    server.registerTool('b2b_upsert_prospects', {
+      title: 'Upsert B2B prospects',
+      description: 'Bulk upsert prospects on hq_ref (the rest of the list after the sample; status found / queued / contacted / excluded...). Max 500.',
+      inputSchema: { campaign_id: z.string().uuid(), prospects: z.array(prospect).min(1).max(500) },
+      annotations: { idempotentHint: true },
+    }, tool(({ campaign_id, ...rest }) => b2b.upsertProspects(db, campaign_id, rest)))
+
+    server.registerTool('b2b_post_sequence', {
+      title: 'Post B2B emails and flow',
+      description: 'Create the b2b_sequence approval (stage finding -> words_review): emails[] {id, when, subject, body ([token] placeholders), step}, flow[] {id, when, title, sub, then, person, body}, branches[] {say, what, who, fast}, sending {via, pace, days, stops_when}, checks[]. Lines are the email ids; edits come back in line_decisions["<id>:edit"] = {subject?, body?}.',
+      inputSchema: {
+        campaign_id: z.string().uuid(),
+        emails: z.array(z.object({ id: z.string(), when: z.string().optional(), subject: z.string(), body: z.string(), step: z.string().optional() })).min(1),
+        flow: z.array(z.object({ id: z.string(), when: z.string().optional(), title: z.string(), sub: z.string().optional(), then: z.string().optional(), person: z.boolean().optional(), body: z.string().optional() })).optional(),
+        branches: z.array(z.object({ say: z.string(), what: z.string().optional(), who: z.string().optional(), fast: z.string().optional() })).optional(),
+        sending: z.object({ via: z.string().optional(), pace: z.string().optional(), days: z.string().optional(), stops_when: z.string().optional() }).optional(),
+        checks,
+      },
+    }, tool(({ campaign_id, ...rest }) => b2b.postSequence(db, principal, campaign_id, rest, { teams: createTeams() })))
+
+    server.registerTool('b2b_post_golive', {
+      title: 'Post B2B go-live',
+      description: 'Create the b2b_golive approval once the emails and flow are approved (stage words_review -> golive_review): total, contacts_missing, first_batch[] {id, name, place, contact_role}, send_times, checks[]. Contacts missing become a task for the campaign owner.',
+      inputSchema: {
+        campaign_id: z.string().uuid(),
+        total: z.number().int().min(0),
+        contacts_missing: z.number().int().min(0).optional(),
+        first_batch: z.array(z.object({ id: z.string(), name: z.string(), place: z.string().optional(), contact_role: z.string().max(60).optional() })),
+        send_times: z.string().optional(),
+        checks,
+      },
+    }, tool(({ campaign_id, ...rest }) => b2b.postGolive(db, principal, campaign_id, rest, { teams: createTeams() })))
+
+    server.registerTool('b2b_update_campaign', {
+      title: 'Update a B2B campaign',
+      description: 'Merge metrics {found, approved, contacts_missing, emailed, opened, replied, meetings, orders}, set the estimate {found, match, contact, after_rules}, or move a live campaign to done.',
+      inputSchema: {
+        campaign_id: z.string().uuid(),
+        metrics: z.record(z.number().int().min(0)).optional(),
+        estimate: z.object({ found: z.string().optional(), match: z.string().optional(), contact: z.string().optional(), after_rules: z.string().optional() }).optional(),
+        stage: z.enum(['done']).optional(),
+      },
+    }, tool(({ campaign_id, ...rest }) => b2b.agentPatchCampaign(db, campaign_id, rest)))
+
+    server.registerTool('b2b_add_replies', {
+      title: 'Add B2B replies',
+      description: "Record classified replies. kind positive | question | owner go to a person (people.replies, or people.calls for owner) with a due time; ooo | negative | optout | bounce are handled by HQ (status auto). summary and draft must carry no contact details. Sending is always a person's action.",
+      inputSchema: {
+        replies: z.array(z.object({
+          campaign_id: z.string().uuid(), prospect_hq_ref: z.string().optional(), prospect_id: z.string().uuid().optional(),
+          kind: z.enum(REPLY_KINDS), summary: z.string().optional(), draft: z.string().optional(), assigned_to: z.string().optional(),
+          due_at: z.string().optional(), hubspot_ref: z.string().optional(),
+        })).min(1).max(200),
+      },
+    }, tool((a) => b2b.addReplies(db, a)))
+
+    server.registerTool('b2b_add_learned_rules', {
+      title: 'Add learned rules to a business type',
+      description: 'Append rules learned from sample reject reasons to a business type (people see them on the type, and the next campaign starts with them).',
+      inputSchema: {
+        business_type_id: z.string().uuid(),
+        learned_rules: z.array(z.object({ rule: z.string().min(1), from_reason: z.string().optional(), count: z.number().int().min(0).optional(), campaign_id: z.string().uuid().optional() })).min(1).max(50),
+      },
+    }, tool(({ business_type_id, ...rest }) => b2b.appendLearnedRules(db, business_type_id, rest)))
+  }
+
 
   if (can('inbox:write')) {
     server.registerTool('capture_inbox_item', {
