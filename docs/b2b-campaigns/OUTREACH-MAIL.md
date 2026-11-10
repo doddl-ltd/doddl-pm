@@ -136,3 +136,50 @@ Daily batch approvals are replaced: **the go-live approval approves the words, t
 ## Not in this build
 - Buying the trade domain and its DNS (SPF, DKIM, DMARC): set up by Claude once Jon picks the name (domain cost needs his OK).
 - LinkedIn and phone channels stay as tasks for people.
+
+## As built: doddl PM (branch b2b-outreach-mail, 2026-11-10)
+
+Nothing above was renamed. Where the build differs or adds, it says so here. HQ: copy this section into `docs/b2b-outreach-mail.md`.
+
+**Database (migration `27-b2b-outreach-mail.sql`, not applied yet)**
+- Tables and columns as in "Database", plus `b2b_messages.pack_task_id` (the daily batch approval, for "Approve each day's batch") and `b2b_prospects.contacts_checked_at` (the website extractor's "done" mark).
+- Deploy-safe: nothing is dropped or renamed. `b2b_replies.hubspot_ref` stays (unused; new code writes `message_id`; HQ's `POST /api/agent/b2b/replies` now takes `ref`, kept in that legacy column for de-duplication). The `contact` CHECK accepts `{role, type, has_contact}` and still tolerates the old `in_hubspot` key so main keeps working until merge; existing rows are converted to `has_contact: false`. A later migration can tighten it.
+- Notification type `b2b_alert` (mailbox / campaign auto-paused). One primary contact per business (partial unique index). Suppressions unique per address and per domain.
+- `/api/db`: `b2b_mailboxes` is read with a forced safe column list (never `token_enc` or `delta_link`); `b2b_messages`, `b2b_message_events`, `b2b_suppressions` are readable; `b2b_contacts` is not in the proxy at all (served only by `/api/b2b/*` to signed-in people). Agents reach none of them; a test scans every agent route and MCP for it.
+
+**Files**
+- Pure rules: `lib/b2bMail/rules.js` (warm-up, window, pace, hard rules, follow-ups, approved words, merge fields + footer, links, scanners, bounce / auto-reply / reply classification ported from HQ `replies.ts`, health, report), `lib/b2bMail/crypto.js` (AES-256-GCM, tokens, PKCE), `lib/b2bMail/graph.js` (OAuth + Graph), `lib/b2bMail/extract.js` (website extractor, robots.txt, MX), `lib/b2bMail/klaviyo.js`.
+- Server: `lib/pm/b2bMail.js` (mailboxes, contacts, sender, inbox, tracking, partner, report, metrics roll-up), `lib/pm/b2bKnown.js` (agent de-duplication).
+- People API: `GET /api/b2b/mailboxes`, `POST /api/b2b/mailboxes/connect`, `GET /api/b2b/mailboxes/callback`, `PATCH /api/b2b/mailboxes/:id`; `GET|POST /api/b2b/prospects/:id/contacts`; `PATCH|DELETE /api/b2b/contacts/:id` (DELETE = reject); `GET /api/b2b/campaigns/:id/contacts`; `PATCH /api/b2b/campaigns/:id {track_opens?, approve_daily?}` (any stage but done / cancelled); `POST /api/b2b/replies/:id/partner`; `POST /api/b2b/replies/:id/draft` ("Draft in Outlook", never sends); `GET /api/b2b/report?campaign_id=&mailbox_id=&by=day|week|all`.
+- Agent: `GET /api/agent/b2b/known-domains?domains=a,b` (b2b:read, max 50) → `{ domains: [{domain, reason}] }`, reason `prospect_in_live_campaign | partner | suppressed`; MCP `b2b_known_domains`. The go-live post ignores HQ's `contacts_missing` (null is fine), `mailboxes` and `send_gaps`: PM fills all three.
+- Crons (`vercel.json`, CRON_SECRET): `/api/cron/b2b-send` every 10 min, `/api/cron/b2b-inbox` at :05, :15 …, `/api/cron/b2b-contacts` at :03, :13 … (12 businesses a run).
+- Public (no sign-in; the app has no middleware): `/api/t/c/:token/:n`, `/api/t/o/:token.gif`, `/api/t/u/:token`.
+- Screens: Settings → Outreach mailboxes (`components/b2b/MailboxesView.jsx`), B2B → Outreach report and the campaign Report tab (`OutreachReport.jsx`), contacts editor, contacts to add and Make partner lead (`ContactsKit.jsx`), Sending switches on the campaign, the go-live card's mailbox picker (`B2BGoliveReview.jsx`). Desktop and phone.
+- Script: `scripts/b2b-klaviyo-setup.mjs` (dry run by default; `--apply` only creates the "B2B partners" list; segment and flow changes are printed for a person, never made).
+- Tests: `test/b2bMail.test.mjs` plus the updated `test/b2b.test.mjs`.
+
+**Decisions the spec left open (Claude defaults)**
+- **Go-live:** the approver ticks mailboxes on the card; they travel as decision edits `{ mailbox_ids, pace? }` and `/api/approvals/decide` refuses a go-live approval without at least one. The decision records as `approved_with_edits`; the card says "Live" instead of the brand-checker text.
+- **Pace inside a 10-minute cron:** each run sends the remaining allowance divided by the runs left in the window, rounded at random, at most 3 a run, 20–50 s apart, and skips a mailbox that sent in the last 3 minutes. Over a day this lands on the allowance with irregular spacing (the spec's 3–9 minutes on average).
+- **Footer:** `REGISTERED_ADDRESS` and `COMPANY_NUMBER` in `lib/b2bMail/rules.js` are TO CONFIRM, and the sender sends nothing until both are set (the cron answers `paused`). `PRIVACY_URL` = `https://doddl.com/policies/privacy-policy` (TO CONFIRM). "Why you got this" reads "We found <business> on its website".
+- **Hard rules in code:** UK only `company | limited_company | ltd | plc | llp` (`partnership`, `sole_trader`, `childminder`, `charity`, `unknown` get no e-mail); Germany none; Ireland no sole traders or childminders; France no extra gate. "Domain owned by an existing customer/partner" = partner suppressions by domain only (PM has no customer list).
+- **Tokens:** the stored `body_html` holds a placeholder, not the token; each send makes a fresh token and stores only its sha256, so the database never holds a working link.
+- **Opt-out page:** a GET never opts out (link scanners follow links); the one-click POST does. Replying "stop" also opts out.
+- **Health:** the >5 % rate rules need at least 20 sends; 3 hard bounces in a day pauses at any volume.
+- **Replies:** `positive` → prospect `warm`; `negative` and `optout` are `auto` and suppressed (the address only); others `replied`. Due the next working day 17:00 UK. Summaries have e-mails and phone numbers redacted.
+- **Soft bounce:** one retry of the same e-mail 24 h later; a second soft bounce counts as hard. A failed Graph send is retried once (5 minutes later), then `failed`.
+- **Disconnect:** queued first e-mails move to the campaign's other mailboxes; follow-ups for businesses first mailed from that mailbox stop (a new sender mid-thread breaks threading). Reconnecting the same address resumes them.
+- **Approve each day's batch:** once a UK day, inside a mailbox window, PM creates an outreach `pack` (max 25 lines, one per business's first e-mail); approved lines send within the pace, rejected or expired ones stop. Follow-ups carry on without a pack.
+- **Inbox:** unrelated mail is skipped unread (only conversation matches, NDR-looking mail and "Re:" subjects are opened). The first sync starts from the mailbox's connect date.
+
+**Env vars (Vercel; PM reads them and names any that are missing)**
+- `B2B_MAIL_CLIENT_ID`, `B2B_MAIL_CLIENT_SECRET`, `B2B_MAIL_TENANT_ID` (falls back to `NEXT_PUBLIC_AZURE_TENANT_ID`), `B2B_MAIL_TOKEN_KEY` (32 bytes, base64 or hex), `B2B_PUBLIC_BASE_URL` (the PM host; the Entra app needs the redirect URI `<it>/api/b2b/mailboxes/callback`). Set on production and preview, admin consent granted (2026-11-10).
+- `KLAVIYO_API_KEY`, `B2B_KLAVIYO_LIST_ID` (from the setup script): not set yet; "Make partner lead" answers 503 naming them until they are.
+- Existing: `CRON_SECRET`, `SUPABASE_SERVICE_ROLE_KEY`, `NEXT_PUBLIC_SUPABASE_URL`.
+
+**Left to do**
+- Apply migration 27 (staging, then production) before this branch merges.
+- Confirm the registered office and company number (and the privacy URL) in `lib/b2bMail/rules.js`; nothing sends until then.
+- Run `scripts/b2b-klaviyo-setup.mjs` (dry run, then `--apply`), set `B2B_KLAVIYO_LIST_ID`, and apply the printed segment and flow filters in Klaviyo.
+- The Monday 08:00 approvals summary does not carry a B2B line per live campaign yet.
+- Not exercised against live Microsoft Graph or Klaviyo; the first real connect and a test send to an internal address are the acceptance step.
