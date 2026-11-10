@@ -12,7 +12,7 @@ const STATUS = {
 }
 const DAYS = [[1, 'Mon'], [2, 'Tue'], [3, 'Wed'], [4, 'Thu'], [5, 'Fri'], [6, 'Sat'], [7, 'Sun']]
 const ERRORS = {
-  admin_consent: 'Microsoft needs a Global Admin to approve the "doddl PM outreach" app for the whole tenant first.',
+  admin_consent: 'Microsoft needs an administrator to approve the "doddl PM outreach" app for doddl first.',
   state: 'The sign-in took too long or came from another browser. Start again.',
   expired: 'The sign-in took too long. Start again.',
   token: 'Microsoft did not accept the sign-in. Try again, signing in as the trade mailbox.',
@@ -133,7 +133,7 @@ export default function MailboxesView({ isMobile, fetcher = defaultFetcher }) {
       {msg && (
         <Notice tone={msg.tone === 'ok' ? 'ok' : 'bad'} style={{ marginTop: 14 }}>
           {msg.text}
-          {msg.code === 'admin_consent' && setup.admin_consent_url && <> Jon is not a Global Admin: ask a Global Admin to open<a href={setup.admin_consent_url} target="_blank" rel="noreferrer">the admin-consent page</a> once, then connect again.</>}
+          {msg.code === 'admin_consent' && setup.admin_consent_url && <> Open <a href={setup.admin_consent_url} target="_blank" rel="noreferrer">the admin-consent page</a> as an Application Administrator, approve it, then connect again.</>}
         </Notice>
       )}
       {data && (
@@ -152,7 +152,19 @@ export default function MailboxesView({ isMobile, fetcher = defaultFetcher }) {
             <H2>Connect a Microsoft 365 mailbox</H2>
             {data.is_admin ? (
               <>
-                <Note>You will sign in to Microsoft <b>as the trade mailbox</b> (a licensed user mailbox; shared mailboxes cannot sign in). It starts warming up straight away. If Microsoft asks for an administrator, a Global Admin must grant consent once{setup.admin_consent_url ? <> on <a href={setup.admin_consent_url} target="_blank" rel="noreferrer">the admin-consent page</a></> : ''}; Jon is not a Global Admin.</Note>
+                <Note>You will sign in to Microsoft <b>as the trade mailbox</b> (a licensed user mailbox; shared mailboxes cannot sign in). It starts warming up straight away: 10 a day in week 1, 20 in week 2, 30 in week 3, then its daily cap. The app is already approved for doddl.</Note>
+                <details style={{ marginTop: 10 }}>
+                  <summary style={{ cursor: 'pointer', fontWeight: 600, color: C.indigo }}>Using a new domain? Do these first</summary>
+                  <ol style={{ margin: '8px 0 0', paddingLeft: 20, lineHeight: 1.6, color: C.body }}>
+                    <li>Add the domain in the Microsoft 365 admin centre (Settings → Domains) and add the TXT record it gives you at the domain’s DNS host to verify it.</li>
+                    <li>Add the e-mail records Microsoft lists for the domain: MX, and SPF (<code>v=spf1 include:spf.protection.outlook.com -all</code>).</li>
+                    <li>Turn on DKIM for the domain (Microsoft Defender → Email authentication → DKIM) and add its two CNAME records.</li>
+                    <li>Add a DMARC record: <code>_dmarc</code> TXT <code>v=DMARC1; p=none; rua=mailto:dmarc@doddl.com</code> (move to <code>p=quarantine</code> after a few clean weeks).</li>
+                    <li>Create a user with a mailbox on that domain (Exchange Online Plan 1 is enough), with the name people should see.</li>
+                    <li>Come back here, type the address, and press Connect a mailbox, signing in as that user.</li>
+                  </ol>
+                  <Note style={{ marginTop: 8 }}>Keep cold e-mail off doddl.com, so its reputation for customer e-mail is never at risk.</Note>
+                </details>
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 12, alignItems: 'flex-end' }}>
                   <Field id="mb-hint" label="Mailbox address (optional)" style={{ marginTop: 0, flex: isMobile ? '1 1 100%' : '0 1 320px' }}>
                     <input id="mb-hint" type="email" value={hint} onChange={e => setHint(e.target.value)} placeholder="trade@…" style={inputStyle} />
@@ -163,7 +175,7 @@ export default function MailboxesView({ isMobile, fetcher = defaultFetcher }) {
             ) : <Note>Only a PM admin can connect or change mailboxes. You can see their health here.</Note>}
           </Panel>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 16 }}>
-            {!boxes.length && <Note>No mailboxes yet.</Note>}
+            {!boxes.length && <Note>No mailboxes yet. Nothing sends until one is connected and a campaign’s go-live card picks it.</Note>}
             {boxes.map(m => <MailboxCard key={m.id} m={m} isAdmin={data.is_admin} isMobile={isMobile} onSaved={load} fetcher={fetcher} />)}
           </div>
         </>
