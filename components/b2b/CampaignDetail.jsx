@@ -8,6 +8,7 @@ import { BackLink } from '../approvals/ui'
 import { NextChip, Track, Nums, DefRow, Tags, font } from './kit'
 import OutreachReport from './OutreachReport'
 import { ProspectContacts, ContactsToAdd, PartnerForm } from './ContactsKit'
+import { ResearchPanel, ResearchSummary, WebsiteLink, nameLooksWrong } from './Research'
 import { contactText, countryName, areaText, goalName, offerName, channelName, REASON_LABEL, draftEditable } from '../../lib/b2b'
 
 const KIND_LABEL = { definition: 'Who we talk to', sample: 'Sample', words: 'Emails and flow', golive: 'Go live' }
@@ -59,6 +60,7 @@ export default function CampaignDetail({ id, isMobile, fetcher, userName, onBack
   const [confirmCancel, setConfirmCancel] = useState(false)
   const [tab, setTab] = useState('overview')
   const [openP, setOpenP] = useState(null)
+  const [openR, setOpenR] = useState(null)
   const [partnerFor, setPartnerFor] = useState(null)
   const [draftMsg, setDraftMsg] = useState({})
 
@@ -213,12 +215,17 @@ export default function CampaignDetail({ id, isMobile, fetcher, userName, onBack
             {prospectRows.map((p, i) => (
               <div key={p.id} style={{ padding: '10px 0', borderTop: i ? `1px solid ${C.line2}` : 0, fontSize: 14 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
-                  <b style={{ minWidth: 0, overflowWrap: 'anywhere' }}>{p.name}</b>
+                  <b style={{ minWidth: 0, overflowWrap: 'anywhere' }}>{p.name}{nameLooksWrong(p.name) ? <span style={{ color: C.warn, fontWeight: 600, fontSize: 12 }}> · name to check</span> : null}</b>
                   {p.fit != null && <b style={{ color: p.fit >= 80 ? C.ok : p.fit >= 65 ? C.warn : C.bad }}>{p.fit}</b>}
                 </div>
                 <p style={{ margin: '2px 0 0', color: C.muted, fontSize: 13 }}>{[p.place, STATUS_LABEL[p.status], contactText(p.contact).role, p.contact && p.contact.has_contact ? 'address in PM' : 'no address yet'].filter(Boolean).join(' · ')}</p>
                 {p.reject_reason && <p style={{ margin: '2px 0 0', color: C.bad, fontSize: 13 }}>Rejected: {REASON_LABEL[p.reject_reason] || p.reject_reason}{p.reject_note ? ` (${p.reject_note})` : ''}</p>}
-                {showContacts && <Btn onClick={() => setOpenP(openP === p.id ? null : p.id)} aria-expanded={openP === p.id} style={{ minHeight: 40, padding: '0 12px', marginTop: 6, fontSize: 13 }}>{openP === p.id ? 'Close contacts' : 'Contacts'}</Btn>}
+                <div style={{ marginTop: 4 }}><WebsiteLink p={p} /></div>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                  <Btn onClick={() => setOpenR(openR === p.id ? null : p.id)} aria-expanded={openR === p.id} style={{ minHeight: 40, padding: '0 12px', marginTop: 6, fontSize: 13 }}>{openR === p.id ? 'Close research' : 'Research'}</Btn>
+                  {showContacts && <Btn onClick={() => setOpenP(openP === p.id ? null : p.id)} aria-expanded={openP === p.id} style={{ minHeight: 40, padding: '0 12px', marginTop: 6, fontSize: 13 }}>{openP === p.id ? 'Close contacts' : 'Contacts'}</Btn>}
+                </div>
+                {openR === p.id && <ResearchPanel p={p} isMobile />}
                 {openP === p.id && <ProspectContacts prospectId={p.id} fetcher={fetcher} isMobile onChanged={load} />}
               </div>
             ))}
@@ -230,13 +237,14 @@ export default function CampaignDetail({ id, isMobile, fetcher, userName, onBack
               <tbody>
                 {prospectRows.map(p => [
                   <tr key={p.id}>
-                    <td style={td}><b>{p.name}</b>{p.place ? <><br /><span style={{ color: C.muted }}>{p.place}</span></> : null}</td>
+                    <td style={td}><b>{p.name}</b>{nameLooksWrong(p.name) ? <span style={{ color: C.warn, fontSize: 12 }}> · name to check</span> : null}{p.place ? <><br /><span style={{ color: C.muted }}>{p.place}</span></> : null}<br /><WebsiteLink p={p} /></td>
                     <td style={td}>{STATUS_LABEL[p.status] || p.status}{p.reject_reason ? <><br /><span style={{ color: C.bad, fontSize: 12 }}>{REASON_LABEL[p.reject_reason] || p.reject_reason}{p.reject_note ? `: ${p.reject_note}` : ''}</span></> : null}{p.excluded_reason ? <><br /><span style={{ color: C.muted, fontSize: 12 }}>{p.excluded_reason}</span></> : null}</td>
                     <td style={td}><ContactCell contact={p.contact} /></td>
                     <td style={{ ...td, fontWeight: 800, color: p.fit == null ? C.faint : p.fit >= 80 ? C.ok : p.fit >= 65 ? C.warn : C.bad }}>{p.fit ?? '–'}</td>
                     <td style={td}>{(p.match || []).map((m, j) => <span key={j} style={{ display: 'inline-block', fontSize: 12, fontWeight: 800, borderRadius: 6, padding: '1px 6px', margin: '0 4px 4px 0', background: m.ok === false ? C.grey : C.okBg, color: m.ok === false ? C.muted : C.ok }}>{m.t}</span>)}</td>
-                    <td style={td}>{showContacts && <Btn onClick={() => setOpenP(openP === p.id ? null : p.id)} aria-expanded={openP === p.id} style={{ minHeight: 36, padding: '0 12px', fontSize: 13 }}>{openP === p.id ? 'Close' : 'Contacts'}</Btn>}</td>
+                    <td style={{ ...td, whiteSpace: 'nowrap' }}><Btn onClick={() => setOpenR(openR === p.id ? null : p.id)} aria-expanded={openR === p.id} style={{ minHeight: 36, padding: '0 12px', fontSize: 13 }}>{openR === p.id ? 'Close' : 'Research'}</Btn>{showContacts && <Btn onClick={() => setOpenP(openP === p.id ? null : p.id)} aria-expanded={openP === p.id} style={{ minHeight: 36, padding: '0 12px', fontSize: 13, marginLeft: 6 }}>{openP === p.id ? 'Close' : 'Contacts'}</Btn>}</td>
                   </tr>,
+                  openR === p.id ? <tr key={`${p.id}-r`}><td colSpan={6} style={{ ...td, background: '#FBFAFD' }}><ResearchPanel p={p} isMobile={false} /></td></tr> : null,
                   openP === p.id ? <tr key={`${p.id}-c`}><td colSpan={6} style={{ ...td, background: '#FBFAFD' }}><ProspectContacts prospectId={p.id} fetcher={fetcher} isMobile={false} onChanged={load} /></td></tr> : null,
                 ])}
               </tbody>
@@ -290,6 +298,7 @@ export default function CampaignDetail({ id, isMobile, fetcher, userName, onBack
         <div style={{ flex: isMobile ? '1 1 100%' : '1 1 600px', minWidth: 0, display: 'flex', flexDirection: 'column', gap: isMobile ? 12 : 16 }}>
           {isMobile && approvals}
           {replies}
+          <ResearchSummary research={data.research} isMobile={isMobile} />
           {prospects}
           {definition}
         </div>
