@@ -6,7 +6,7 @@ import {
   allowanceFor, warmupWeek, shouldActivate, inWindow, runsLeft, runQuota, firstEmailBlocked, followUpDue, approvedEmails, sendGaps,
   fillMerge, buildMessage, complianceFooter, textToHtml, linkTarget, isScanner, parseNdr, classifyInbound, classifyReply, stripQuoted,
   referencedIds, mailboxPauseReason, campaignPauseReason, buildReport, funnel, nextWorkingDay17, domainOf, validEmail, localParts,
-  PRIVACY_URL, COMPANY_NAME, addressConfirmed,
+  PRIVACY_URL, COMPANY_NAME, addressConfirmed, COMPANY_NUMBER, REGISTERED_ADDRESS,
 } from '../lib/b2bMail/rules.js'
 import { encryptSecret, decryptSecret, newTrackToken, hashToken, validToken, pkcePair, tokenKey } from '../lib/b2bMail/crypto.js'
 import { contactsFromPages, emailsInHtml, isRoleAddress, ownDomain, robotsAllows, extractFromWebsite, hasMx } from '../lib/b2bMail/extract.js'
@@ -178,8 +178,10 @@ test('merge fields: company, place, first name; a neutral greeting without a nam
   assert.ok(TOKEN_SLOT && !/[<>"]/.test(TOKEN_SLOT))
 })
 
-test('the footer address is a TO CONFIRM placeholder, so the sender refuses to run until it is set', () => {
-  assert.equal(addressConfirmed(), false)
+test('the footer carries the Companies House registered office and number, so the sender may run', () => {
+  assert.equal(addressConfirmed(), true)
+  assert.equal(COMPANY_NUMBER, '08775649')
+  assert.match(REGISTERED_ADDRESS, /GL6 0BS$/)
 })
 
 test('signatures lose scripts, handlers and javascript: links', () => {
