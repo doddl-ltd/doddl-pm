@@ -123,7 +123,7 @@ export default function B2BSampleReview({ task, artefact, isMobile, readOnly, li
                 <span role="cell">{tick(p)}</span>
                 <span role="cell" style={{ minWidth: 0 }}><b>{p.name}</b><br /><span style={{ color: C.muted }}>{detailLine(p)}</span>{(p.sources || []).length ? <><br /><span style={{ fontSize: 12, color: C.muted }}>Found in: {sources(p)}</span></> : null}</span>
                 <span role="cell" style={{ minWidth: 0 }}>{match(p)}</span>
-                <span role="cell" style={{ minWidth: 0 }}>{ct.role}<br /><span style={{ fontSize: 12, color: C.muted }}>{ct.type}{ct.in_hubspot ? ' · in HubSpot' : ''}</span></span>
+                <span role="cell" style={{ minWidth: 0 }}>{ct.role}<br /><span style={{ fontSize: 12, color: C.muted }}>{ct.type}</span></span>
                 <span role="cell" style={{ fontSize: 18, fontWeight: 800, color: fitColour(p.fit) }}>{p.fit ?? '–'}</span>
                 <span role="cell" style={{ minWidth: 0 }}>{isOn(p.id) ? <span style={{ color: C.faint, fontSize: 13 }}>Ticked</span> : <Reasons id={p.id} lines={lines} setReason={setReason} setNote={setNote} readOnly={ro} />}</span>
               </div>

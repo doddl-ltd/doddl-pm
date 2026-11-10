@@ -21,6 +21,7 @@ import { retryAutoTriage } from '../../lib/pm/autoTriage'
 import * as appr from '../../lib/pm/approvals'
 import * as hq from '../../lib/pm/hq'
 import * as b2b from '../../lib/pm/b2b'
+import * as known from '../../lib/pm/b2bKnown'
 import { PROSPECT_STATUSES, CONTACT_TYPES, REPLY_KINDS } from '../../lib/b2b'
 import { createTeams } from '../../lib/server/teams'
 
@@ -378,18 +379,25 @@ function buildServer(principal) {
       inputSchema: {},
       annotations: { readOnlyHint: true },
     }, tool(() => b2b.agentWork(db)))
+
+    server.registerTool('b2b_known_domains', {
+      title: 'B2B domains PM already knows',
+      description: 'Which of these business domains are already a prospect in another live campaign, a partner (Klaviyo) or suppressed: [{domain, reason: prospect_in_live_campaign | partner | suppressed}]. Domain and reason only; never an address. Same as GET /api/agent/b2b/known-domains.',
+      inputSchema: { domains: z.array(z.string()).min(1).max(50), exclude_campaign_id: z.string().uuid().optional() },
+      annotations: { readOnlyHint: true },
+    }, tool(({ domains, exclude_campaign_id }) => known.knownDomains(db, domains, { excludeCampaignId: exclude_campaign_id || null })))
   }
 
   if (can('b2b:write')) {
     const prospect = z.object({
-      hq_ref: z.string().min(1).describe('HubSpot company id or HQ id; unique per campaign'),
+      hq_ref: z.string().min(1).describe("HQ's id for the business; unique per campaign"),
       name: z.string().min(1).describe('The business, never a person'),
       place: z.string().optional(),
       details: z.record(z.any()).optional().describe('places, rating, size signal, website'),
       sources: z.array(z.object({ label: z.string(), url: z.string().optional() })).optional(),
       match: z.array(z.object({ t: z.string(), ok: z.boolean().optional() })).optional(),
       fit: z.number().int().min(0).max(100).optional(),
-      contact: z.object({ role: z.string().max(60).optional(), type: z.enum(CONTACT_TYPES), in_hubspot: z.boolean().optional() }).strict().optional()
+      contact: z.object({ role: z.string().max(60).optional(), type: z.enum(CONTACT_TYPES), has_contact: z.boolean().optional() }).strict().optional()
         .describe('ROLE and type only. Never a name, e-mail or phone.'),
       status: z.enum(PROSPECT_STATUSES).optional(),
       excluded_reason: z.string().optional(),
@@ -453,7 +461,7 @@ function buildServer(principal) {
         replies: z.array(z.object({
           campaign_id: z.string().uuid(), prospect_hq_ref: z.string().optional(), prospect_id: z.string().uuid().optional(),
           kind: z.enum(REPLY_KINDS), summary: z.string().optional(), draft: z.string().optional(), assigned_to: z.string().optional(),
-          due_at: z.string().optional(), hubspot_ref: z.string().optional(),
+          due_at: z.string().optional(), ref: z.string().optional(),
         })).min(1).max(200),
       },
     }, tool((a) => b2b.addReplies(db, a)))

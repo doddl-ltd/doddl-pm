@@ -19,7 +19,7 @@ function goalLine(c) {
   return `Goal: ${[g.target || goalName(g.id), g.by].filter(Boolean).join(', ')}`
 }
 
-export default function CampaignsList({ isMobile, fetcher, onNew, onOpen }) {
+export default function CampaignsList({ isMobile, fetcher, onNew, onOpen, onReport }) {
   const [data, setData] = useState(null)
   const [error, setError] = useState('')
   useEffect(() => {
@@ -42,7 +42,10 @@ export default function CampaignsList({ isMobile, fetcher, onNew, onOpen }) {
             Each campaign is one kind of business, in one place, for one goal. You define who; HQ finds a sample for you to check; you approve the words and the flow; people step in when someone replies.
           </p>
         </div>
-        <Btn primary onClick={() => onNew(null)} style={isMobile ? { width: '100%' } : undefined}>New campaign</Btn>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', width: isMobile ? '100%' : 'auto' }}>
+          {onReport && <Btn onClick={onReport} style={isMobile ? { flex: '1 1 0' } : undefined}>Outreach report</Btn>}
+          <Btn primary onClick={() => onNew(null)} style={isMobile ? { flex: '1 1 0' } : undefined}>New campaign</Btn>
+        </div>
       </div>
 
       <StateLine loading={!data && !error} error={error} />
