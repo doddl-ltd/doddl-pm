@@ -56,6 +56,7 @@ function SidebarContent({ view, setView, projects, programmes, activeProject, se
       <p style={sectionLbl}>Settings</p>
       <div style={{ marginBottom: 20 }}>
         <NavBtn big={big} view={view} setView={setView} activeKey="approvers"  label="⚙️ Who approves what" count={0} />
+        <NavBtn big={big} view={view} setView={setView} activeKey="mailboxes"  label="📮 Outreach mailboxes" count={0} />
       </div>
       <p style={{ fontSize: 10, fontWeight: 700, color: '#a0aec0', textTransform: 'uppercase', letterSpacing: '0.06em', padding: '0 12px', marginBottom: 6 }}>Projects</p>
       <button onClick={() => setActiveProject(null)} style={projBtn(view === 'board' && !activeProject)}>All projects</button>

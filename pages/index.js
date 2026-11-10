@@ -19,6 +19,7 @@ import ApproversView from '../components/approvals/ApproversView'
 import IdeaView from '../components/approvals/IdeaView'
 import StudioView from '../components/StudioView'
 import B2BView from '../components/b2b/B2BView'
+import MailboxesView from '../components/b2b/MailboxesView'
 import CalendarView from '../components/CalendarView'
 import ListingsView from '../components/ListingsView'
 import ProjectGallery from '../components/ProjectGallery'
@@ -36,8 +37,8 @@ async function selectAll(build) {
 }
 
 // Views that can be opened by URL (/?view=approvals&task=<id> is the Teams deep link).
-const URL_VIEWS = ['approvals', 'studio', 'b2b', 'calendar', 'listings', 'idea', 'approvers', 'mywork', 'myprojects', 'triage', 'inbox', 'board']
-const HQ_VIEWS = ['studio', 'b2b', 'calendar', 'listings', 'idea', 'approvers']
+const URL_VIEWS = ['approvals', 'studio', 'b2b', 'calendar', 'listings', 'idea', 'approvers', 'mailboxes', 'mywork', 'myprojects', 'triage', 'inbox', 'board']
+const HQ_VIEWS = ['studio', 'b2b', 'calendar', 'listings', 'idea', 'approvers', 'mailboxes']
 
 export default function Home() {
   const [user, setUser]                         = useState(null)
@@ -140,6 +141,8 @@ export default function Home() {
   // Keep the address in step with the doddl HQ views (the approvals view manages its own ?task=).
   useEffect(() => {
     if (typeof window === 'undefined' || !user || view === 'approvals') return
+    // The mailbox connect result (?connected= / ?mailbox_error=) is read, then cleared, by the mailboxes view.
+    if (view === 'mailboxes' && /[?&](connected|mailbox_error)=/.test(window.location.search)) return
     const want = HQ_VIEWS.includes(view) ? `/?view=${view}` : '/'
     if (window.location.pathname + window.location.search !== want) window.history.replaceState(window.history.state, '', want)
   }, [view, user])
@@ -218,6 +221,8 @@ export default function Home() {
               onBadge={setApprovalsBadge} onNavigate={goView} />
           ) : view === 'approvers' ? (
             <ApproversView userName={userName} isMobile={isMobile} onBack={() => goView('approvals')} />
+          ) : view === 'mailboxes' ? (
+            <MailboxesView isMobile={isMobile} />
           ) : view === 'idea' ? (
             <IdeaView isMobile={isMobile} />
           ) : view === 'studio' ? (

@@ -23,6 +23,8 @@ function resultMessage(res, me, task) {
   if (!res) return null
   if (!res.decided) return { tone: 'info', head: 'Your answer is recorded.', text: `Waiting on ${whoText(res.waiting_on, me)} before anything runs.` }
   const d = res.decision
+  // B2B go-live: the "edits" are the chosen trade mailboxes, not copy changes (docs/b2b-campaigns/OUTREACH-MAIL.md).
+  if (task && task.artefact_type === 'b2b_golive' && ['approved', 'approved_with_edits'].includes(d)) return { tone: 'ok', head: `Live. Approved by ${me}, ${fmtWhen(new Date().toISOString())}`, text: 'doddl PM starts sending from the mailboxes you ticked in the next send window, at their warm-up pace. Replies come to the named person; the campaign’s Report tab shows how it goes.' }
   if (d === 'approved') return { tone: 'ok', head: `Approved by ${me}, ${fmtWhen(new Date().toISOString())}`, text: 'doddl HQ picks this up within 5 minutes and runs it once, exactly as shown. The result is noted here and in Teams.' }
   if (d === 'approved_with_edits') return { tone: 'ok', head: 'Approved with your edits.', text: 'Your edits go back through the Brand checker (voice, claims, feeding safety) before anything runs. The result shows here and in Teams.' }
   if (d === 'partially_approved') {

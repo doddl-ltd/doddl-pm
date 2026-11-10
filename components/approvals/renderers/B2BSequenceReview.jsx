@@ -144,7 +144,7 @@ export default function B2BSequenceReview({ task, artefact, isMobile, readOnly, 
       <Panel>
         <H2>How it sends</H2>
         <p style={{ margin: 0, fontSize: 14, lineHeight: 1.7 }}>
-          <b>Sent through</b> {s.via || 'HubSpot sequences, from a separate outreach address'}<br />
+          <b>Sent through</b> {s.via || 'doddl PM, from a connected Microsoft 365 trade mailbox (chosen at go-live)'}<br />
           {s.pace ? <><b>Pace</b> {s.pace}<br /></> : null}
           {s.days ? <><b>Days</b> {s.days}<br /></> : null}
           <b>Stops when</b> {s.stops_when || 'they reply, opt out, bounce or book a call'}

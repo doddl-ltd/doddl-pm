@@ -383,7 +383,7 @@ function buildServer(principal) {
     server.registerTool('b2b_known_domains', {
       title: 'B2B domains PM already knows',
       description: 'Which of these business domains are already a prospect in another live campaign, a partner (Klaviyo) or suppressed: [{domain, reason: prospect_in_live_campaign | partner | suppressed}]. Domain and reason only; never an address. Same as GET /api/agent/b2b/known-domains.',
-      inputSchema: { domains: z.array(z.string()).min(1).max(500), exclude_campaign_id: z.string().uuid().optional() },
+      inputSchema: { domains: z.array(z.string()).min(1).max(50), exclude_campaign_id: z.string().uuid().optional() },
       annotations: { readOnlyHint: true },
     }, tool(({ domains, exclude_campaign_id }) => known.knownDomains(db, domains, { excludeCampaignId: exclude_campaign_id || null })))
   }

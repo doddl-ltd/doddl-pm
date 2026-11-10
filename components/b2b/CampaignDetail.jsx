@@ -1,10 +1,13 @@
-// One campaign: stage track, the approvals linked per stage (open the existing approval card), prospects (contact
-// ROLE and type only), contacts to add, replies waiting with who and by when, pause / resume / cancel.
-// GET /api/b2b/campaigns/:id, PATCH /api/b2b/campaigns/:id, PATCH /api/b2b/replies/:id.
+// One campaign: stage track, the approvals linked per stage (open the existing approval card), prospects with their
+// contacts (addresses held in PM, people only), contacts to add, replies waiting with who and by when (Make partner
+// lead, Draft in Outlook), sending settings (opens tracking, approve each day's batch), the Report tab, pause / resume /
+// cancel. GET /api/b2b/campaigns/:id, PATCH /api/b2b/campaigns/:id, PATCH /api/b2b/replies/:id, /api/b2b/report.
 import { useCallback, useEffect, useState } from 'react'
-import { C, Panel, H2, Note, Chip, Btn, Pill, StateLine, th, td, dueText, fmtWhen } from '../approvals/renderers/reviewKit'
+import { C, Panel, H2, Note, Chip, Btn, Pill, StateLine, Tick, th, td, dueText, fmtWhen } from '../approvals/renderers/reviewKit'
 import { BackLink } from '../approvals/ui'
 import { NextChip, Track, Nums, DefRow, Tags, font } from './kit'
+import OutreachReport from './OutreachReport'
+import { ProspectContacts, ContactsToAdd, PartnerForm } from './ContactsKit'
 import { contactText, countryName, areaText, goalName, offerName, channelName, REASON_LABEL, draftEditable } from '../../lib/b2b'
 
 const KIND_LABEL = { definition: 'Who we talk to', sample: 'Sample', words: 'Emails and flow', golive: 'Go live' }
@@ -13,11 +16,16 @@ const OUTCOME = {
   revision_requested: ['Sent back', C.warnBg, C.warn], rejected: ['Rejected', C.badBg, C.bad], expired: ['Expired', C.grey, C.body],
 }
 const STATUS_LABEL = {
-  sample: 'In the sample', approved: 'Approved', rejected: 'Rejected', found: 'Found', queued: 'Queued', contacted: 'Contacted', replied: 'Replied',
+  sample: 'In the sample', approved: 'Approved', rejected: 'Rejected', found: 'Found', queued: 'Queued', contacted: 'Contacted', replied: 'Replied', warm: 'Warm lead', partner: 'Partner (Klaviyo)',
   opted_out: 'Opted out', bounced: 'Bounced', excluded: 'Left out',
 }
 const REPLY_KIND = { positive: 'Yes please', question: 'A question', owner: 'Wants the owner or bulk', ooo: 'Out of office', negative: 'Not interested', optout: 'Opted out', bounce: 'Bounced' }
-const FILTERS = [['', 'All'], ['approved,found,queued', 'To contact'], ['contacted,replied', 'Contacted'], ['sample', 'In the sample'], ['rejected,excluded,opted_out,bounced', 'Out']]
+const FILTERS = [['', 'All'], ['approved,found,queued', 'To contact'], ['contacted,replied', 'Contacted'], ['warm,partner', 'Warm and partners'], ['sample', 'In the sample'], ['rejected,excluded,opted_out,bounced', 'Out']]
+const OPENS_WHY = [
+  'The UK ICO’s guidance treats e-mail tracking pixels as needing consent under PECR.',
+  'Apple Mail Privacy Protection opens every e-mail itself, so open counts are unreliable.',
+  'Tracking pixels hurt the delivery of cold e-mail.',
+]
 
 function ApprovalRow({ a, onOpen, first }) {
   const o = a.decision ? OUTCOME[a.decision] : null
@@ -38,7 +46,7 @@ function ApprovalRow({ a, onOpen, first }) {
 
 function ContactCell({ contact }) {
   const t = contactText(contact)
-  return <span>{t.role}<br /><span style={{ fontSize: 12, color: C.muted }}>{t.type}{t.in_hubspot ? ' · in HubSpot' : ''}</span></span>
+  return <span>{t.role}<br /><span style={{ fontSize: 12, color: t.has_contact ? C.ok : C.warn }}>{t.has_contact ? t.type + ' · address in PM' : 'No address yet'}</span></span>
 }
 
 export default function CampaignDetail({ id, isMobile, fetcher, userName, onBack, onEdit, onOpenApproval }) {
@@ -49,6 +57,10 @@ export default function CampaignDetail({ id, isMobile, fetcher, userName, onBack
   const [busy, setBusy] = useState('')
   const [actErr, setActErr] = useState('')
   const [confirmCancel, setConfirmCancel] = useState(false)
+  const [tab, setTab] = useState('overview')
+  const [openP, setOpenP] = useState(null)
+  const [partnerFor, setPartnerFor] = useState(null)
+  const [draftMsg, setDraftMsg] = useState({})
 
   const load = useCallback(async () => {
     try {
@@ -61,6 +73,16 @@ export default function CampaignDetail({ id, isMobile, fetcher, userName, onBack
   const act = async (action) => {
     setBusy(action); setActErr('')
     try { await fetcher(`/api/b2b/campaigns/${id}`, { method: 'PATCH', body: JSON.stringify({ action }) }); setConfirmCancel(false); await load() }
+    catch (e) { setActErr(e.message) } finally { setBusy('') }
+  }
+  const setSetting = async (key, value) => {
+    setBusy(key); setActErr('')
+    try { await fetcher(`/api/b2b/campaigns/${id}`, { method: 'PATCH', body: JSON.stringify({ [key]: value }) }); await load() }
+    catch (e) { setActErr(e.message) } finally { setBusy('') }
+  }
+  const draftReply = async (rid) => {
+    setBusy(rid); setActErr('')
+    try { const r = await fetcher(`/api/b2b/replies/${rid}/draft`, { method: 'POST' }); setDraftMsg(m => ({ ...m, [rid]: r })) }
     catch (e) { setActErr(e.message) } finally { setBusy('') }
   }
   const markReply = async (rid, status) => {
@@ -124,7 +146,7 @@ export default function CampaignDetail({ id, isMobile, fetcher, userName, onBack
   const replies = (
     <Panel>
       <H2>Replies waiting for a person</H2>
-      {!waitingReplies.length && <Note>No replies waiting. A reply stops the sequence for that business; HQ drafts an answer and the named person sends it.</Note>}
+      {!waitingReplies.length && <Note>No replies waiting. A reply stops the sequence for that business; the named person answers it from the trade mailbox.</Note>}
       {waitingReplies.map((r, i) => {
         const overdue = r.due_at && new Date(r.due_at).getTime() < Date.now()
         return (
@@ -134,43 +156,45 @@ export default function CampaignDetail({ id, isMobile, fetcher, userName, onBack
               <Chip bg={overdue ? C.badBg : C.warnBg} fg={overdue ? C.bad : C.warn}>{r.assigned_to || 'Nobody yet'} · {r.due_at ? dueText(r.due_at) : 'no due time'}</Chip>
             </div>
             <p style={{ margin: '4px 0 0', color: C.body }}><b>{REPLY_KIND[r.kind] || r.kind}.</b> {r.summary}</p>
-            {r.draft && <details style={{ marginTop: 6 }}><summary style={{ cursor: 'pointer', fontWeight: 800, color: C.indigo, minHeight: 32, display: 'flex', alignItems: 'center' }}>HQ’s draft answer</summary><p style={{ margin: '6px 0 0', whiteSpace: 'pre-wrap', background: C.bg, borderRadius: 10, padding: '10px 12px' }}>{r.draft}</p></details>}
+            {r.draft && <details style={{ marginTop: 6 }}><summary style={{ cursor: 'pointer', fontWeight: 800, color: C.indigo, minHeight: 32, display: 'flex', alignItems: 'center' }}>Draft answer</summary><p style={{ margin: '6px 0 0', whiteSpace: 'pre-wrap', background: C.bg, borderRadius: 10, padding: '10px 12px' }}>{r.draft}</p></details>}
             <div style={{ display: 'flex', gap: 8, marginTop: 8, flexWrap: 'wrap' }}>
               <Btn primary onClick={() => markReply(r.id, 'sent')} disabled={busy === r.id} style={{ minHeight: 40 }}>I have sent it</Btn>
               <Btn onClick={() => markReply(r.id, 'closed')} disabled={busy === r.id} style={{ minHeight: 40 }}>Close, no answer needed</Btn>
+              {['positive', 'question', 'owner'].includes(r.kind) && partnerFor !== r.id && <Btn primary={r.kind === 'positive'} onClick={() => setPartnerFor(r.id)} style={{ minHeight: 40 }}>Make partner lead</Btn>}
+              <Btn onClick={() => draftReply(r.id)} disabled={busy === r.id} style={{ minHeight: 40 }}>Draft in Outlook</Btn>
             </div>
+            {draftMsg[r.id] && <Note style={{ marginTop: 6 }}>A draft is waiting in {draftMsg[r.id].mailbox}’s Drafts{draftMsg[r.id].web_link ? <>: <a href={draftMsg[r.id].web_link} target="_blank" rel="noreferrer">open it in Outlook</a></> : ''}. Finish and send it there.</Note>}
+            {partnerFor === r.id && <PartnerForm reply={r} fetcher={fetcher} onCancel={() => setPartnerFor(null)} onDone={() => { setPartnerFor(null); load() }} />}
           </div>
         )
       })}
-      {waitingReplies.length > 0 && <Note style={{ marginTop: 8 }}>Send from HubSpot or the outreach inbox, then mark it sent here. Sending is always a person’s action.</Note>}
+      {waitingReplies.length > 0 && <Note style={{ marginTop: 8 }}>Answer from the trade mailbox in Outlook, then mark it sent here. Sending a reply is always a person’s action; PM never sends one.</Note>}
       {otherReplies.length > 0 && (
         <details style={{ marginTop: 10 }}>
           <summary style={{ cursor: 'pointer', fontWeight: 800, fontSize: 14, minHeight: 32, display: 'flex', alignItems: 'center' }}>Earlier replies ({otherReplies.length})</summary>
-          {otherReplies.map(r => <p key={r.id} style={{ margin: '6px 0 0', fontSize: 13, color: C.body }}>{REPLY_KIND[r.kind] || r.kind} · {r.status === 'auto' ? 'handled by HQ' : `${r.status} by ${r.closed_by || '–'}`} · {fmtWhen(r.created_at)}</p>)}
+          {otherReplies.map(r => <p key={r.id} style={{ margin: '6px 0 0', fontSize: 13, color: C.body }}>{REPLY_KIND[r.kind] || r.kind} · {r.status === 'auto' ? 'handled automatically' : `${r.status} by ${r.closed_by || '–'}`} · {fmtWhen(r.created_at)}</p>)}
         </details>
       )}
     </Panel>
   )
 
-  const ct = data.contacts_to_add
-  const contacts = (
+  const showContacts = !['draft', 'define_review', 'sampling', 'sample_review', 'cancelled'].includes(c.stage)
+  const contacts = showContacts ? <ContactsToAdd campaignId={c.id} owner={c.owner || c.created_by} fetcher={fetcher} isMobile={isMobile} onChanged={load} /> : null
+
+  const tracking = c.track_opens
+  const settings = (
     <Panel>
-      <H2>Contacts to add</H2>
-      {!ct.count ? <Note>Every business on the list has a contact HQ can use.</Note> : (
-        <>
-          <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', background: C.bg, borderRadius: 10, padding: '10px 12px', fontSize: 14, lineHeight: 1.45 }}>
-            <input type="checkbox" disabled aria-label="To do" style={{ width: 18, height: 18, marginTop: 2, flex: 'none' }} />
-            <span><b>For {ct.owner || 'the campaign owner'}: add {ct.count} contact{ct.count === 1 ? '' : 's'} in HubSpot.</b><br /><span style={{ color: C.muted }}>HQ never sees or stores a person’s name, e-mail or phone; add them in HubSpot and HQ picks them up.</span></span>
-          </div>
-          {ct.rows.map((p, i) => (
-            <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', gap: 8, padding: '8px 0', borderTop: i ? '1px solid #F1EEF6' : 0, fontSize: 14, marginTop: i ? 0 : 8, flexWrap: 'wrap' }}>
-              <span style={{ minWidth: 0 }}><b>{p.name}</b>{p.place ? <span style={{ color: C.muted }}> · {p.place}</span> : null}</span>
-              <span style={{ color: C.body }}>{contactText(p.contact).role} · {contactText(p.contact).type}</span>
-            </div>
-          ))}
-          {ct.count > ct.rows.length && <Note style={{ marginTop: 6 }}>And {ct.count - ct.rows.length} more.</Note>}
-        </>
-      )}
+      <H2>Sending</H2>
+      <p style={{ margin: 0, fontSize: 14, lineHeight: 1.5 }}>
+        {(c.mailbox_ids || []).length ? <>From {c.mailbox_ids.length} trade mailbox{c.mailbox_ids.length === 1 ? '' : 'es'} chosen at go-live, each at its own warm-up pace.</> : 'The mailboxes are chosen on the go-live card.'}
+        {(c.send_gaps || []).length ? <> E-mails on day {c.send_gaps.join(', ')}; at most 3 per business, stopped by any reply, bounce or opt-out.</> : null}
+      </p>
+      <Tick checked={!!c.approve_daily} disabled={busy === 'approve_daily' || ['done', 'cancelled'].includes(c.stage)} onChange={(v) => setSetting('approve_daily', v)} style={{ marginTop: 6 }}>Approve each day’s batch</Tick>
+      <Note style={{ marginTop: -4 }}>Off: the go-live approval covers the words, the mailboxes and the pace. On: the first e-mails to new businesses come to you each morning as an outreach pack; follow-ups carry on.</Note>
+      <Tick checked={!!tracking} disabled={busy === 'track_opens' || ['done', 'cancelled'].includes(c.stage)} onChange={(v) => setSetting('track_opens', v)} style={{ marginTop: 6 }}>Measure opens (tracking pixel)</Tick>
+      <div style={{ background: tracking ? C.warnBg : C.bg, borderRadius: 10, padding: '8px 12px', fontSize: 13, lineHeight: 1.5 }}>
+        <b>Off by default.</b> {OPENS_WHY.map((w, i) => <span key={i}>{w} </span>)}With it off, reports say “not measured”. Clicks and replies are always measured.
+      </div>
     </Panel>
   )
 
@@ -192,25 +216,29 @@ export default function CampaignDetail({ id, isMobile, fetcher, userName, onBack
                   <b style={{ minWidth: 0, overflowWrap: 'anywhere' }}>{p.name}</b>
                   {p.fit != null && <b style={{ color: p.fit >= 80 ? C.ok : p.fit >= 65 ? C.warn : C.bad }}>{p.fit}</b>}
                 </div>
-                <p style={{ margin: '2px 0 0', color: C.muted, fontSize: 13 }}>{[p.place, STATUS_LABEL[p.status], contactText(p.contact).role, contactText(p.contact).type].filter(Boolean).join(' · ')}</p>
+                <p style={{ margin: '2px 0 0', color: C.muted, fontSize: 13 }}>{[p.place, STATUS_LABEL[p.status], contactText(p.contact).role, p.contact && p.contact.has_contact ? 'address in PM' : 'no address yet'].filter(Boolean).join(' · ')}</p>
                 {p.reject_reason && <p style={{ margin: '2px 0 0', color: C.bad, fontSize: 13 }}>Rejected: {REASON_LABEL[p.reject_reason] || p.reject_reason}{p.reject_note ? ` (${p.reject_note})` : ''}</p>}
+                {showContacts && <Btn onClick={() => setOpenP(openP === p.id ? null : p.id)} aria-expanded={openP === p.id} style={{ minHeight: 40, padding: '0 12px', marginTop: 6, fontSize: 13 }}>{openP === p.id ? 'Close contacts' : 'Contacts'}</Btn>}
+                {openP === p.id && <ProspectContacts prospectId={p.id} fetcher={fetcher} isMobile onChanged={load} />}
               </div>
             ))}
           </div>
         ) : (
           <div className="scroll-x">
             <table style={{ width: '100%', minWidth: 680, borderCollapse: 'collapse', fontSize: 14 }}>
-              <thead><tr>{['Business', 'Status', 'Contact', 'Fit', 'Why it matches'].map(h => <th key={h} style={th}>{h}</th>)}</tr></thead>
+              <thead><tr>{['Business', 'Status', 'Contact', 'Fit', 'Why it matches', ''].map((h, i) => <th key={i} style={th}>{h}</th>)}</tr></thead>
               <tbody>
-                {prospectRows.map(p => (
+                {prospectRows.map(p => [
                   <tr key={p.id}>
                     <td style={td}><b>{p.name}</b>{p.place ? <><br /><span style={{ color: C.muted }}>{p.place}</span></> : null}</td>
                     <td style={td}>{STATUS_LABEL[p.status] || p.status}{p.reject_reason ? <><br /><span style={{ color: C.bad, fontSize: 12 }}>{REASON_LABEL[p.reject_reason] || p.reject_reason}{p.reject_note ? `: ${p.reject_note}` : ''}</span></> : null}{p.excluded_reason ? <><br /><span style={{ color: C.muted, fontSize: 12 }}>{p.excluded_reason}</span></> : null}</td>
                     <td style={td}><ContactCell contact={p.contact} /></td>
                     <td style={{ ...td, fontWeight: 800, color: p.fit == null ? C.faint : p.fit >= 80 ? C.ok : p.fit >= 65 ? C.warn : C.bad }}>{p.fit ?? '–'}</td>
                     <td style={td}>{(p.match || []).map((m, j) => <span key={j} style={{ display: 'inline-block', fontSize: 12, fontWeight: 800, borderRadius: 6, padding: '1px 6px', margin: '0 4px 4px 0', background: m.ok === false ? C.grey : C.okBg, color: m.ok === false ? C.muted : C.ok }}>{m.t}</span>)}</td>
-                  </tr>
-                ))}
+                    <td style={td}>{showContacts && <Btn onClick={() => setOpenP(openP === p.id ? null : p.id)} aria-expanded={openP === p.id} style={{ minHeight: 36, padding: '0 12px', fontSize: 13 }}>{openP === p.id ? 'Close' : 'Contacts'}</Btn>}</td>
+                  </tr>,
+                  openP === p.id ? <tr key={`${p.id}-c`}><td colSpan={6} style={{ ...td, background: '#FBFAFD' }}><ProspectContacts prospectId={p.id} fetcher={fetcher} isMobile={false} onChanged={load} /></td></tr> : null,
+                ])}
               </tbody>
             </table>
           </div>
@@ -252,6 +280,12 @@ export default function CampaignDetail({ id, isMobile, fetcher, userName, onBack
   return (
     <div style={{ fontFamily: font, color: C.ink, maxWidth: 1240 }}>
       {header}
+      {showContacts && (
+        <div role="tablist" aria-label="Campaign" style={{ display: 'flex', gap: 8, marginTop: 18 }}>
+          {[['overview', 'Overview'], ['report', 'Report']].map(([v, l]) => <Pill key={v} role="tab" aria-selected={tab === v} on={tab === v} onClick={() => setTab(v)}>{l}</Pill>)}
+        </div>
+      )}
+      {tab === 'report' && showContacts ? <div style={{ marginTop: 16 }}><OutreachReport campaignId={c.id} fetcher={fetcher} isMobile={isMobile} embedded /></div> : (
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: isMobile ? 12 : 20, marginTop: 20, alignItems: 'flex-start' }}>
         <div style={{ flex: isMobile ? '1 1 100%' : '1 1 600px', minWidth: 0, display: 'flex', flexDirection: 'column', gap: isMobile ? 12 : 16 }}>
           {isMobile && approvals}
@@ -261,9 +295,11 @@ export default function CampaignDetail({ id, isMobile, fetcher, userName, onBack
         </div>
         <div style={{ flex: isMobile ? '1 1 100%' : '1 1 340px', minWidth: 0, display: 'flex', flexDirection: 'column', gap: isMobile ? 12 : 16 }}>
           {!isMobile && approvals}
+          {showContacts && settings}
           {contacts}
         </div>
       </div>
+      )}
     </div>
   )
 }
