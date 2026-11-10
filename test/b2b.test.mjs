@@ -154,9 +154,12 @@ test('replyDueAt: 1 working day, skipping the weekend; owner the same day', () =
 // ─── privacy ────────────────────────────────────────────────────────────────
 
 test('contacts: role and type only; e-mails, phones and extra keys refused', () => {
-  assert.deepEqual(cleanContact({ role: 'Manager', type: 'named', in_hubspot: true }), { role: 'Manager', type: 'named', in_hubspot: true })
-  assert.deepEqual(cleanContact(null), { role: null, type: 'none', in_hubspot: false })
-  assert.throws(() => cleanContact({ role: 'Manager', name: 'Sam' }), /only role, type and in_hubspot/)
+  assert.deepEqual(cleanContact({ role: 'Manager', type: 'named' }), { role: 'Manager', type: 'named' })
+  // has_contact belongs to PM: a sent value (or the retired in_hubspot) is accepted and dropped
+  assert.deepEqual(cleanContact({ role: 'Manager', type: 'named', has_contact: true, in_hubspot: true }), { role: 'Manager', type: 'named' })
+  assert.deepEqual(cleanContact(null), { role: null, type: 'none' })
+  assert.throws(() => cleanContact({ role: 'Manager', name: 'Sam' }), /only role and type/)
+  assert.throws(() => cleanContact({ role: 'Manager', email: 'sam@nursery.co.uk' }), /only role and type/)
   assert.throws(() => cleanContact({ role: 'sam@nursery.co.uk' }), /a role like/)
   assert.throws(() => cleanContact({ role: '+44 7700 900123' }), /a role like/)
   assert.throws(() => cleanContact({ type: 'personal' }), /type must be one of/)
@@ -167,8 +170,9 @@ test('contacts: role and type only; e-mails, phones and extra keys refused', () 
 
 test('needsContact: approved / found prospects with no usable contact; samples and rejects never', () => {
   assert.equal(needsContact({ status: 'approved', contact: { type: 'none' } }), true)
-  assert.equal(needsContact({ status: 'found', contact: { type: 'named', in_hubspot: false } }), true)
-  assert.equal(needsContact({ status: 'found', contact: { type: 'generic', in_hubspot: true } }), false)
+  assert.equal(needsContact({ status: 'found', contact: { type: 'named', has_contact: false } }), true)
+  assert.equal(needsContact({ status: 'found', contact: { type: 'generic', has_contact: true } }), false)
+  assert.equal(needsContact({ status: 'partner', contact: { type: 'none' } }), false)
   assert.equal(needsContact({ status: 'rejected', contact: { type: 'none' } }), false)
   assert.equal(needsContact({ status: 'sample', contact: { type: 'none' } }), false)
 })
@@ -212,7 +216,7 @@ test('validators: the four b2b types', () => {
   assert.deepEqual(validateArtefact('b2b_sample', { campaign_id: 'c', prospects: [{ id: 'hs1', name: 'A', contact: { role: 'Manager', type: 'named' }, fit: 80 }] }), { valid: true })
   assert.match(validateArtefact('b2b_sample', { campaign_id: 'c', prospects: [] }).error, /at least 1/)
   assert.match(validateArtefact('b2b_sample', { campaign_id: 'c', prospects: [{ id: 'a', name: 'A' }, { id: 'a', name: 'B' }] }).error, /used twice/)
-  assert.match(validateArtefact('b2b_sample', { campaign_id: 'c', prospects: [{ id: 'a', name: 'A', contact: { role: 'Manager', email: 'x@y.com' } }] }).error, /only role, type and in_hubspot/)
+  assert.match(validateArtefact('b2b_sample', { campaign_id: 'c', prospects: [{ id: 'a', name: 'A', contact: { role: 'Manager', email: 'x@y.com' } }] }).error, /only role and type/)
   assert.deepEqual(validateArtefact('b2b_sequence', { campaign_id: 'c', emails: [{ id: 'e1', subject: 'Hi', body: 'Hello [first name]' }], flow: [{ id: 'f1', title: 'Email 1', person: false }] }), { valid: true })
   assert.match(validateArtefact('b2b_sequence', { campaign_id: 'c', emails: [{ id: 'e1', subject: 'Hi' }] }).error, /body is required/)
   assert.deepEqual(validateArtefact('b2b_golive', { campaign_id: 'c', total: 120, first_batch: [{ id: 'hs1', name: 'A', contact_role: 'Owner' }] }), { valid: true })

@@ -3,6 +3,9 @@
   "crons": [
     { "path": "/api/cron/auto-triage", "schedule": "*/5 * * * *" },
     { "path": "/api/cron/approval-clock", "schedule": "7 * * * *" },
-    { "path": "/api/cron/approval-summary", "schedule": "0 7,8 * * *" }
+    { "path": "/api/cron/approval-summary", "schedule": "0 7,8 * * *" },
+    { "path": "/api/cron/b2b-send", "schedule": "*/10 * * * *" },
+    { "path": "/api/cron/b2b-inbox", "schedule": "5,15,25,35,45,55 * * * *" },
+    { "path": "/api/cron/b2b-contacts", "schedule": "3,13,23,33,43,53 * * * *" }
   ]
 }
