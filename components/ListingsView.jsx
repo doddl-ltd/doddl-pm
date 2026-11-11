@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { apiFetch, supabase } from '../lib/supabase'
 import { C, Panel, H2, Lbl, Note, Chip, Pill, Pills, Tick, Btn, StateLine, fmtDay, fmtWhen } from './approvals/renderers/reviewKit'
 import { FIELD_STATUS, FieldTable, ImageCompare, differs } from './approvals/renderers/ListingChangeReview'
+import { AplusPanel, AttributesPanel } from './ListingContent'
 
 // Matrix columns; Bullets rolls up Bullet 1–5.
 const COLS = [
@@ -116,6 +117,8 @@ function Detail({ sel, rows, isMobile, onBack, onSelect, onOpenApproval }) {
         {img.note ? <Note style={{ marginTop: 10 }}>{img.note}</Note> : null}
       </Panel>
     ) : null}
+    <AplusPanel product={p} isMobile={isMobile} />
+    <AttributesPanel product={p} isMobile={isMobile} />
     <Panel pad={isMobile ? '14px' : undefined} style={{ marginTop: isMobile ? 0 : 20 }}>
       <H2>History</H2>
       {events.length ? events.map((e, i) => (

@@ -60,6 +60,14 @@ test('listing snapshot: canonical field names, images shape, event kinds', () =>
   assert.throws(() => cleanSnapshot({ events: [{ asin: 'B0', marketplace: 'UK', kind: 'moved', text: 'x' }] }), /kind must be one of/)
   assert.throws(() => cleanSnapshot({ products: [{ asin: 'B0' }] }), /asin and marketplace/)
   assert.throws(() => cleanSnapshot({}), /empty/)
+  // Listing content (28-listing-content): category, variations, every attribute and the A+ documents.
+  const c = cleanSnapshot({ products: [{ asin: 'B0X', marketplace: 'UK', category: 'Baby › Cutlery', variations: { theme: 'COLOR', parent_asins: ['B0P'], child_asins: [] },
+    attributes: [{ name: 'color', value: 'Pink', source: 'page' }], aplus: [{ ref: 'r1', name: 'Kit', status: 'APPROVED', modules: [] }] }] })
+  assert.equal(c.products[0].category, 'Baby › Cutlery')
+  assert.equal(c.products[0].attributes[0].value, 'Pink')
+  assert.equal(c.products[0].aplus[0].status, 'APPROVED')
+  assert.throws(() => cleanSnapshot({ products: [{ asin: 'B0', marketplace: 'UK', attributes: 'x' }] }), /attributes must be an array/)
+  assert.throws(() => cleanSnapshot({ products: [{ asin: 'B0', marketplace: 'UK', variations: [] }] }), /variations must be an object/)
   assert.equal(listingOverall(['match', 'drift', 'problem']), 'problem')
   assert.equal(listingOverall(['match', 'in_flight']), 'in_flight')
   assert.equal(listingOverall(['match', 'na']), 'match')
