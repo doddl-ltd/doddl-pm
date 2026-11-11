@@ -4,8 +4,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { apiFetch, supabase } from '../lib/supabase'
 import { C, Panel, H2, Lbl, Note, Chip, Pill, Pills, Tick, Btn, StateLine, fmtDay, fmtWhen } from './approvals/renderers/reviewKit'
-import { FIELD_STATUS, FieldTable, ImageCompare, differs } from './approvals/renderers/ListingChangeReview'
-import { AplusPanel, AttributesPanel, ImagesGallery } from './ListingContent'
+import { FIELD_STATUS, ImageCompare, differs } from './approvals/renderers/ListingChangeReview'
+import { AplusPanel, AttributesPanel, ImagesGallery, EditableTable, fieldRows } from './ListingContent'
 
 // Matrix columns; Bullets rolls up Bullet 1–5.
 const COLS = [
@@ -51,6 +51,25 @@ function Detail({ sel, rows, isMobile, onBack, onSelect, onOpenApproval }) {
   const [data, setData] = useState(null)
   const [error, setError] = useState('')
   const [onlyDiff, setOnlyDiff] = useState(isMobile)
+  const load = async () => {
+    const r = await apiFetch(`/api/listings/${encodeURIComponent(sel.asin)}/${encodeURIComponent(sel.marketplace)}`)
+    const j = await r.json().catch(() => ({}))
+    if (!r.ok) throw new Error(j.error || `Could not load the listing (${r.status})`)
+    return j
+  }
+  // Edits are saved in PM as proposed changes; nothing is sent to Amazon from this screen.
+  const saveEdit = async (row, value) => {
+    const r = await apiFetch('/api/listings/edits', { method: 'POST', body: JSON.stringify({ asin: sel.asin, marketplace: sel.marketplace, kind: row.kind, name: row.name, value, live: row.live ?? null }) })
+    const j = await r.json().catch(() => ({}))
+    if (!r.ok) throw new Error(j.error || `Could not save the edit (${r.status})`)
+    setData(await load())
+  }
+  const withdrawEdit = async (row) => {
+    const r = await apiFetch(`/api/listings/edits?id=${encodeURIComponent(row.edit.id)}`, { method: 'PATCH' })
+    const j = await r.json().catch(() => ({}))
+    if (!r.ok) { setError(j.error || `Could not remove the edit (${r.status})`); return }
+    setData(await load())
+  }
   useEffect(() => {
     let live = true
     setData(null); setError('')
@@ -69,7 +88,8 @@ function Detail({ sel, rows, isMobile, onBack, onSelect, onOpenApproval }) {
   const p = (data && data.product) || sel
   const fields = (data && data.fields) || []
   const diff = fields.filter(f => differs(f.status))
-  const shown = onlyDiff ? diff : fields
+  const edits = (data && data.edits) || []
+  const shown = onlyDiff ? fields.filter(f => differs(f.status) || edits.some(e => e.kind === 'field' && e.name === f.field)) : fields
   const img = fields.find(f => f.field === 'Images')
   const openApproval = ((data && data.approvals) || []).find(a => !a.decision)
   const events = (data && data.events) || []
@@ -108,8 +128,9 @@ function Detail({ sel, rows, isMobile, onBack, onSelect, onOpenApproval }) {
         </div>
       )}
     {isMobile
-      ? <FieldTable fields={shown} isMobile />
-      : <Panel pad="0" style={{ marginTop: 12, overflow: 'hidden' }}><FieldTable fields={shown} /></Panel>}
+      ? <EditableTable rows={fieldRows(shown, edits)} isMobile onSave={saveEdit} onWithdraw={withdrawEdit} empty="No fields to show." />
+      : <Panel pad="0" style={{ marginTop: 12, overflow: 'hidden' }}><EditableTable rows={fieldRows(shown, edits)} onSave={saveEdit} onWithdraw={withdrawEdit} empty="No fields to show." /></Panel>}
+    <Note style={{ marginTop: 8 }}>Edits are saved in PM as proposed changes. Nothing is sent to Amazon from this screen.</Note>
     <ImagesGallery field={img} isMobile={isMobile} />
     {img && Array.isArray(img.should) && img.should.length ? (
       <Panel pad={isMobile ? '14px' : undefined} style={{ marginTop: isMobile ? 0 : 20 }}>
@@ -119,7 +140,7 @@ function Detail({ sel, rows, isMobile, onBack, onSelect, onOpenApproval }) {
       </Panel>
     ) : null}
     <AplusPanel product={p} isMobile={isMobile} />
-    <AttributesPanel product={p} isMobile={isMobile} />
+    <AttributesPanel product={p} edits={edits} isMobile={isMobile} onSave={saveEdit} onWithdraw={withdrawEdit} />
     <Panel pad={isMobile ? '14px' : undefined} style={{ marginTop: isMobile ? 0 : 20 }}>
       <H2>History</H2>
       {events.length ? events.map((e, i) => (
@@ -163,6 +184,7 @@ export default function ListingsView({ user, isMobile, onOpenApproval }) {
   const [market, setMarket] = useState('all')
   const [attention, setAttention] = useState(null) // null = the board's default per layout
   const [sel, setSel] = useState(null)
+  const [find, setFind] = useState('')
   const events = useWeekEvents()
 
   useEffect(() => {
@@ -182,7 +204,14 @@ export default function ListingsView({ user, isMobile, onOpenApproval }) {
   const markets = (data && data.marketplaces) || []
   const counts = (data && data.counts) || {}
   const att = attention == null ? isMobile : attention
-  const shown = rows.filter(r => (market === 'all' || r.marketplace === market) && (!att || r.overall !== 'match'))
+  // Search by ASIN, stock code (SKU) or product title (our short name or the live Amazon title).
+  const words = find.trim().toLowerCase().split(/s+/).filter(Boolean)
+  const hit = (r) => !words.length || words.every(w => [r.asin, r.sku, r.product, r.title, r.colour].filter(Boolean).join(' ').toLowerCase().includes(w))
+  const shown = rows.filter(r => (market === 'all' || r.marketplace === market) && (!att || r.overall !== 'match') && hit(r))
+  const searchBox = (
+    <input type="search" value={find} onChange={e => setFind(e.target.value)} placeholder="Search by ASIN, stock code or product title" aria-label="Search listings by ASIN, stock code or product title"
+      style={{ width: '100%', maxWidth: isMobile ? 'none' : 520, boxSizing: 'border-box', minHeight: 44, border: `1px solid ${C.border}`, borderRadius: 10, padding: '0 14px', font: "600 15px 'Nunito', sans-serif", background: '#fff' }} />
+  )
   const byKey = useMemo(() => Object.fromEntries(rows.map(r => [keyOf(r), r])), [rows])
   const products = new Set(rows.map(r => `${r.product}|${r.colour}`)).size
 
@@ -230,6 +259,7 @@ export default function ListingsView({ user, isMobile, onOpenApproval }) {
               </div>
             ))}
           </div>
+          {searchBox}
           <Pills label="Market">{['all', ...markets].map(m => <Pill key={m} on={market === m} onClick={() => setMarket(m)}>{m === 'all' ? 'All markets' : m}</Pill>)}</Pills>
           <Tick checked={att} onChange={setAttention}>Only listings that need attention</Tick>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -269,7 +299,8 @@ export default function ListingsView({ user, isMobile, onOpenApproval }) {
           </Panel>
         ))}
       </div>
-      <div role="tablist" style={{ display: 'flex', gap: 22, borderBottom: `1px solid ${C.line}`, marginTop: 26, flexWrap: 'wrap' }}>
+      <div style={{ marginTop: 22 }}>{searchBox}{words.length ? <span style={{ marginLeft: 12, fontSize: 14, color: C.muted }}>{shown.length} listing{shown.length === 1 ? '' : 's'} found</span> : null}</div>
+      <div role="tablist" style={{ display: 'flex', gap: 22, borderBottom: `1px solid ${C.line}`, marginTop: 14, flexWrap: 'wrap' }}>
         {['all', ...markets].map(m => {
           const on = market === m
           return (
@@ -292,7 +323,7 @@ export default function ListingsView({ user, isMobile, onOpenApproval }) {
             <tbody>
               {shown.map(r => (
                 <tr key={keyOf(r)}>
-                  <td style={{ padding: '8px 6px 8px 12px', borderTop: `1px solid ${C.line2}` }}><b>{nameOf(r)}</b><br /><span style={{ color: C.muted }}>{r.marketplace} · {r.asin}</span></td>
+                  <td style={{ padding: '8px 6px 8px 12px', borderTop: `1px solid ${C.line2}` }}><b>{nameOf(r)}</b><br /><span style={{ color: C.muted }}>{r.marketplace} · {r.asin}{r.sku ? ` · ${r.sku}` : ''}</span>{r.edits ? <span style={{ marginLeft: 8, background: C.soft, color: C.indigo, borderRadius: 999, fontSize: 11, fontWeight: 800, padding: '1px 8px' }}>{r.edits} edit{r.edits === 1 ? '' : 's'}</span> : null}</td>
                   <td style={{ padding: '8px 6px', borderTop: `1px solid ${C.line2}`, textAlign: 'center' }}>{overallChip(r)}</td>
                   {COLS.map(([label, fs]) => <td key={label} style={{ padding: '8px 6px', borderTop: `1px solid ${C.line2}`, textAlign: 'center' }}><Sym field={label} status={worst(fs.map(f => r.cells && r.cells[f]))} /></td>)}
                   <td style={{ padding: '8px 12px 8px 6px', borderTop: `1px solid ${C.line2}`, textAlign: 'center' }}>

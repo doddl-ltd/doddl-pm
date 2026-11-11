@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { cleanContentItem, groupByKeys, isStuck, weekRange, calendarState, cleanIdea, cleanSnapshot, listingOverall } from '../lib/pm/hq.js'
+import { cleanContentItem, groupByKeys, isStuck, weekRange, calendarState, cleanIdea, cleanSnapshot, listingOverall, cleanListingEdit } from '../lib/pm/hq.js'
 import { approvalCard, summaryCard, createTeams, approvalLink } from '../lib/server/teams.js'
 
 test('content items: only supplied columns, validated', () => {
@@ -68,6 +68,13 @@ test('listing snapshot: canonical field names, images shape, event kinds', () =>
   assert.equal(c.products[0].aplus[0].status, 'APPROVED')
   assert.throws(() => cleanSnapshot({ products: [{ asin: 'B0', marketplace: 'UK', attributes: 'x' }] }), /attributes must be an array/)
   assert.throws(() => cleanSnapshot({ products: [{ asin: 'B0', marketplace: 'UK', variations: [] }] }), /variations must be an object/)
+  // Listing edits (29-listing-edits): copy fields by their screen name, attributes by Amazon name, text only.
+  assert.deepEqual(cleanListingEdit({ asin: 'b0x', marketplace: 'UK', kind: 'field', name: 'bullet 2', value: ' New bullet \r\n' }), { asin: 'B0X', marketplace: 'UK', kind: 'field', name: 'Bullet 2', value: 'New bullet' })
+  assert.equal(cleanListingEdit({ asin: 'B0X', marketplace: 'UK', kind: 'attribute', name: 'color', value: 'Pink' }).name, 'color')
+  assert.throws(() => cleanListingEdit({ asin: 'B0X', marketplace: 'UK', kind: 'field', name: 'Price', value: '1' }), /name must be one of/)
+  assert.throws(() => cleanListingEdit({ asin: 'B0X', marketplace: 'UK', kind: 'attribute', name: 'Colour Name', value: 'x' }), /attribute name/)
+  assert.throws(() => cleanListingEdit({ asin: 'B0X', marketplace: 'UK', kind: 'field', name: 'Title', value: 3 }), /value must be text/)
+  assert.throws(() => cleanListingEdit({ asin: 'B0X', marketplace: 'UK', kind: 'image', name: 'x', value: 'x' }), /kind must be one of/)
   assert.equal(listingOverall(['match', 'drift', 'problem']), 'problem')
   assert.equal(listingOverall(['match', 'in_flight']), 'in_flight')
   assert.equal(listingOverall(['match', 'na']), 'match')

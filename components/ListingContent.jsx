@@ -3,6 +3,7 @@
 // variations, and every attribute from the live page and from our own listing, searchable.
 import { useMemo, useState } from 'react'
 import { C, Panel, H2, Note, Chip, Pill, fmtDay } from './approvals/renderers/reviewKit'
+import { StatusChip } from './approvals/renderers/ListingChangeReview'
 
 const safeUrl = (u) => (/^https:\/\/m\.media-amazon\.com\//i.test(String(u || '')) ? u : null)
 const STATUS = { APPROVED: ['Live', C.okBg, C.ok], DRAFT: ['Draft', C.grey, C.muted], SUBMITTED: ['Submitted', C.blueBg, C.blue], REJECTED: ['Rejected', C.badBg, C.bad] }
@@ -109,13 +110,159 @@ export function AplusPanel({ product, isMobile }) {
   )
 }
 
-export function AttributesPanel({ product, isMobile }) {
-  const all = Array.isArray(product.attributes) ? product.attributes : null
+// ─── Editable field table ──────────────────────────────────────────────────────
+// The same layout as the listing's copy fields (Field | Live on Amazon now | Should be live | State), with an edit box
+// in the "Should be live" column. Saved edits are proposed changes held in PM: nothing is sent to Amazon from here.
+
+const bytes = (s) => new TextEncoder().encode(s || '').length
+const meta = (m) => (m ? <span style={{ display: 'block', fontSize: 12, color: C.muted, fontWeight: 600, marginTop: 4 }}>{m}</span> : null)
+const shortDate = (iso) => { try { return new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) } catch { return '' } }
+
+function show(v, field) {
+  if (v == null || v === '') return '–'
+  if (Array.isArray(v) && v.length && typeof v[0] === 'object') return field === 'Images' ? `${v.length} images (shown below)` : v.map(x => x.label || x.slot || '').join(' · ')
+  if (Array.isArray(v)) return v.join(' · ')
+  if (typeof v === 'object') return JSON.stringify(v)
+  return String(v)
+}
+
+function EditBox({ row, onSave, onCancel }) {
+  const start = row.edit ? row.edit.value : (typeof row.live === 'string' ? row.live : '')
+  const [v, setV] = useState(start)
+  const [busy, setBusy] = useState(false)
+  const [err, setErr] = useState('')
+  const count = row.limitBytes ? `${bytes(v)} / ${row.limitBytes} bytes` : row.limitChars ? `${v.length} / ${row.limitChars} characters` : `${v.length} characters`
+  const over = (row.limitBytes && bytes(v) > row.limitBytes) || (row.limitChars && v.length > row.limitChars)
+  const save = async () => {
+    setBusy(true); setErr('')
+    try { await onSave(row, v) } catch (e) { setErr(e.message) } finally { setBusy(false) }
+  }
+  return (
+    <div>
+      <textarea value={v} onChange={e => setV(e.target.value)} rows={Math.min(10, Math.max(2, Math.ceil(v.length / 60)))} aria-label={`New value for ${row.label}`} autoFocus
+        style={{ width: '100%', boxSizing: 'border-box', border: `1px solid ${C.indigo}`, borderRadius: 8, padding: '8px 10px', font: "600 14px/1.45 'Nunito', sans-serif", resize: 'vertical' }} />
+      <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', marginTop: 6 }}>
+        <span style={{ fontSize: 12, color: over ? C.bad : C.muted, fontWeight: 700, marginRight: 'auto' }}>{count}{over ? ' (over the limit)' : ''}</span>
+        <button type="button" onClick={onCancel} disabled={busy} style={btn(false)}>Cancel</button>
+        <button type="button" onClick={save} disabled={busy || !v.trim() || v.trim() === String(start).trim() && !!row.edit} style={btn(true)}>{busy ? 'Saving…' : 'Save edit'}</button>
+      </div>
+      {err ? <p role="alert" style={{ margin: '6px 0 0', fontSize: 13, color: C.bad }}>{err}</p> : null}
+    </div>
+  )
+}
+
+const btn = (primary) => ({ minHeight: 34, padding: '0 12px', borderRadius: 8, border: `1px solid ${primary ? C.indigo : C.border}`, background: primary ? C.indigo : '#fff', color: primary ? '#fff' : C.indigo, font: "800 13px 'Nunito', sans-serif", cursor: 'pointer' })
+
+function ShouldCell({ row, editing, onSave, onCancel }) {
+  if (editing) return <EditBox row={row} onSave={onSave} onCancel={onCancel} />
+  if (row.edit) return <>{row.edit.value}{meta(`Your edit · ${row.edit.updated_by || row.edit.created_by || ''}${row.edit.updated_at ? `, ${shortDate(row.edit.updated_at)}` : ''} · saved in PM, not sent to Amazon`)}</>
+  return <>{show(row.should, row.name)}{meta(row.shouldMeta)}</>
+}
+
+function StateCell({ row, onEdit, onWithdraw, busy }) {
+  const status = row.edit ? 'proposed' : row.status
+  return (
+    <>
+      {status ? <StatusChip status={status} style={{ marginBottom: 6 }} /> : null}
+      {row.note && !row.edit ? <span style={{ display: 'block', fontSize: 12, color: C.muted, marginBottom: 6 }}>{row.note}</span> : null}
+      {row.editable ? (
+        <span style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+          <button type="button" onClick={() => onEdit(row)} style={btn(false)}>{row.edit ? 'Change edit' : 'Edit'}</button>
+          {row.edit ? <button type="button" onClick={() => onWithdraw(row)} disabled={busy} style={{ ...btn(false), color: C.bad, borderColor: C.line }}>Remove edit</button> : null}
+        </span>
+      ) : null}
+    </>
+  )
+}
+
+/**
+ * rows: [{ key, kind: 'field'|'attribute', name, label, limit, live, liveMeta, should, shouldMeta, status, note, edit, editable,
+ *          limitChars?, limitBytes? }]
+ */
+export function EditableTable({ rows, isMobile, onSave, onWithdraw, empty = 'Nothing to show.' }) {
+  const [editing, setEditing] = useState(null)
+  const [busy, setBusy] = useState(false)
+  const save = async (row, value) => { await onSave(row, value); setEditing(null) }
+  const withdraw = async (row) => { setBusy(true); try { await onWithdraw(row) } finally { setBusy(false) } }
+  if (!rows.length) return <Note>{empty}</Note>
+  if (isMobile) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {rows.map(r => (
+          <div key={r.key} style={{ background: '#fff', border: `1px solid ${C.line}`, borderRadius: 14, padding: '12px 14px' }}>
+            <div style={{ fontWeight: 800, fontSize: 15 }}>{r.label}{meta(r.limit)}</div>
+            <p style={lab}>Live on Amazon now</p>
+            <div style={{ fontSize: 14, lineHeight: 1.45, overflowWrap: 'anywhere', whiteSpace: 'pre-wrap' }}>{show(r.live, r.name)}{meta(r.liveMeta)}</div>
+            <p style={lab}>Should be live</p>
+            <div style={{ background: r.edit ? '#F1ECFB' : 'transparent', borderRadius: 8, padding: r.edit ? '8px 10px' : 0, fontSize: 14, lineHeight: 1.45, overflowWrap: 'anywhere', whiteSpace: 'pre-wrap', fontWeight: r.edit ? 700 : 400 }}>
+              <ShouldCell row={r} editing={editing === r.key} onSave={save} onCancel={() => setEditing(null)} />
+            </div>
+            <div style={{ marginTop: 10 }}><StateCell row={r} onEdit={x => setEditing(x.key)} onWithdraw={withdraw} busy={busy} /></div>
+          </div>
+        ))}
+      </div>
+    )
+  }
+  const cell = { padding: 12, borderTop: `1px solid ${C.line2}`, fontSize: 14, lineHeight: 1.5, overflowWrap: 'anywhere', whiteSpace: 'pre-wrap' }
+  const hd = { ...cell, borderTop: 0, background: C.bg, fontSize: 12, fontWeight: 800, letterSpacing: '.06em', textTransform: 'uppercase', color: C.muted, whiteSpace: 'normal' }
+  return (
+    <div className="scroll-x">
+      <div style={{ display: 'grid', gridTemplateColumns: '170px minmax(260px,1fr) minmax(260px,1fr) 210px', minWidth: 1000 }}>
+        <div style={hd}>Field</div><div style={hd}>Live on Amazon now</div><div style={hd}>Should be live</div><div style={hd}>State</div>
+        {rows.map(r => {
+          const bad = r.status === 'problem' && !r.edit
+          return [
+            <div key={`${r.key}-n`} style={{ ...cell, fontWeight: 800, whiteSpace: 'normal' }}>{r.label}{meta(r.limit)}</div>,
+            <div key={`${r.key}-l`} style={{ ...cell, background: bad ? '#FFF4E5' : 'transparent' }}>{show(r.live, r.name)}{meta(r.liveMeta)}</div>,
+            <div key={`${r.key}-s`} style={{ ...cell, background: r.edit || editing === r.key ? '#F1ECFB' : 'transparent', fontWeight: r.edit ? 700 : 400 }}>
+              <ShouldCell row={r} editing={editing === r.key} onSave={save} onCancel={() => setEditing(null)} />
+            </div>,
+            <div key={`${r.key}-a`} style={{ ...cell, whiteSpace: 'normal' }}><StateCell row={r} onEdit={x => setEditing(x.key)} onWithdraw={withdraw} busy={busy} /></div>,
+          ]
+        })}
+      </div>
+    </div>
+  )
+}
+const lab = { fontSize: 12, fontWeight: 800, letterSpacing: '.05em', textTransform: 'uppercase', color: C.muted, margin: '10px 0 4px' }
+
+// The copy fields (Title, Bullets, Description, Search terms and the read-only rows) in the editable layout.
+const COPY_EDITABLE = ['Title', 'Bullet 1', 'Bullet 2', 'Bullet 3', 'Bullet 4', 'Bullet 5', 'Description', 'Search terms']
+const LIMITS = { Title: { limitChars: 200 }, Description: { limitChars: 2000 }, 'Search terms': { limitBytes: 249 } }
+export function fieldRows(fields, edits) {
+  const byName = Object.fromEntries((edits || []).filter(e => e.kind === 'field' && e.status === 'proposed').map(e => [e.name, e]))
+  return fields.map(f => ({
+    key: `field:${f.field}`, kind: 'field', name: f.field, label: f.field, limit: f.limit_text, live: f.live, liveMeta: f.live_meta,
+    should: f.should, shouldMeta: f.should_meta, status: f.status, note: f.note, edit: byName[f.field] || null,
+    editable: COPY_EDITABLE.includes(f.field), ...(LIMITS[f.field] || (/^Bullet/.test(f.field) ? { limitChars: 500 } : {})),
+  }))
+}
+
+// One row per attribute: the live page's value (what shoppers see), with our listing's value noted when it differs.
+export function attributeRows(attributes, edits) {
+  const byName = Object.fromEntries((edits || []).filter(e => e.kind === 'attribute' && e.status === 'proposed').map(e => [e.name, e]))
+  const m = new Map()
+  for (const a of attributes || []) {
+    const r = m.get(a.name) || { page: null, ours: null }
+    if (a.source === 'page') r.page = a.value; else r.ours = a.value
+    m.set(a.name, r)
+  }
+  return [...m.entries()].sort((a, b) => a[0].localeCompare(b[0])).map(([name, r]) => ({
+    key: `attribute:${name}`, kind: 'attribute', name, label: name.replace(/_/g, ' '),
+    live: r.page ?? r.ours, liveMeta: r.page == null ? 'Only on our listing (not on the live page)' : r.ours != null && r.ours !== r.page ? `Our listing says: ${r.ours}` : null,
+    should: null, shouldMeta: null, status: null, note: null, edit: byName[name] || null, editable: true, source: r.page != null && r.ours != null ? 'both' : r.page != null ? 'page' : 'ours',
+  }))
+}
+
+export function AttributesPanel({ product, edits, isMobile, onSave, onWithdraw }) {
+  const all = useMemo(() => attributeRows(product.attributes, edits), [product.attributes, edits])
   const [q, setQ] = useState('')
   const [src, setSrc] = useState('all')
-  const shown = useMemo(() => (all || []).filter(a => (src === 'all' || a.source === src) && (!q || `${a.name} ${a.value}`.toLowerCase().includes(q.toLowerCase()))), [all, q, src])
-  if (all === null) return null
+  if (!Array.isArray(product.attributes)) return null
+  const shown = all.filter(r => (src === 'all' || (src === 'edited' ? !!r.edit : src === 'differs' ? /^Our listing says|^Only on our listing/.test(r.liveMeta || '') : true))
+    && (!q || `${r.name} ${r.live} ${r.edit ? r.edit.value : ''}`.toLowerCase().includes(q.toLowerCase())))
   const v = product.variations || {}
+  const edited = all.filter(r => r.edit).length
   return (
     <Panel pad={isMobile ? '14px' : undefined} style={{ marginTop: isMobile ? 0 : 20 }}>
       <H2>All attributes</H2>
@@ -126,23 +273,12 @@ export function AttributesPanel({ product, isMobile }) {
       </dl>
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
         <input type="search" value={q} onChange={e => setQ(e.target.value)} placeholder="Search attributes" aria-label="Search attributes" style={{ flex: '1 1 220px', minHeight: 40, border: `1px solid ${C.border}`, borderRadius: 10, padding: '0 12px', font: "600 14px 'Nunito', sans-serif" }} />
-        {[['all', 'Both'], ['page', 'Live page'], ['our listing', 'Our listing']].map(([k, l]) => <Pill key={k} on={src === k} onClick={() => setSrc(k)} style={{ minHeight: 40 }}>{l}</Pill>)}
+        {[['all', 'All'], ['differs', 'Live page ≠ our listing'], ['edited', `Edited (${edited})`]].map(([k, l]) => <Pill key={k} on={src === k} onClick={() => setSrc(k)} style={{ minHeight: 40 }}>{l}</Pill>)}
       </div>
-      <p style={{ margin: '8px 0 0', fontSize: 13, color: C.muted }}>{shown.length} of {all.length}. “Live page” is Amazon’s catalogue (what shoppers see); “Our listing” is what doddl submitted.</p>
-      <div className="scroll-x" style={{ marginTop: 8 }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13.5 }}>
-          <thead><tr>{['Attribute', 'Value', 'From'].map(h => <th key={h} style={{ textAlign: 'left', fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.05em', color: C.muted, padding: '8px 8px', background: C.bg }}>{h}</th>)}</tr></thead>
-          <tbody>
-            {shown.map((a, i) => (
-              <tr key={`${a.source}-${a.name}-${i}`}>
-                <td style={{ padding: '7px 8px', borderTop: `1px solid ${C.line2}`, fontWeight: 700, whiteSpace: 'nowrap', verticalAlign: 'top' }}>{a.name.replace(/_/g, ' ')}</td>
-                <td style={{ padding: '7px 8px', borderTop: `1px solid ${C.line2}`, overflowWrap: 'anywhere', whiteSpace: 'pre-wrap', verticalAlign: 'top' }}>{a.value}</td>
-                <td style={{ padding: '7px 8px', borderTop: `1px solid ${C.line2}`, color: C.muted, whiteSpace: 'nowrap', verticalAlign: 'top' }}>{a.source === 'page' ? 'Live page' : 'Our listing'}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <p style={{ margin: '8px 0 10px', fontSize: 13, color: C.muted }}>{shown.length} of {all.length} attributes. Edits are saved in PM as proposed changes; nothing is sent to Amazon from this screen.</p>
+      <Panel pad="0" style={{ overflow: 'hidden' }}>
+        <EditableTable rows={shown} isMobile={isMobile} onSave={onSave} onWithdraw={onWithdraw} empty="No attributes match." />
+      </Panel>
     </Panel>
   )
 }
