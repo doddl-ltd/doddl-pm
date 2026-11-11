@@ -26,7 +26,7 @@ function AplusDoc({ d, isMobile }) {
               {m.images.map((im, j) => {
                 const u = safeUrl(im.url)
                 return u ? (
-                  <a key={j} href={u} target="_blank" rel="noopener noreferrer" title={im.alt || ''} style={{ display: 'block', flex: (m.images.length === 1 ? '1 1 100%' : '0 1 220px'), maxWidth: m.images.length === 1 ? 970 : 220 }}>
+                  <a key={j} href={u} target="_blank" rel="noopener noreferrer" title={im.alt || ''} style={{ display: 'block', ...(m.images.length === 1 || parseInt(im.px || '0', 10) >= 900 ? { flex: '1 1 100%', maxWidth: 970 } : { flex: '0 1 300px', maxWidth: 300 }) }}>
                     <img src={u} alt={im.alt || `A+ image ${j + 1}`} loading="lazy" style={{ width: '100%', height: 'auto', display: 'block', borderRadius: 8, border: `1px solid ${C.line}`, background: '#fff' }} />
                     {im.px ? <span style={{ fontSize: 11, color: C.muted }}>{im.px}</span> : null}
                   </a>
@@ -43,6 +43,53 @@ function AplusDoc({ d, isMobile }) {
         </div>
       ))}
     </div>
+  )
+}
+
+// The live image set at a size you can actually review: one card per slot, the whole picture (no cropping) on white,
+// the slot and pixel size under it, click to open the full-size image from Amazon.
+export function ImagesGallery({ field, isMobile }) {
+  const live = Array.isArray(field && field.live) ? field.live.filter(Boolean) : []
+  const [big, setBig] = useState(null)
+  if (!field) return null
+  return (
+    <Panel pad={isMobile ? '14px' : undefined} style={{ marginTop: isMobile ? 0 : 20 }}>
+      <H2>Images on Amazon now</H2>
+      {field.note ? <p style={{ margin: '0 0 10px', fontSize: 13.5, background: C.badBg, color: C.bad, borderRadius: 8, padding: '8px 12px' }}>{field.note}</p> : null}
+      {live.length ? (
+        <div style={{ display: 'grid', gridTemplateColumns: `repeat(auto-fill, minmax(${isMobile ? 140 : 200}px, 1fr))`, gap: isMobile ? 8 : 14 }}>
+          {live.map((im, i) => {
+            const u = safeUrl(im.url)
+            return (
+              <figure key={`${im.slot}-${i}`} style={{ margin: 0, border: `1px solid ${C.line}`, borderRadius: 12, overflow: 'hidden', background: '#fff' }}>
+                {u ? (
+                  <button type="button" onClick={() => setBig(im)} aria-label={`Show ${im.label || im.slot} larger`} style={{ display: 'block', width: '100%', aspectRatio: '1 / 1', padding: 0, border: 0, background: '#fff', cursor: 'zoom-in' }}>
+                    <img src={u} alt={im.label || `Image ${im.slot}`} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }} />
+                  </button>
+                ) : <div style={{ aspectRatio: '1 / 1', display: 'flex', alignItems: 'center', justifyContent: 'center', color: C.muted }}>No link</div>}
+                <figcaption style={{ padding: '6px 10px', fontSize: 12.5, borderTop: `1px solid ${C.line2}`, display: 'flex', justifyContent: 'space-between', gap: 6 }}>
+                  <b>{im.slot === 'MAIN' ? 'Main' : im.slot}</b><span style={{ color: C.muted }}>{im.px || ''}</span>
+                </figcaption>
+              </figure>
+            )
+          })}
+        </div>
+      ) : <Note>Amazon returned no images for this listing in this marketplace.</Note>}
+      {big ? (
+        <div role="dialog" aria-modal="true" aria-label={big.label || 'Image'} onClick={() => setBig(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(20,12,40,.82)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, cursor: 'zoom-out' }}>
+          <div onClick={e => e.stopPropagation()} style={{ background: '#fff', borderRadius: 14, padding: 12, maxWidth: 'min(1100px, 96vw)', maxHeight: '94vh', display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <img src={safeUrl(big.url)} alt={big.label || 'Image'} style={{ maxWidth: '100%', maxHeight: '82vh', objectFit: 'contain' }} />
+            <div style={{ display: 'flex', gap: 12, alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', fontSize: 14 }}>
+              <b>{big.slot === 'MAIN' ? 'Main image' : big.slot} {big.px ? <span style={{ color: C.muted, fontWeight: 600 }}>· {big.px}</span> : null}</b>
+              <span style={{ display: 'flex', gap: 12 }}>
+                <a href={safeUrl(big.url)} target="_blank" rel="noopener noreferrer" style={{ color: C.indigo, fontWeight: 800 }}>Open full size</a>
+                <button type="button" onClick={() => setBig(null)} style={{ background: 'none', border: 0, color: C.indigo, font: "800 14px 'Nunito', sans-serif", cursor: 'pointer' }}>Close</button>
+              </span>
+            </div>
+          </div>
+        </div>
+      ) : null}
+    </Panel>
   )
 }
 

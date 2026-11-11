@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { apiFetch, supabase } from '../lib/supabase'
 import { C, Panel, H2, Lbl, Note, Chip, Pill, Pills, Tick, Btn, StateLine, fmtDay, fmtWhen } from './approvals/renderers/reviewKit'
 import { FIELD_STATUS, FieldTable, ImageCompare, differs } from './approvals/renderers/ListingChangeReview'
-import { AplusPanel, AttributesPanel } from './ListingContent'
+import { AplusPanel, AttributesPanel, ImagesGallery } from './ListingContent'
 
 // Matrix columns; Bullets rolls up Bullet 1–5.
 const COLS = [
@@ -110,9 +110,10 @@ function Detail({ sel, rows, isMobile, onBack, onSelect, onOpenApproval }) {
     {isMobile
       ? <FieldTable fields={shown} isMobile />
       : <Panel pad="0" style={{ marginTop: 12, overflow: 'hidden' }}><FieldTable fields={shown} /></Panel>}
-    {img && (Array.isArray(img.live) || Array.isArray(img.should)) ? (
+    <ImagesGallery field={img} isMobile={isMobile} />
+    {img && Array.isArray(img.should) && img.should.length ? (
       <Panel pad={isMobile ? '14px' : undefined} style={{ marginTop: isMobile ? 0 : 20 }}>
-        <H2>Images</H2>
+        <H2>Images: live vs should be live</H2>
         <ImageCompare live={Array.isArray(img.live) ? img.live : []} should={Array.isArray(img.should) ? img.should : []} isMobile={isMobile} sourceNote={img.should_meta} />
         {img.note ? <Note style={{ marginTop: 10 }}>{img.note}</Note> : null}
       </Panel>
