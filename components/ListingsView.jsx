@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { apiFetch, supabase } from '../lib/supabase'
 import { C, Panel, H2, Lbl, Note, Chip, Pill, Pills, Tick, Btn, StateLine, fmtDay, fmtWhen } from './approvals/renderers/reviewKit'
 import { FIELD_STATUS, ImageCompare, differs } from './approvals/renderers/ListingChangeReview'
-import { AplusPanel, AttributesPanel, ImagesGallery, EditableTable, fieldRows } from './ListingContent'
+import { AplusPanel, AttributesPanel, ImagesGallery, EditableTable, EditsBar, fieldRows } from './ListingContent'
 
 // Matrix columns; Bullets rolls up Bullet 1–5.
 const COLS = [
@@ -90,6 +90,12 @@ function Detail({ sel, rows, isMobile, onBack, onSelect, onOpenApproval }) {
     if (!r.ok) throw new Error(j.error || `Could not save the edit (${r.status})`)
     setData(await load())
   }
+  const submitEdits = async () => {
+    const r = await apiFetch('/api/listings/edits', { method: 'POST', body: JSON.stringify({ action: 'submit', asin: sel.asin, marketplace: sel.marketplace }) })
+    const j = await r.json().catch(() => ({}))
+    if (!r.ok) throw new Error(j.error || `Could not send the edits (${r.status})`)
+    setData(await load())
+  }
   const withdrawEdit = async (row) => {
     const r = await apiFetch(`/api/listings/edits?id=${encodeURIComponent(row.edit.id)}`, { method: 'PATCH' })
     const j = await r.json().catch(() => ({}))
@@ -145,6 +151,7 @@ function Detail({ sel, rows, isMobile, onBack, onSelect, onOpenApproval }) {
   ) : null
 
   const body = data ? (<>
+    <EditsBar edits={edits} marketplace={sel.marketplace} onSubmit={submitEdits} isMobile={isMobile} />
     {isMobile
       ? <Tick checked={onlyDiff} onChange={setOnlyDiff}>Only fields that differ</Tick>
       : (
@@ -156,7 +163,7 @@ function Detail({ sel, rows, isMobile, onBack, onSelect, onOpenApproval }) {
     {isMobile
       ? <EditableTable rows={fieldRows(shown, edits)} isMobile onSave={saveEdit} onWithdraw={withdrawEdit} empty="No fields to show." />
       : <Panel pad="0" style={{ marginTop: 12, overflow: 'hidden' }}><EditableTable rows={fieldRows(shown, edits)} onSave={saveEdit} onWithdraw={withdrawEdit} empty="No fields to show." /></Panel>}
-    <Note style={{ marginTop: 8 }}>Edits are saved in PM as proposed changes. Nothing is sent to Amazon from this screen.</Note>
+    <Note style={{ marginTop: 8 }}>Edits are saved in PM until you send them for approval. Nothing changes on Amazon until an approval is decided.</Note>
     <ImagesGallery field={img} isMobile={isMobile} />
     {img && Array.isArray(img.should) && img.should.length ? (
       <Panel pad={isMobile ? '14px' : undefined} style={{ marginTop: isMobile ? 0 : 20 }}>

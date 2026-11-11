@@ -114,6 +114,15 @@ export function AplusPanel({ product, isMobile }) {
 // The same layout as the listing's copy fields (Field | Live on Amazon now | Should be live | State), with an edit box
 // in the "Should be live" column. Saved edits are proposed changes held in PM: nothing is sent to Amazon from here.
 
+// Where an edit is: saved in PM → with HQ for checks → waiting for approval → sent to Amazon (or refused, with why).
+export const EDIT_STAGE = {
+  proposed: { label: 'Saved, not sent', bg: C.soft, fg: C.indigo },
+  submitted: { label: 'With HQ for checks', bg: C.blueBg, fg: C.blue },
+  in_approval: { label: 'Waiting for approval', bg: C.warnBg, fg: C.warn },
+  refused: { label: 'Refused', bg: C.badBg, fg: C.bad },
+  sent: { label: 'Sent to Amazon', bg: C.okBg, fg: C.ok },
+}
+const canChange = (e) => !e || ['proposed', 'refused', 'sent'].includes(e.status)
 const bytes = (s) => new TextEncoder().encode(s || '').length
 const meta = (m) => (m ? <span style={{ display: 'block', fontSize: 12, color: C.muted, fontWeight: 600, marginTop: 4 }}>{m}</span> : null)
 const shortDate = (iso) => { try { return new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) } catch { return '' } }
@@ -155,20 +164,25 @@ const btn = (primary) => ({ minHeight: 34, padding: '0 12px', borderRadius: 8, b
 
 function ShouldCell({ row, editing, onSave, onCancel }) {
   if (editing) return <EditBox row={row} onSave={onSave} onCancel={onCancel} />
-  if (row.edit) return <>{row.edit.value}{meta(`Your edit · ${row.edit.updated_by || row.edit.created_by || ''}${row.edit.updated_at ? `, ${shortDate(row.edit.updated_at)}` : ''} · saved in PM, not sent to Amazon`)}</>
+  if (row.edit) return <>{row.edit.value}{meta(`Edit by ${row.edit.submitted_by || row.edit.created_by || row.edit.updated_by || ''}${row.edit.updated_at ? `, ${shortDate(row.edit.updated_at)}` : ''}`)}</>
   return <>{show(row.should, row.name)}{meta(row.shouldMeta)}</>
 }
 
 function StateCell({ row, onEdit, onWithdraw, busy }) {
-  const status = row.edit ? 'proposed' : row.status
+  const e = row.edit
+  const stage = e ? EDIT_STAGE[e.status] || EDIT_STAGE.proposed : null
   return (
     <>
-      {status ? <StatusChip status={status} style={{ marginBottom: 6 }} /> : null}
-      {row.note && !row.edit ? <span style={{ display: 'block', fontSize: 12, color: C.muted, marginBottom: 6 }}>{row.note}</span> : null}
-      {row.editable ? (
+      {stage
+        ? <span style={{ display: 'inline-flex', alignItems: 'center', fontSize: 12, fontWeight: 800, borderRadius: 999, padding: '3px 10px', background: stage.bg, color: stage.fg, marginBottom: 6 }}>{stage.label}</span>
+        : row.status ? <StatusChip status={row.status} style={{ marginBottom: 6 }} /> : null}
+      {e && e.hq_note ? <span style={{ display: 'block', fontSize: 12, color: e.status === 'refused' ? C.bad : C.muted, marginBottom: 6, whiteSpace: 'pre-wrap' }}>{e.hq_note.slice(0, 600)}</span> : null}
+      {e && e.status === 'in_approval' && e.approval_task_id ? <a href={`/?view=approvals&task=${e.approval_task_id}`} style={{ display: 'block', fontSize: 12, fontWeight: 800, color: C.indigo, marginBottom: 6 }}>Open the approval</a> : null}
+      {row.note && !e ? <span style={{ display: 'block', fontSize: 12, color: C.muted, marginBottom: 6 }}>{row.note}</span> : null}
+      {row.editable && canChange(e) ? (
         <span style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-          <button type="button" onClick={() => onEdit(row)} style={btn(false)}>{row.edit ? 'Change edit' : 'Edit'}</button>
-          {row.edit ? <button type="button" onClick={() => onWithdraw(row)} disabled={busy} style={{ ...btn(false), color: C.bad, borderColor: C.line }}>Remove edit</button> : null}
+          <button type="button" onClick={() => onEdit(row)} style={btn(false)}>{e && e.status === 'proposed' ? 'Change edit' : 'Edit'}</button>
+          {e && e.status === 'proposed' ? <button type="button" onClick={() => onWithdraw(row)} disabled={busy} style={{ ...btn(false), color: C.bad, borderColor: C.line }}>Remove edit</button> : null}
         </span>
       ) : null}
     </>
@@ -214,7 +228,7 @@ export function EditableTable({ rows, isMobile, onSave, onWithdraw, empty = 'Not
           return [
             <div key={`${r.key}-n`} style={{ ...cell, fontWeight: 800, whiteSpace: 'normal' }}>{r.label}{meta(r.limit)}</div>,
             <div key={`${r.key}-l`} style={{ ...cell, background: bad ? '#FFF4E5' : 'transparent' }}>{show(r.live, r.name)}{meta(r.liveMeta)}</div>,
-            <div key={`${r.key}-s`} style={{ ...cell, background: r.edit || editing === r.key ? '#F1ECFB' : 'transparent', fontWeight: r.edit ? 700 : 400 }}>
+            <div key={`${r.key}-s`} style={{ ...cell, background: (r.edit && r.edit.status !== 'sent') || editing === r.key ? '#F1ECFB' : 'transparent', fontWeight: r.edit && r.edit.status !== 'sent' ? 700 : 400 }}>
               <ShouldCell row={r} editing={editing === r.key} onSave={save} onCancel={() => setEditing(null)} />
             </div>,
             <div key={`${r.key}-a`} style={{ ...cell, whiteSpace: 'normal' }}><StateCell row={r} onEdit={x => setEditing(x.key)} onWithdraw={withdraw} busy={busy} /></div>,
@@ -230,7 +244,7 @@ const lab = { fontSize: 12, fontWeight: 800, letterSpacing: '.05em', textTransfo
 const COPY_EDITABLE = ['Title', 'Bullet 1', 'Bullet 2', 'Bullet 3', 'Bullet 4', 'Bullet 5', 'Description', 'Search terms']
 const LIMITS = { Title: { limitChars: 200 }, Description: { limitChars: 2000 }, 'Search terms': { limitBytes: 249 } }
 export function fieldRows(fields, edits) {
-  const byName = Object.fromEntries((edits || []).filter(e => e.kind === 'field' && e.status === 'proposed').map(e => [e.name, e]))
+  const byName = Object.fromEntries((edits || []).filter(e => e.kind === 'field' && e.status !== 'withdrawn').map(e => [e.name, e]))
   return fields.map(f => ({
     key: `field:${f.field}`, kind: 'field', name: f.field, label: f.field, limit: f.limit_text, live: f.live, liveMeta: f.live_meta,
     should: f.should, shouldMeta: f.should_meta, status: f.status, note: f.note, edit: byName[f.field] || null,
@@ -240,7 +254,7 @@ export function fieldRows(fields, edits) {
 
 // One row per attribute: the live page's value (what shoppers see), with our listing's value noted when it differs.
 export function attributeRows(attributes, edits) {
-  const byName = Object.fromEntries((edits || []).filter(e => e.kind === 'attribute' && e.status === 'proposed').map(e => [e.name, e]))
+  const byName = Object.fromEntries((edits || []).filter(e => e.kind === 'attribute' && e.status !== 'withdrawn').map(e => [e.name, e]))
   const m = new Map()
   for (const a of attributes || []) {
     const r = m.get(a.name) || { page: null, ours: null }
@@ -280,5 +294,27 @@ export function AttributesPanel({ product, edits, isMobile, onSave, onWithdraw }
         <EditableTable rows={shown} isMobile={isMobile} onSave={onSave} onWithdraw={onWithdraw} empty="No attributes match." />
       </Panel>
     </Panel>
+  )
+}
+
+// The bar above a listing's fields: how many edits are saved, and the button that sends them for approval.
+export function EditsBar({ edits, marketplace, onSubmit, isMobile }) {
+  const [busy, setBusy] = useState(false)
+  const [err, setErr] = useState('')
+  const by = (st) => (edits || []).filter(e => e.status === st).length
+  const saved = by('proposed'), checking = by('submitted'), waiting = by('in_approval'), refused = by('refused')
+  if (!saved && !checking && !waiting && !refused) return null
+  const send = async () => { setBusy(true); setErr(''); try { await onSubmit() } catch (e) { setErr(e.message) } finally { setBusy(false) } }
+  const bits = [checking && `${checking} with HQ for checks`, waiting && `${waiting} waiting for approval`, refused && `${refused} refused (see why below)`].filter(Boolean)
+  return (
+    <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap', background: C.soft, borderRadius: 12, padding: isMobile ? '10px 12px' : '12px 16px', marginTop: 14 }}>
+      <span style={{ flex: '1 1 260px', fontSize: 14 }}>
+        {saved ? <b>{saved} edit{saved === 1 ? '' : 's'} saved for Amazon {marketplace}, not sent yet. </b> : null}
+        {bits.join(' · ')}
+        <span style={{ display: 'block', fontSize: 12.5, color: C.muted, marginTop: 2 }}>Sending runs HQ's checks and Amazon's own validation (which changes nothing), then puts an approval card in front of you. Nothing changes on Amazon until it is approved.</span>
+      </span>
+      {saved ? <button type="button" onClick={send} disabled={busy} style={{ ...btn(true), minHeight: 40, padding: '0 16px' }}>{busy ? 'Sending…' : `Send ${saved} for approval`}</button> : null}
+      {err ? <p role="alert" style={{ margin: 0, flexBasis: '100%', fontSize: 13, color: C.bad }}>{err}</p> : null}
+    </div>
   )
 }

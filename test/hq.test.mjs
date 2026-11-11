@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { cleanContentItem, groupByKeys, isStuck, weekRange, calendarState, cleanIdea, cleanSnapshot, listingOverall, cleanListingEdit } from '../lib/pm/hq.js'
+import { cleanContentItem, groupByKeys, isStuck, weekRange, calendarState, cleanIdea, cleanSnapshot, listingOverall, cleanListingEdit, updateEditsFromHq, listEditsForHq } from '../lib/pm/hq.js'
 import { approvalCard, summaryCard, createTeams, approvalLink } from '../lib/server/teams.js'
 
 test('content items: only supplied columns, validated', () => {
@@ -111,4 +111,13 @@ test('teams: cards link to the approval; no URL means a logged no-op', async () 
   console.error = (...a) => errs.push(a.join(' '))
   try { assert.deepEqual(await failing.postApproval({ id: 'x' }), { posted: false, reason: 'error' }) } finally { console.error = origErr }
   assert.ok(!errs.join(' ').includes('hook.example'), 'the webhook URL is never logged')
+})
+
+test('listing edits from HQ: only known statuses, edit UUIDs and task UUIDs', async () => {
+  const db = { from() { throw new Error('the database is not reached for a bad request') } }
+  await assert.rejects(updateEditsFromHq(db, {}), /Send \{ updates/)
+  await assert.rejects(updateEditsFromHq(db, { updates: [{ id: 'x', status: 'sent' }] }), /edit UUID/)
+  await assert.rejects(updateEditsFromHq(db, { updates: [{ id: '00000000-0000-4000-8000-000000000000', status: 'live' }] }), /status must be one of/)
+  await assert.rejects(updateEditsFromHq(db, { updates: [{ id: '00000000-0000-4000-8000-000000000000', status: 'in_approval', approval_task_id: 'nope' }] }), /task UUID/)
+  await assert.rejects(listEditsForHq(db, 'proposed'), /status must be one of/)
 })
