@@ -23,6 +23,32 @@ const DOT = { match: '#BFE3CB', drift: '#F0B867', in_flight: '#8FB5E3', proposed
 const WORD = { drift: 'differs', in_flight: 'on its way', proposed: 'change proposed', problem: 'missing or blocked' }
 const nameOf = (r) => [r.product || r.asin, r.colour].filter(Boolean).join(' · ')
 const keyOf = (r) => `${r.asin}|${r.marketplace}`
+// One global listing per ASIN; its marketplaces in this order.
+const MARKET_ORDER = ['UK', 'US', 'CA', 'DE', 'FR', 'ES', 'IT', 'NL', 'BE', 'IE', 'PL', 'SE']
+const mOrder = (m) => { const i = MARKET_ORDER.indexOf(m); return i < 0 ? 99 : i }
+const OVERALL_RANK = ['problem', 'drift', 'in_flight', 'proposed', 'match']
+const worstOverall = (list) => list.slice().sort((a, b) => OVERALL_RANK.indexOf(a) - OVERALL_RANK.indexOf(b))[0] || 'match'
+export function groupByAsin(rows) {
+  const m = new Map()
+  for (const r of rows) (m.get(r.asin) || m.set(r.asin, []).get(r.asin)).push(r)
+  return [...m.entries()].map(([asin, rs]) => {
+    rs.sort((a, b) => mOrder(a.marketplace) - mOrder(b.marketplace))
+    const lead = rs.find(r => r.marketplace === 'UK') || rs.find(r => r.marketplace === 'US') || rs[0]
+    const cells = {}
+    for (const [label, fs] of COLS) cells[label] = worst(rs.flatMap(r => fs.map(f => r.cells && r.cells[f])))
+    return { asin, rows: rs, lead, name: nameOf(lead), skus: [...new Set(rs.flatMap(r => String(r.sku || '').split(', ')).filter(Boolean))], overall: worstOverall(rs.map(r => r.overall)), cells, edits: rs.reduce((n, r) => n + (r.edits || 0), 0) }
+  }).sort((a, b) => a.name.localeCompare(b.name) || a.asin.localeCompare(b.asin))
+}
+function MarketChips({ rows, onPick, small }) {
+  return (
+    <span style={{ display: 'inline-flex', gap: 4, flexWrap: 'wrap' }}>
+      {rows.map(r => (
+        <button key={r.marketplace} type="button" onClick={(e) => { e.stopPropagation(); onPick(r) }} title={`Amazon ${r.marketplace}: ${(OVERALL[r.overall] || OVERALL.match)[0]}${r.listing_status ? ` · ${r.listing_status}` : ''}`}
+          style={{ minWidth: small ? 30 : 34, minHeight: small ? 26 : 28, padding: '0 6px', borderRadius: 6, border: 0, background: DOT[r.overall] || DOT.na, color: C.ink, font: "800 11px 'Nunito', sans-serif", cursor: 'pointer' }}>{r.marketplace}</button>
+      ))}
+    </span>
+  )
+}
 
 function overallChip(r) {
   const [label, bg, fg] = OVERALL[r.overall] || OVERALL.match
@@ -84,7 +110,7 @@ function Detail({ sel, rows, isMobile, onBack, onSelect, onOpenApproval }) {
     return () => { live = false }
   }, [sel.asin, sel.marketplace])
 
-  const siblings = rows.filter(r => r.product === sel.product && (r.colour || '') === (sel.colour || ''))
+  const siblings = rows.filter(r => r.asin === sel.asin).sort((a, b) => mOrder(a.marketplace) - mOrder(b.marketplace))
   const p = (data && data.product) || sel
   const fields = (data && data.fields) || []
   const diff = fields.filter(f => differs(f.status))
@@ -185,6 +211,7 @@ export default function ListingsView({ user, isMobile, onOpenApproval }) {
   const [attention, setAttention] = useState(null) // null = the board's default per layout
   const [sel, setSel] = useState(null)
   const [find, setFind] = useState('')
+  const [open, setOpen] = useState({})
   const events = useWeekEvents()
 
   useEffect(() => {
@@ -205,7 +232,7 @@ export default function ListingsView({ user, isMobile, onOpenApproval }) {
   const counts = (data && data.counts) || {}
   const att = attention == null ? isMobile : attention
   // Search by ASIN, stock code (SKU) or product title (our short name or the live Amazon title).
-  const words = find.trim().toLowerCase().split(/s+/).filter(Boolean)
+  const words = find.trim().toLowerCase().split(/\s+/).filter(Boolean)
   const hit = (r) => !words.length || words.every(w => [r.asin, r.sku, r.product, r.title, r.colour].filter(Boolean).join(' ').toLowerCase().includes(w))
   const shown = rows.filter(r => (market === 'all' || r.marketplace === market) && (!att || r.overall !== 'match') && hit(r))
   const searchBox = (
@@ -213,13 +240,20 @@ export default function ListingsView({ user, isMobile, onOpenApproval }) {
       style={{ width: '100%', maxWidth: isMobile ? 'none' : 520, boxSizing: 'border-box', minHeight: 44, border: `1px solid ${C.border}`, borderRadius: 10, padding: '0 14px', font: "600 15px 'Nunito', sans-serif", background: '#fff' }} />
   )
   const byKey = useMemo(() => Object.fromEntries(rows.map(r => [keyOf(r), r])), [rows])
-  const products = new Set(rows.map(r => `${r.product}|${r.colour}`)).size
+  // A global listing (ASIN) shows when any of its market rows is shown; search matches the whole ASIN.
+  const allGroups = useMemo(() => groupByAsin(rows), [rows])
+  const groups = allGroups.map(g => {
+    const any = words.length ? g.rows.some(hit) : true
+    const rs = g.rows.filter(r => (market === 'all' || r.marketplace === market) && (!att || r.overall !== 'match'))
+    return any && rs.length ? { ...g, shown: rs } : null
+  }).filter(Boolean)
+  const asins = allGroups.length
 
   const wrap = (children) => <div style={{ padding: isMobile ? '4px 4px 16px' : '4px 16px 40px', color: C.ink, fontFamily: "'Nunito', sans-serif" }}>{children}</div>
   if (sel) return wrap(<Detail sel={sel} rows={rows} isMobile={isMobile} onBack={() => setSel(null)} onSelect={setSel} onOpenApproval={onOpenApproval} />)
 
   const tiles = [
-    ['Listings watched', rows.length, C.ink, `${products} product${products === 1 ? '' : 's'} × ${markets.join(', ') || 'no markets'}`],
+    ['Global listings', asins, C.ink, `${asins} ASIN${asins === 1 ? '' : 's'} across ${markets.length} market${markets.length === 1 ? '' : 's'} (${rows.length} market listings)`],
     ['Match', counts.match || 0, C.ok, 'Live is exactly what should be live'],
     ['Drifted', counts.drift || 0, C.warn, 'Amazon or another seller changed a field'],
     ['Change on its way', counts.in_flight || 0, C.blue, 'Approved, sent, Amazon still processing'],
@@ -263,18 +297,19 @@ export default function ListingsView({ user, isMobile, onOpenApproval }) {
           <Pills label="Market">{['all', ...markets].map(m => <Pill key={m} on={market === m} onClick={() => setMarket(m)}>{m === 'all' ? 'All markets' : m}</Pill>)}</Pills>
           <Tick checked={att} onChange={setAttention}>Only listings that need attention</Tick>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {shown.length ? shown.map(r => {
-              const ks = COLS.map(([, fs]) => worst(fs.map(f => r.cells && r.cells[f])) || 'na')
+            {groups.length ? groups.map(g => {
+              const ks = COLS.map(([label]) => g.cells[label] || 'na')
               const odd = COLS.map(([label], i) => (WORD[ks[i]] ? `${label} ${WORD[ks[i]]}` : null)).filter(Boolean)
               return (
-                <button key={keyOf(r)} type="button" onClick={() => setSel(r)} style={{ display: 'block', width: '100%', textAlign: 'left', background: '#fff', border: `1px solid ${C.line}`, borderRadius: 12, padding: 12, font: 'inherit', color: C.ink, cursor: 'pointer' }}>
+                <div key={g.asin} role="button" tabIndex={0} onClick={() => setSel(g.shown[0])} onKeyDown={(e) => { if (e.key === 'Enter') setSel(g.shown[0]) }} style={{ display: 'block', width: '100%', textAlign: 'left', background: '#fff', border: `1px solid ${C.line}`, borderRadius: 12, padding: 12, color: C.ink, cursor: 'pointer', boxSizing: 'border-box' }}>
                   <span style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'flex-start' }}>
-                    <span><span style={{ display: 'block', fontSize: 15, fontWeight: 800 }}>{nameOf(r)}</span><span style={{ display: 'block', fontSize: 13, color: C.muted }}>Amazon {r.marketplace}</span></span>
-                    {overallChip(r)}
+                    <span><span style={{ display: 'block', fontSize: 15, fontWeight: 800 }}>{g.name}</span><span style={{ display: 'block', fontSize: 13, color: C.muted }}>ASIN {g.asin} · {g.rows.length} market{g.rows.length === 1 ? '' : 's'}</span></span>
+                    {overallChip({ overall: g.overall })}
                   </span>
+                  <span style={{ display: 'block', marginTop: 8 }}><MarketChips rows={g.shown} onPick={setSel} small /></span>
                   <span aria-hidden="true" style={{ display: 'flex', gap: 3, marginTop: 8 }}>{ks.map((k, i) => <span key={i} style={{ flex: 1, height: 8, borderRadius: 3, background: DOT[k] }} />)}</span>
                   <span style={{ display: 'block', marginTop: 6, fontSize: 13, color: C.body }}>{odd.length ? odd.join(' · ') : 'Every field matches'}</span>
-                </button>
+                </div>
               )
             }) : <Note style={{ fontSize: 14 }}>{rows.length ? 'Nothing needs attention here.' : 'No listings are being watched yet.'}</Note>}
           </div>
@@ -299,7 +334,7 @@ export default function ListingsView({ user, isMobile, onOpenApproval }) {
           </Panel>
         ))}
       </div>
-      <div style={{ marginTop: 22 }}>{searchBox}{words.length ? <span style={{ marginLeft: 12, fontSize: 14, color: C.muted }}>{shown.length} listing{shown.length === 1 ? '' : 's'} found</span> : null}</div>
+      <div style={{ marginTop: 22 }}>{searchBox}{words.length ? <span style={{ marginLeft: 12, fontSize: 14, color: C.muted }}>{groups.length} ASIN{groups.length === 1 ? '' : 's'} found</span> : null}</div>
       <div role="tablist" style={{ display: 'flex', gap: 22, borderBottom: `1px solid ${C.line}`, marginTop: 14, flexWrap: 'wrap' }}>
         {['all', ...markets].map(m => {
           const on = market === m
@@ -318,22 +353,45 @@ export default function ListingsView({ user, isMobile, onOpenApproval }) {
         <div className="scroll-x">
           <table style={{ width: '100%', minWidth: 1120, borderCollapse: 'collapse', fontSize: 13 }}>
             <thead>
-              <tr>{['Product · market', 'Overall', ...COLS.map(c => c[0]), ''].map((h, i) => <th key={i} style={{ textAlign: i === 0 ? 'left' : 'center', fontSize: 11, fontWeight: 800, letterSpacing: '.05em', textTransform: 'uppercase', color: C.muted, padding: '10px 6px', background: C.bg, whiteSpace: 'nowrap' }}>{h}</th>)}</tr>
+              <tr>{['Global listing (ASIN) · markets', 'Overall', ...COLS.map(c => c[0]), ''].map((h, i) => <th key={i} style={{ textAlign: i === 0 ? 'left' : 'center', fontSize: 11, fontWeight: 800, letterSpacing: '.05em', textTransform: 'uppercase', color: C.muted, padding: '10px 6px', background: C.bg, whiteSpace: 'nowrap' }}>{h}</th>)}</tr>
             </thead>
             <tbody>
-              {shown.map(r => (
-                <tr key={keyOf(r)}>
-                  <td style={{ padding: '8px 6px 8px 12px', borderTop: `1px solid ${C.line2}` }}><b>{nameOf(r)}</b><br /><span style={{ color: C.muted }}>{r.marketplace} · {r.asin}{r.sku ? ` · ${r.sku}` : ''}</span>{r.edits ? <span style={{ marginLeft: 8, background: C.soft, color: C.indigo, borderRadius: 999, fontSize: 11, fontWeight: 800, padding: '1px 8px' }}>{r.edits} edit{r.edits === 1 ? '' : 's'}</span> : null}</td>
-                  <td style={{ padding: '8px 6px', borderTop: `1px solid ${C.line2}`, textAlign: 'center' }}>{overallChip(r)}</td>
-                  {COLS.map(([label, fs]) => <td key={label} style={{ padding: '8px 6px', borderTop: `1px solid ${C.line2}`, textAlign: 'center' }}><Sym field={label} status={worst(fs.map(f => r.cells && r.cells[f]))} /></td>)}
-                  <td style={{ padding: '8px 12px 8px 6px', borderTop: `1px solid ${C.line2}`, textAlign: 'center' }}>
-                    <button type="button" onClick={() => setSel(r)} aria-label={`Open ${nameOf(r)} on ${r.marketplace}`} style={{ display: 'inline-flex', minHeight: 36, alignItems: 'center', padding: '0 12px', borderRadius: 8, border: `1px solid ${C.border}`, background: '#fff', font: "800 13px 'Nunito', sans-serif", color: C.indigo, cursor: 'pointer' }}>Open</button>
-                  </td>
-                </tr>
-              ))}
+              {groups.map(g => {
+                const isOpen = !!open[g.asin] || market !== 'all'
+                const cellTd = { padding: '8px 6px', borderTop: `1px solid ${C.line2}`, textAlign: 'center' }
+                return [
+                  <tr key={g.asin} style={{ background: isOpen ? C.bg : 'transparent' }}>
+                    <td style={{ padding: '8px 6px 8px 8px', borderTop: `1px solid ${C.line2}` }}>
+                      <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+                        <button type="button" onClick={() => setOpen(o => ({ ...o, [g.asin]: !o[g.asin] }))} aria-expanded={isOpen} aria-label={`${isOpen ? 'Hide' : 'Show'} the markets for ${g.name}`} style={{ flex: 'none', width: 28, height: 28, borderRadius: 6, border: `1px solid ${C.border}`, background: '#fff', color: C.indigo, font: "800 14px 'Nunito', sans-serif", cursor: 'pointer' }}>{isOpen ? '–' : '+'}</button>
+                        <div>
+                          <b>{g.name}</b>{g.edits ? <span style={{ marginLeft: 8, background: C.soft, color: C.indigo, borderRadius: 999, fontSize: 11, fontWeight: 800, padding: '1px 8px' }}>{g.edits} edit{g.edits === 1 ? '' : 's'}</span> : null}
+                          <br /><span style={{ color: C.muted }}>ASIN {g.asin}{g.skus.length ? ` · ${g.skus.slice(0, 3).join(', ')}${g.skus.length > 3 ? ' …' : ''}` : ''}</span>
+                          <div style={{ marginTop: 6 }}><MarketChips rows={g.rows} onPick={setSel} /></div>
+                        </div>
+                      </div>
+                    </td>
+                    <td style={cellTd}>{overallChip({ overall: g.overall })}</td>
+                    {COLS.map(([label]) => <td key={label} style={cellTd}><Sym field={`${label} (worst market)`} status={g.cells[label]} /></td>)}
+                    <td style={{ ...cellTd, padding: '8px 12px 8px 6px' }}>
+                      <button type="button" onClick={() => setSel(g.shown[0])} aria-label={`Open ${g.name}`} style={{ display: 'inline-flex', minHeight: 36, alignItems: 'center', padding: '0 12px', borderRadius: 8, border: `1px solid ${C.border}`, background: '#fff', font: "800 13px 'Nunito', sans-serif", color: C.indigo, cursor: 'pointer' }}>Open</button>
+                    </td>
+                  </tr>,
+                  ...(isOpen ? g.shown.map(r => (
+                    <tr key={keyOf(r)}>
+                      <td style={{ padding: '6px 6px 6px 44px', borderTop: `1px solid ${C.line2}` }}><b>Amazon {r.marketplace}</b><span style={{ color: C.muted }}>{r.sku ? ` · ${r.sku}` : ''}{r.listing_status ? ` · ${r.listing_status}` : ''}</span>{r.edits ? <span style={{ marginLeft: 8, background: C.soft, color: C.indigo, borderRadius: 999, fontSize: 11, fontWeight: 800, padding: '1px 8px' }}>{r.edits} edit{r.edits === 1 ? '' : 's'}</span> : null}</td>
+                      <td style={cellTd}>{overallChip(r)}</td>
+                      {COLS.map(([label, fs]) => <td key={label} style={cellTd}><Sym field={label} status={worst(fs.map(f => r.cells && r.cells[f]))} /></td>)}
+                      <td style={{ ...cellTd, padding: '6px 12px 6px 6px' }}>
+                        <button type="button" onClick={() => setSel(r)} aria-label={`Open ${g.name} on ${r.marketplace}`} style={{ display: 'inline-flex', minHeight: 32, alignItems: 'center', padding: '0 10px', borderRadius: 8, border: `1px solid ${C.border}`, background: '#fff', font: "800 12px 'Nunito', sans-serif", color: C.indigo, cursor: 'pointer' }}>Open {r.marketplace}</button>
+                      </td>
+                    </tr>
+                  )) : []),
+                ]
+              })}
             </tbody>
           </table>
-          {!shown.length ? <Note style={{ padding: 16 }}>{rows.length ? 'Nothing needs attention here.' : 'No listings are being watched yet.'}</Note> : null}
+          {!groups.length ? <Note style={{ padding: 16 }}>{rows.length ? 'Nothing needs attention here.' : 'No listings are being watched yet.'}</Note> : null}
         </div>
       </Panel>
       <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', marginTop: 10, fontSize: 13, color: C.body, alignItems: 'center' }}>
