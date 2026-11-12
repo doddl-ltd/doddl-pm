@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { cleanContentItem, groupByKeys, isStuck, weekRange, calendarState, cleanIdea, cleanSnapshot, listingOverall, cleanListingEdit, updateEditsFromHq, listEditsForHq } from '../lib/pm/hq.js'
+import { cleanContentItem, groupByKeys, isStuck, weekRange, calendarState, cleanIdea, cleanSnapshot, listingOverall, cleanListingEdit, updateEditsFromHq, listEditsForHq, cleanMasterChange } from '../lib/pm/hq.js'
 import { approvalCard, summaryCard, createTeams, approvalLink } from '../lib/server/teams.js'
 
 test('content items: only supplied columns, validated', () => {
@@ -120,4 +120,16 @@ test('listing edits from HQ: only known statuses, edit UUIDs and task UUIDs', as
   await assert.rejects(updateEditsFromHq(db, { updates: [{ id: '00000000-0000-4000-8000-000000000000', status: 'live' }] }), /status must be one of/)
   await assert.rejects(updateEditsFromHq(db, { updates: [{ id: '00000000-0000-4000-8000-000000000000', status: 'in_approval', approval_task_id: 'nope' }] }), /task UUID/)
   await assert.rejects(listEditsForHq(db, 'proposed'), /status must be one of/)
+})
+
+test('master listing changes: copy fields, attribute names, Amazon image links, locales', () => {
+  assert.deepEqual(cleanMasterChange({ asin: 'b0779cz9fd', op: 'copy', field: 'bullet_2', value: ' x ' }), { asin: 'B0779CZ9FD', op: 'copy', field: 'bullet_2', value: 'x' })
+  assert.throws(() => cleanMasterChange({ asin: 'B0779CZ9FD', op: 'copy', field: 'price', value: '1' }), /field must be one of/)
+  assert.deepEqual(cleanMasterChange({ asin: 'B0779CZ9FD', op: 'keep', name: 'warranty_description', keep: false }).keep, false)
+  const img = cleanMasterChange({ asin: 'B0779CZ9FD', op: 'images', locale: 'DE', slots: [{ url: 'https://m.media-amazon.com/images/I/516cARE9OjL.jpg' }, { url: 'https://m.media-amazon.com/images/I/31Tp4nwCnrL.jpg' }] })
+  assert.deepEqual(img.slots.map(x => x.slot), ['MAIN', 'PT01'])
+  assert.throws(() => cleanMasterChange({ asin: 'B0779CZ9FD', op: 'images', locale: 'DE', slots: [{ url: 'https://evil.example/x.jpg' }] }), /Amazon image link/)
+  assert.throws(() => cleanMasterChange({ asin: 'B0779CZ9FD', op: 'images', locale: 'XX', slots: [] }), /locale must be one of/)
+  assert.throws(() => cleanMasterChange({ asin: 'nope', op: 'approve' }), /ASIN/)
+  assert.throws(() => cleanMasterChange({ asin: 'B0779CZ9FD', op: 'keep', name: 'externally_assigned_product_identifier', keep: false }), /always kept/)
 })

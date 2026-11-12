@@ -19,30 +19,35 @@ function AplusDoc({ d, isMobile }) {
         <span style={{ color: C.muted, fontSize: 13 }}>{(d.modules || []).length} modules{d.updated ? ` · updated ${fmtDay(d.updated)}` : ''}</span>
         <span aria-hidden="true" style={{ marginLeft: 'auto', color: C.indigo, fontWeight: 800 }}>{open ? '–' : '+'}</span>
       </button>
-      {open && (d.modules || []).map((m, i) => (
-        <div key={i} style={{ margin: '12px 0 0', padding: isMobile ? 10 : 14, background: C.bg, borderRadius: 12 }}>
-          <p style={{ margin: '0 0 8px', fontSize: 12, fontWeight: 800, color: C.muted, textTransform: 'uppercase', letterSpacing: '.04em' }}>Module {i + 1} · {m.type}</p>
-          {(m.images || []).length > 0 && (
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              {m.images.map((im, j) => {
-                const u = safeUrl(im.url)
-                return u ? (
-                  <a key={j} href={u} target="_blank" rel="noopener noreferrer" title={im.alt || ''} style={{ display: 'block', ...(m.images.length === 1 || parseInt(im.px || '0', 10) >= 900 ? { flex: '1 1 100%', maxWidth: 970 } : { flex: '0 1 300px', maxWidth: 300 }) }}>
-                    <img src={u} alt={im.alt || `A+ image ${j + 1}`} loading="lazy" style={{ width: '100%', height: 'auto', display: 'block', borderRadius: 8, border: `1px solid ${C.line}`, background: '#fff' }} />
-                    {im.px ? <span style={{ fontSize: 11, color: C.muted }}>{im.px}</span> : null}
-                  </a>
-                ) : null
-              })}
+      {open ? (
+        <div style={{ maxWidth: 600, marginTop: 10 }}>
+          <p style={{ margin: '0 0 8px', fontSize: 12, color: C.muted }}>Shown at 60% of the size shoppers see on a computer. Click an image for full size.</p>
+          {(d.modules || []).map((m, i) => (
+            <div key={i} style={{ padding: '10px 0', borderTop: i ? `1px dashed ${C.line}` : 0 }}>
+              <p style={{ margin: '0 0 6px', fontSize: 11, fontWeight: 800, color: C.muted, textTransform: 'uppercase', letterSpacing: '.04em' }}>{i + 1} · {m.type}</p>
+              {(m.images || []).length > 0 && (
+                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'flex-start' }}>
+                  {m.images.map((im, j) => {
+                    const u = safeUrl(im.url)
+                    const w = Math.round(Math.min(970, parseInt(im.px || '300', 10) || 300) * 0.6)
+                    return u ? (
+                      <a key={j} href={u} target="_blank" rel="noopener noreferrer" title={im.alt || ''} style={{ display: 'block', width: w, maxWidth: '100%' }}>
+                        <img src={u} alt={im.alt || `A+ image ${j + 1}`} loading="lazy" style={{ width: '100%', height: 'auto', display: 'block', borderRadius: 4, border: `1px solid ${C.line2}`, background: '#fff' }} />
+                      </a>
+                    ) : null
+                  })}
+                </div>
+              )}
+              {(m.texts || []).length > 0 && (
+                <div style={{ marginTop: (m.images || []).length ? 6 : 0, fontSize: 13, lineHeight: 1.45, color: C.body }}>
+                  {m.texts.map((t, j) => <p key={j} style={{ margin: '0 0 4px', whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', fontWeight: j === 0 && t.length < 90 ? 800 : 400 }}>{t}</p>)}
+                </div>
+              )}
+              {!(m.images || []).length && !(m.texts || []).length ? <Note>No text or images in this module.</Note> : null}
             </div>
-          )}
-          {(m.texts || []).length > 0 && (
-            <div style={{ marginTop: (m.images || []).length ? 10 : 0, fontSize: 14, lineHeight: 1.5 }}>
-              {m.texts.map((t, j) => <p key={j} style={{ margin: '0 0 6px', whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>{t}</p>)}
-            </div>
-          )}
-          {!(m.images || []).length && !(m.texts || []).length ? <Note>No text or images in this module.</Note> : null}
+          ))}
         </div>
-      ))}
+      ) : null}
     </div>
   )
 }
@@ -175,6 +180,7 @@ function StateCell({ row, onEdit, onWithdraw, busy }) {
     <>
       {stage
         ? <span style={{ display: 'inline-flex', alignItems: 'center', fontSize: 12, fontWeight: 800, borderRadius: 999, padding: '3px 10px', background: stage.bg, color: stage.fg, marginBottom: 6 }}>{stage.label}</span>
+        : row.chip ? <span style={{ display: 'inline-flex', alignItems: 'center', fontSize: 12, fontWeight: 800, borderRadius: 999, padding: '3px 10px', background: row.chip.bg, color: row.chip.fg, marginBottom: 6 }}>{row.chip.label}</span>
         : row.status ? <StatusChip status={row.status} style={{ marginBottom: 6 }} /> : null}
       {e && e.hq_note ? <span style={{ display: 'block', fontSize: 12, color: e.status === 'refused' ? C.bad : C.muted, marginBottom: 6, whiteSpace: 'pre-wrap' }}>{e.hq_note.slice(0, 600)}</span> : null}
       {e && e.status === 'in_approval' && e.approval_task_id ? <a href={`/?view=approvals&task=${e.approval_task_id}`} style={{ display: 'block', fontSize: 12, fontWeight: 800, color: C.indigo, marginBottom: 6 }}>Open the approval</a> : null}
@@ -185,6 +191,7 @@ function StateCell({ row, onEdit, onWithdraw, busy }) {
           {e && e.status === 'proposed' ? <button type="button" onClick={() => onWithdraw(row)} disabled={busy} style={{ ...btn(false), color: C.bad, borderColor: C.line }}>Remove edit</button> : null}
         </span>
       ) : null}
+      {row.extra ? <span style={{ display: 'block', marginTop: 6 }}>{row.extra}</span> : null}
     </>
   )
 }
@@ -193,7 +200,7 @@ function StateCell({ row, onEdit, onWithdraw, busy }) {
  * rows: [{ key, kind: 'field'|'attribute', name, label, limit, live, liveMeta, should, shouldMeta, status, note, edit, editable,
  *          limitChars?, limitBytes? }]
  */
-export function EditableTable({ rows, isMobile, onSave, onWithdraw, empty = 'Nothing to show.' }) {
+export function EditableTable({ rows, isMobile, onSave, onWithdraw, empty = 'Nothing to show.', headers = ['Field', 'Live on Amazon now', 'Should be live', 'State'] }) {
   const [editing, setEditing] = useState(null)
   const [busy, setBusy] = useState(false)
   const save = async (row, value) => { await onSave(row, value); setEditing(null) }
@@ -205,9 +212,9 @@ export function EditableTable({ rows, isMobile, onSave, onWithdraw, empty = 'Not
         {rows.map(r => (
           <div key={r.key} style={{ background: '#fff', border: `1px solid ${C.line}`, borderRadius: 14, padding: '12px 14px' }}>
             <div style={{ fontWeight: 800, fontSize: 15 }}>{r.label}{meta(r.limit)}</div>
-            <p style={lab}>Live on Amazon now</p>
+            <p style={lab}>{headers[1]}</p>
             <div style={{ fontSize: 14, lineHeight: 1.45, overflowWrap: 'anywhere', whiteSpace: 'pre-wrap' }}>{show(r.live, r.name)}{meta(r.liveMeta)}</div>
-            <p style={lab}>Should be live</p>
+            <p style={lab}>{headers[2]}</p>
             <div style={{ background: r.edit ? '#F1ECFB' : 'transparent', borderRadius: 8, padding: r.edit ? '8px 10px' : 0, fontSize: 14, lineHeight: 1.45, overflowWrap: 'anywhere', whiteSpace: 'pre-wrap', fontWeight: r.edit ? 700 : 400 }}>
               <ShouldCell row={r} editing={editing === r.key} onSave={save} onCancel={() => setEditing(null)} />
             </div>
@@ -222,7 +229,7 @@ export function EditableTable({ rows, isMobile, onSave, onWithdraw, empty = 'Not
   return (
     <div className="scroll-x">
       <div style={{ display: 'grid', gridTemplateColumns: '170px minmax(260px,1fr) minmax(260px,1fr) 210px', minWidth: 1000 }}>
-        <div style={hd}>Field</div><div style={hd}>Live on Amazon now</div><div style={hd}>Should be live</div><div style={hd}>State</div>
+        {headers.map(h => <div key={h} style={hd}>{h}</div>)}
         {rows.map(r => {
           const bad = r.status === 'problem' && !r.edit
           return [

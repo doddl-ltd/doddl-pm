@@ -5,7 +5,8 @@ import { useEffect, useMemo, useState } from 'react'
 import { apiFetch, supabase } from '../lib/supabase'
 import { C, Panel, H2, Lbl, Note, Chip, Pill, Pills, Tick, Btn, StateLine, fmtDay, fmtWhen } from './approvals/renderers/reviewKit'
 import { FIELD_STATUS, ImageCompare, differs } from './approvals/renderers/ListingChangeReview'
-import { AplusPanel, AttributesPanel, ImagesGallery, EditableTable, EditsBar, fieldRows } from './ListingContent'
+import { AplusPanel, EditableTable, EditsBar, fieldRows } from './ListingContent'
+import { MasterView, MarketImages, MarketAttributes, withMaster } from './ListingMaster'
 
 // Matrix columns; Bullets rolls up Bullet 1–5.
 const COLS = [
@@ -77,6 +78,7 @@ function Detail({ sel, rows, isMobile, onBack, onSelect, onOpenApproval }) {
   const [data, setData] = useState(null)
   const [error, setError] = useState('')
   const [onlyDiff, setOnlyDiff] = useState(isMobile)
+  const [masterTab, setMasterTab] = useState(false)
   const load = async () => {
     const r = await apiFetch(`/api/listings/${encodeURIComponent(sel.asin)}/${encodeURIComponent(sel.marketplace)}`)
     const j = await r.json().catch(() => ({}))
@@ -88,6 +90,12 @@ function Detail({ sel, rows, isMobile, onBack, onSelect, onOpenApproval }) {
     const r = await apiFetch('/api/listings/edits', { method: 'POST', body: JSON.stringify({ asin: sel.asin, marketplace: sel.marketplace, kind: row.kind, name: row.name, value, live: row.live ?? null }) })
     const j = await r.json().catch(() => ({}))
     if (!r.ok) throw new Error(j.error || `Could not save the edit (${r.status})`)
+    setData(await load())
+  }
+  const saveMaster = async (body) => {
+    const r = await apiFetch('/api/listings/master', { method: 'POST', body: JSON.stringify(body) })
+    const j = await r.json().catch(() => ({}))
+    if (!r.ok) throw new Error(j.error || `Could not save the master (${r.status})`)
     setData(await load())
   }
   const submitEdits = async () => {
@@ -126,13 +134,14 @@ function Detail({ sel, rows, isMobile, onBack, onSelect, onOpenApproval }) {
   const openApproval = ((data && data.approvals) || []).find(a => !a.decision)
   const events = (data && data.events) || []
 
-  const tabs = siblings.length > 1 ? (isMobile
-    ? <Pills label="Market">{siblings.map(r => <Pill key={keyOf(r)} on={keyOf(r) === keyOf(sel)} onClick={() => onSelect(r)}>Amazon {r.marketplace}</Pill>)}</Pills>
+  const tabs = siblings.length >= 1 ? (isMobile
+    ? <Pills label="Market"><Pill on={masterTab} onClick={() => setMasterTab(true)}>Master</Pill>{siblings.map(r => <Pill key={keyOf(r)} on={!masterTab && keyOf(r) === keyOf(sel)} onClick={() => { setMasterTab(false); onSelect(r) }}>Amazon {r.marketplace}</Pill>)}</Pills>
     : (
       <div role="tablist" style={{ display: 'flex', gap: 22, borderBottom: `1px solid ${C.line}`, marginTop: 18, flexWrap: 'wrap' }}>
+        <button role="tab" aria-selected={masterTab} type="button" onClick={() => setMasterTab(true)} style={{ background: 'none', border: 0, borderBottom: `3px solid ${masterTab ? C.indigo : 'transparent'}`, font: "800 14px 'Nunito', sans-serif", color: masterTab ? C.indigo : C.muted, padding: '0 4px', minHeight: 44, cursor: 'pointer' }}>Master</button>
         {siblings.map(r => {
-          const on = keyOf(r) === keyOf(sel)
-          return <button key={keyOf(r)} role="tab" aria-selected={on} type="button" onClick={() => onSelect(r)} style={{ background: 'none', border: 0, borderBottom: `3px solid ${on ? C.indigo : 'transparent'}`, font: "800 14px 'Nunito', sans-serif", color: on ? C.indigo : C.muted, padding: '0 4px', minHeight: 44, cursor: 'pointer' }}>Amazon {r.marketplace}</button>
+          const on = !masterTab && keyOf(r) === keyOf(sel)
+          return <button key={keyOf(r)} role="tab" aria-selected={on} type="button" onClick={() => { setMasterTab(false); onSelect(r) }} style={{ background: 'none', border: 0, borderBottom: `3px solid ${on ? C.indigo : 'transparent'}`, font: "800 14px 'Nunito', sans-serif", color: on ? C.indigo : C.muted, padding: '0 4px', minHeight: 44, cursor: 'pointer' }}>Amazon {r.marketplace}</button>
         })}
       </div>
     )) : null
@@ -141,7 +150,7 @@ function Detail({ sel, rows, isMobile, onBack, onSelect, onOpenApproval }) {
     [`Listing status on ${p.marketplace}`, p.listing_status || '–', /active|buyable/i.test(p.listing_status || '') ? C.ok : C.ink],
     ['Fields that differ', `${diff.length} of ${fields.length}`, diff.length ? C.warn : C.ok],
     ['Buy Box', p.buy_box || '–', C.ink],
-    ['Should-be-live source', p.should_source || '–', C.ink],
+    ['Master', data && data.master ? ({ seed: 'Not checked yet', draft: 'Draft', approved: 'Approved' })[data.master.status] || '–' : 'None yet', C.ink],
   ]
   const banner = openApproval ? (
     <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap', background: C.soft, borderRadius: 12, padding: '10px 14px', marginTop: 14 }}>
@@ -150,7 +159,9 @@ function Detail({ sel, rows, isMobile, onBack, onSelect, onOpenApproval }) {
     </div>
   ) : null
 
-  const body = data ? (<>
+  const body = data && masterTab ? (
+    <MasterView master={data.master} ptd={data.ptd_uk || data.ptd} livePool={img && Array.isArray(img.live) ? img.live.filter(x => x.slot !== 'SWCH') : []} isMobile={isMobile} onChange={saveMaster} />
+  ) : data ? (<>
     <EditsBar edits={edits} marketplace={sel.marketplace} onSubmit={submitEdits} isMobile={isMobile} />
     {isMobile
       ? <Tick checked={onlyDiff} onChange={setOnlyDiff}>Only fields that differ</Tick>
@@ -161,19 +172,12 @@ function Detail({ sel, rows, isMobile, onBack, onSelect, onOpenApproval }) {
         </div>
       )}
     {isMobile
-      ? <EditableTable rows={fieldRows(shown, edits)} isMobile onSave={saveEdit} onWithdraw={withdrawEdit} empty="No fields to show." />
-      : <Panel pad="0" style={{ marginTop: 12, overflow: 'hidden' }}><EditableTable rows={fieldRows(shown, edits)} onSave={saveEdit} onWithdraw={withdrawEdit} empty="No fields to show." /></Panel>}
+      ? <EditableTable rows={withMaster(fieldRows(shown, edits), data.master, sel.marketplace)} isMobile onSave={saveEdit} onWithdraw={withdrawEdit} empty="No fields to show." />
+      : <Panel pad="0" style={{ marginTop: 12, overflow: 'hidden' }}><EditableTable rows={withMaster(fieldRows(shown, edits), data.master, sel.marketplace)} onSave={saveEdit} onWithdraw={withdrawEdit} empty="No fields to show." /></Panel>}
     <Note style={{ marginTop: 8 }}>Edits are saved in PM until you send them for approval. Nothing changes on Amazon until an approval is decided.</Note>
-    <ImagesGallery field={img} isMobile={isMobile} />
-    {img && Array.isArray(img.should) && img.should.length ? (
-      <Panel pad={isMobile ? '14px' : undefined} style={{ marginTop: isMobile ? 0 : 20 }}>
-        <H2>Images: live vs should be live</H2>
-        <ImageCompare live={Array.isArray(img.live) ? img.live : []} should={Array.isArray(img.should) ? img.should : []} isMobile={isMobile} sourceNote={img.should_meta} />
-        {img.note ? <Note style={{ marginTop: 10 }}>{img.note}</Note> : null}
-      </Panel>
-    ) : null}
+    <MarketImages field={img} master={data.master} market={sel.marketplace} isMobile={isMobile} />
     <AplusPanel product={p} isMobile={isMobile} />
-    <AttributesPanel product={p} edits={edits} isMobile={isMobile} onSave={saveEdit} onWithdraw={withdrawEdit} />
+    <MarketAttributes product={p} master={data.master} ptd={data.ptd} titlesPtd={data.ptd_uk} market={sel.marketplace} edits={edits} isMobile={isMobile} onSave={saveEdit} onWithdraw={withdrawEdit} />
     <Panel pad={isMobile ? '14px' : undefined} style={{ marginTop: isMobile ? 0 : 20 }}>
       <H2>History</H2>
       {events.length ? events.map((e, i) => (
@@ -196,14 +200,14 @@ function Detail({ sel, rows, isMobile, onBack, onSelect, onOpenApproval }) {
         {[`ASIN ${p.asin}`, p.sku && `SKU ${p.sku}`, p.parent_asin && `parent ${p.parent_asin}`, p.checked_at && `last read from Amazon ${fmtWhen(p.checked_at)}`].filter(Boolean).join(' · ')}
       </p>
       {tabs}
-      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, minmax(0, 1fr))' : 'repeat(4, minmax(0, 1fr))', gap: isMobile ? 8 : 12, marginTop: isMobile ? 0 : 16 }}>
+      {!masterTab ? <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, minmax(0, 1fr))' : 'repeat(4, minmax(0, 1fr))', gap: isMobile ? 8 : 12, marginTop: isMobile ? 0 : 16 }}>
         {(isMobile ? tiles.slice(0, 2) : tiles).map(([k, v, col]) => (
           <Panel key={k} pad={isMobile ? '10px 12px' : '12px 16px'}>
             <Lbl>{k}</Lbl>
             <p style={{ margin: '4px 0 0', fontSize: k === 'Should-be-live source' ? 14 : isMobile ? 15 : 18, fontWeight: 800, color: col }}>{v}</p>
           </Panel>
         ))}
-      </div>
+      </div> : null}
       {banner}
       <StateLine loading={!data && !error} error={error} />
       {body}
