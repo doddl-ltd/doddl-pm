@@ -7,6 +7,7 @@ import { C, Panel, H2, Lbl, Note, Chip, Pill, Pills, Tick, Btn, StateLine, fmtDa
 import { FIELD_STATUS, ImageCompare, differs } from './approvals/renderers/ListingChangeReview'
 import { AplusPanel, EditableTable, EditsBar, fieldRows } from './ListingContent'
 import { MasterView, MarketImages, MarketAttributes, withMaster } from './ListingMaster'
+import { LivePanel } from './ListingLive'
 
 // Matrix columns; Bullets rolls up Bullet 1–5.
 const COLS = [
@@ -104,6 +105,21 @@ function Detail({ sel, rows, isMobile, onBack, onSelect, onOpenApproval }) {
     if (!r.ok) throw new Error(j.error || `Could not save the master (${r.status})`)
     setData(await load())
   }
+  const caseCall = async (body) => {
+    const r = await apiFetch('/api/listings/cases', { method: 'POST', body: JSON.stringify(body) })
+    const j = await r.json().catch(() => ({}))
+    if (!r.ok) throw new Error(j.error || `Could not do that (${r.status})`)
+    setData(await load())
+  }
+  // Upload one image file for the master's set: a signed link from PM, then the file goes straight to the store.
+  const uploadImage = async (file, locale) => {
+    const r = await apiFetch('/api/listings/image-upload', { method: 'POST', body: JSON.stringify({ asin: sel.asin, locale, name: file.name, type: file.type, size: file.size }) })
+    const j = await r.json().catch(() => ({}))
+    if (!r.ok) throw new Error(j.error || `Could not upload ${file.name} (${r.status})`)
+    const put = await fetch(j.upload_url, { method: 'PUT', headers: { 'content-type': file.type, 'x-upsert': 'false' }, body: file })
+    if (!put.ok) throw new Error(`Could not upload ${file.name} (${put.status})`)
+    return j.public_url
+  }
   const submitEdits = async () => {
     const r = await apiFetch('/api/listings/edits', { method: 'POST', body: JSON.stringify({ action: 'submit', asin: sel.asin, marketplace: sel.marketplace }) })
     const j = await r.json().catch(() => ({}))
@@ -166,9 +182,10 @@ function Detail({ sel, rows, isMobile, onBack, onSelect, onOpenApproval }) {
   ) : null
 
   const body = data && masterTab ? (
-    <MasterView master={data.master} ptd={data.ptd_uk || data.ptd} livePool={img && Array.isArray(img.live) ? img.live.filter(x => x.slot !== 'SWCH') : []} isMobile={isMobile} onChange={saveMaster}
+    <MasterView master={data.master} ptd={data.ptd_uk || data.ptd} livePool={img && Array.isArray(img.live) ? img.live.filter(x => x.slot !== 'SWCH') : []} isMobile={isMobile} onChange={saveMaster} onUpload={uploadImage}
       onPlan={() => masterCall({ asin: sel.asin, op: 'plan' })} onSend={async (markets) => { const r = await masterCall({ asin: sel.asin, op: 'send', markets }); setData(await load()); return r }} />
   ) : data ? (<>
+    <LivePanel data={data} market={sel.marketplace} isMobile={isMobile} onBuildCase={() => caseCall({ op: 'build', asin: sel.asin, marketplace: sel.marketplace })} onUpdateCase={(b) => caseCall({ op: 'update', ...b })} />
     <EditsBar edits={edits} marketplace={sel.marketplace} onSubmit={submitEdits} isMobile={isMobile} />
     {isMobile
       ? <Tick checked={onlyDiff} onChange={setOnlyDiff}>Only fields that differ</Tick>

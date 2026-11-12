@@ -12,7 +12,7 @@ export const COPY_KEY = Object.fromEntries(COPY.map(([k, l]) => [l, k]))
 const NOT_SCORED = new Set(['offer', 'images', 'variations'])
 // Per store by nature (category IDs, identity settings, the store's own keyword): shown, never scored or sent.
 const PER_MARKET_ATTRS = new Set(['recommended_browse_nodes', 'merchant_suggested_asin', 'externally_assigned_product_identifier', 'supplier_declared_has_product_identifier_exemption', 'item_type_keyword', 'item_type_name', 'product_site_launch_date', 'gpsr_safety_attestation', 'gpsr_manufacturer_reference', 'dsa_responsible_party_address', 'compliance_media'])
-const safeImg = (u) => (/^https:\/\/m\.media-amazon\.com\//i.test(String(u || '')) ? u : null)
+const safeImg = (u) => (/^https:\/\/(m\.media-amazon\.com\/|[a-z0-9]+\.supabase\.co\/storage\/v1\/object\/public\/listing-images\/)/i.test(String(u || '')) ? u : null)
 const norm1 = (v) => String(v ?? '').replace(/\s+/g, ' ').trim().toLowerCase()
 // Lists (values joined with ' | ', e.g. barcodes) compare in any order.
 export const norm = (v) => String(v ?? '').split(' | ').map(norm1).sort().join(' | ')
@@ -183,9 +183,20 @@ export function MarketImages({ field, master, market, isMobile }) {
 // ─── The Master tab ──────────────────────────────────────────────────────────
 // Identity fields (barcodes, brand, maker, model): never removable from the master, whatever Amazon requires.
 const NEVER_REMOVE = new Set(['externally_assigned_product_identifier', 'merchant_suggested_asin', 'supplier_declared_has_product_identifier_exemption', 'brand', 'manufacturer', 'model_name', 'model_number', 'part_number', 'item_type_keyword'])
+/** Width and height of an image file in the browser (null if it cannot be read, e.g. TIFF). */
+function imageSize(file) {
+  return new Promise((resolve) => {
+    const u = URL.createObjectURL(file), im = new Image()
+    im.onload = () => { resolve({ w: im.naturalWidth, h: im.naturalHeight }); URL.revokeObjectURL(u) }
+    im.onerror = () => { resolve(null); URL.revokeObjectURL(u) }
+    im.src = u
+  })
+}
+
 const STATUS = { seed: ['Started from the live UK listing: check it, edit it, then approve it', C.blueBg, C.blue], draft: ['Draft: edited, not yet approved', C.warnBg, C.warn], approved: ['Approved', C.okBg, C.ok] }
 
-export function MasterView({ master, ptd, livePool, isMobile, onChange, onPlan, onSend }) {
+export function MasterView({ master, ptd, livePool, isMobile, onChange, onPlan, onSend, onUpload }) {
+  const [uploading, setUploading] = useState('')
   const [locale, setLocale] = useState('UK')
   const [big, setBig] = useState(null)
   const [picking, setPicking] = useState(false)
@@ -230,7 +241,7 @@ export function MasterView({ master, ptd, livePool, isMobile, onChange, onPlan, 
           : <button type="button" onClick={() => run({ asin: master.asin, op: 'reopen' })} style={{ minHeight: 38, padding: '0 16px', borderRadius: 8, border: `1px solid ${C.border}`, background: '#fff', color: C.indigo, font: "800 14px 'Nunito', sans-serif", cursor: 'pointer' }}>Reopen for edits</button>}
       </div>
       {err ? <p role="alert" style={{ color: C.bad, fontSize: 13 }}>{err}</p> : null}
-      {master.seeded_from ? <Note style={{ marginTop: 6 }}>Started from: {master.seeded_from}. Changes here are saved in PM; nothing goes to Amazon from the master yet.</Note> : null}
+      {master.seeded_from ? <Note style={{ marginTop: 6 }}>Started from: {master.seeded_from}. Changes are saved in PM. Nothing reaches Amazon until you send it to the markets and each approval is approved.</Note> : null}
 
       <Panel pad="0" style={{ marginTop: 14, overflow: 'hidden' }}>
         <div style={{ padding: '14px 16px 4px' }}><H2 style={{ margin: 0 }}>Copy (UK English, the source for every market)</H2></div>
@@ -245,11 +256,31 @@ export function MasterView({ master, ptd, livePool, isMobile, onChange, onPlan, 
         <Filmstrip slots={imgs} onOpen={setBig} size={isMobile ? 84 : 110} controls={ctl} />
         <div style={{ marginTop: 10, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           <button type="button" onClick={() => setPicking(!picking)} disabled={imgs.length >= 9} style={{ minHeight: 34, padding: '0 12px', borderRadius: 8, border: `1px solid ${C.border}`, background: '#fff', color: C.indigo, font: "800 13px 'Nunito', sans-serif", cursor: 'pointer' }}>{picking ? 'Done adding' : 'Add an image'}</button>
+          {onUpload ? (
+            <label style={{ minHeight: 34, padding: '0 12px', borderRadius: 8, border: 0, background: C.indigo, color: '#fff', font: "800 13px 'Nunito', sans-serif", cursor: uploading ? 'wait' : 'pointer', display: 'inline-flex', alignItems: 'center', opacity: imgs.length >= 9 ? 0.5 : 1 }}>
+              {uploading || 'Upload images'}
+              <input type="file" accept="image/jpeg,image/png,image/tiff,image/gif" multiple disabled={!!uploading || imgs.length >= 9} style={{ display: 'none' }} onChange={async (e) => {
+                const files = [...(e.target.files || [])].slice(0, 9 - imgs.length); e.target.value = ''
+                if (!files.length) return
+                setErr(''); const added = []
+                try {
+                  for (const [i, f] of files.entries()) {
+                    setUploading(`Uploading ${i + 1} of ${files.length}…`)
+                    const px = await imageSize(f)
+                    if (px && Math.max(px.w, px.h) < 1000) throw new Error(`${f.name} is ${px.w}×${px.h}: Amazon needs at least 1000 pixels on the longest side for zoom (2000 is best)`)
+                    added.push({ url: await onUpload(f, locale) })
+                  }
+                } catch (x) { setErr(x.message) }
+                setUploading('')
+                if (added.length) await setImgs([...imgs, ...added]).catch(() => {})
+              }} />
+            </label>
+          ) : null}
           {locale !== 'UK' && ((master.images || {}).UK || []).length ? <button type="button" onClick={() => setImgs((master.images || {}).UK)} style={{ minHeight: 34, padding: '0 12px', borderRadius: 8, border: `1px solid ${C.border}`, background: '#fff', color: C.indigo, font: "800 13px 'Nunito', sans-serif", cursor: 'pointer' }}>Use the UK set for {locale}</button> : null}
         </div>
         {picking ? (
           <div style={{ marginTop: 10, padding: 10, background: C.bg, borderRadius: 10 }}>
-            <p style={{ margin: '0 0 8px', fontSize: 13, color: C.muted }}>Images already on Amazon for this product (any market). Click one to add it to the end of the {locale} set.</p>
+            <p style={{ margin: '0 0 8px', fontSize: 13, color: C.muted }}>Images on Amazon or uploaded for this product (any market). Click one to add it to the end of the {locale} set.</p>
             <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
               {pool.map(im => <button key={im.url} type="button" onClick={() => setImgs([...imgs, im])} title="Add" style={{ width: 72, height: 72, padding: 0, border: `1px solid ${C.line}`, borderRadius: 6, background: '#fff', cursor: 'copy', overflow: 'hidden' }}><img src={safeImg(im.url)} alt="" loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'contain' }} /></button>)}
             </div>
