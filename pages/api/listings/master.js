@@ -4,7 +4,7 @@ import { planSend, saveVariantChange, sendMaster, translateVariant } from '../..
 
 // POST /api/listings/master { asin, op, ... }
 //   copy | attribute | keep | images | approve | reopen      change the master (UK English, one attribute set, images per locale)
-//   translate { locale }                                       Claude translates the master for one non-English market (about $0.07)
+//   translate { locale }                                       Claude translates the master for one non-English market (about $0.04)
 //   variant_copy | variant_attr | variant_approve { locale }   a person checks and approves the translation (the language review)
 //   plan { markets? }                                          what each market would change to match the master
 //   send { markets }                                           those changes become submitted edits: HQ checks them, one approval per market

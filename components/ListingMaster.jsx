@@ -10,6 +10,8 @@ const COPY = [['title', 'Title'], ['bullet_1', 'Bullet 1'], ['bullet_2', 'Bullet
 export const COPY_KEY = Object.fromEntries(COPY.map(([k, l]) => [l, k]))
 // Groups that are per market by nature (price, stock, images, variation structure): shown, never scored.
 const NOT_SCORED = new Set(['offer', 'images', 'variations'])
+// Per store by nature (category IDs, identity settings, the store's own keyword): shown, never scored or sent.
+const PER_MARKET_ATTRS = new Set(['recommended_browse_nodes', 'merchant_suggested_asin', 'externally_assigned_product_identifier', 'supplier_declared_has_product_identifier_exemption', 'item_type_keyword', 'item_type_name', 'product_site_launch_date', 'gpsr_safety_attestation', 'gpsr_manufacturer_reference', 'dsa_responsible_party_address', 'compliance_media'])
 const safeImg = (u) => (/^https:\/\/m\.media-amazon\.com\//i.test(String(u || '')) ? u : null)
 const norm1 = (v) => String(v ?? '').replace(/\s+/g, ' ').trim().toLowerCase()
 // Lists (values joined with ' | ', e.g. barcodes) compare in any order.
@@ -72,7 +74,7 @@ export function attributeRowsVsMaster({ live, master, ptd, titlesPtd, market, ed
     const value = l.page ?? l.ours ?? null
     const g = groups[name] || { key: 'other', title: 'Other' }
     const m = mBy[name]
-    const scored = !NOT_SCORED.has(g.key)
+    const scored = !NOT_SCORED.has(g.key) && !PER_MARKET_ATTRS.has(name)
     const kind = !scored ? 'info' : !m ? (value ? 'extra' : 'none') : compare(value, m.value, market, { keep: m.keep !== false })
     return {
       key: `attribute:${name}`, kind: 'attribute', name, label: titles[name] || name.replace(/_/g, ' '), limit: [req.has(name) ? 'Required by Amazon' : null, name].filter(Boolean).join(' · '),
@@ -344,7 +346,7 @@ export function TranslationsPanel({ master, isMobile, onChange }) {
           {!v ? 'not translated yet.' : v.status === 'approved' ? `approved by ${v.approved_by}.` : `translated${v.model ? ` by ${v.model}` : ''}, waiting for your check.`}
           {v && v.cost_usd != null ? <span style={{ color: C.muted }}> (cost ${Number(v.cost_usd).toFixed(3)})</span> : null}
         </span>
-        <button type="button" disabled={busy || !master.copy || !master.copy.title} onClick={() => call({ op: 'translate' })} style={sbtn(!v)}>{busy ? 'Working…' : v ? 'Translate again' : 'Translate with Claude (about $0.07)'}</button>
+        <button type="button" disabled={busy || !master.copy || !master.copy.title} onClick={() => call({ op: 'translate' })} style={sbtn(!v)}>{busy ? 'Working…' : v ? 'Translate again' : 'Translate with Claude (about $0.04)'}</button>
         {v && v.status !== 'approved' ? <button type="button" disabled={busy} onClick={() => call({ op: 'variant_approve' })} style={sbtn(true)}>Approve the {LANG_MARKETS[loc]}</button> : null}
       </div>
       {err ? <p role="alert" style={{ color: C.bad, fontSize: 13 }}>{err}</p> : null}

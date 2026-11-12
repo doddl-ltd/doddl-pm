@@ -11,6 +11,7 @@ const master = {
     { name: 'is_dishwasher_safe', value: 'true', keep: true },
     { name: 'warranty_description', value: 'None', keep: false },
     { name: 'item_dimensions', value: 'length: 10 centimeters; width: 2 centimeters', keep: true },
+    { name: 'recommended_browse_nodes', value: '12345', keep: true },
   ],
   images: { UK: [{ slot: 'MAIN', url: 'https://m.media-amazon.com/images/I/a.jpg' }, { slot: 'PT01', url: 'https://m.media-amazon.com/images/I/b.jpg' }] },
   variants: {},
@@ -22,6 +23,8 @@ test('translation needed only for words, not numbers, codes or true/false', () =
   assert.equal(needsTranslation('color', 'Indigo'), true)
   assert.equal(needsTranslation('item_weight', '120 grams'), false)
   assert.equal(needsTranslation('is_dishwasher_safe', 'true'), false)
+  assert.equal(needsTranslation('package_level', 'unit'), false) // an Amazon code
+  assert.equal(needsTranslation('recommended_browse_nodes', 'Kitchen'), false) // per store
   assert.equal(needsTranslation('externally_assigned_product_identifier', '5060460120002; type: ean'), false)
   assert.equal(hasParts('length: 10 centimeters; width: 2 centimeters'), true)
   assert.equal(hasParts('Indigo'), false)
@@ -41,6 +44,7 @@ test('English market: copy, attributes, removals and image slots against the mas
   assert.equal(by.other_product_image_locator_1.to, 'https://m.media-amazon.com/images/I/b.jpg')
   assert.equal(by.other_product_image_locator_2.remove, true)
   assert.equal(by.main_product_image_locator, undefined)
+  assert.equal(by.recommended_browse_nodes, undefined) // category IDs are per store, never sent
   assert.equal(by['Bullet 1'], undefined)
   assert.ok(p.skipped.some(s => s.name === 'item_dimensions' && /Seller Central/.test(s.why)))
 })
