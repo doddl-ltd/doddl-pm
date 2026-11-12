@@ -92,6 +92,12 @@ function Detail({ sel, rows, isMobile, onBack, onSelect, onOpenApproval }) {
     if (!r.ok) throw new Error(j.error || `Could not save the edit (${r.status})`)
     setData(await load())
   }
+  const masterCall = async (body) => {
+    const r = await apiFetch('/api/listings/master', { method: 'POST', body: JSON.stringify(body) })
+    const j = await r.json().catch(() => ({}))
+    if (!r.ok) throw new Error(j.error || `Could not do that (${r.status})`)
+    return j
+  }
   const saveMaster = async (body) => {
     const r = await apiFetch('/api/listings/master', { method: 'POST', body: JSON.stringify(body) })
     const j = await r.json().catch(() => ({}))
@@ -160,7 +166,8 @@ function Detail({ sel, rows, isMobile, onBack, onSelect, onOpenApproval }) {
   ) : null
 
   const body = data && masterTab ? (
-    <MasterView master={data.master} ptd={data.ptd_uk || data.ptd} livePool={img && Array.isArray(img.live) ? img.live.filter(x => x.slot !== 'SWCH') : []} isMobile={isMobile} onChange={saveMaster} />
+    <MasterView master={data.master} ptd={data.ptd_uk || data.ptd} livePool={img && Array.isArray(img.live) ? img.live.filter(x => x.slot !== 'SWCH') : []} isMobile={isMobile} onChange={saveMaster}
+      onPlan={() => masterCall({ asin: sel.asin, op: 'plan' })} onSend={async (markets) => { const r = await masterCall({ asin: sel.asin, op: 'send', markets }); setData(await load()); return r }} />
   ) : data ? (<>
     <EditsBar edits={edits} marketplace={sel.marketplace} onSubmit={submitEdits} isMobile={isMobile} />
     {isMobile

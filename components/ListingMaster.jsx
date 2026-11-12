@@ -183,7 +183,7 @@ export function MarketImages({ field, master, market, isMobile }) {
 const NEVER_REMOVE = new Set(['externally_assigned_product_identifier', 'merchant_suggested_asin', 'supplier_declared_has_product_identifier_exemption', 'brand', 'manufacturer', 'model_name', 'model_number', 'part_number', 'item_type_keyword'])
 const STATUS = { seed: ['Started from the live UK listing: check it, edit it, then approve it', C.blueBg, C.blue], draft: ['Draft: edited, not yet approved', C.warnBg, C.warn], approved: ['Approved', C.okBg, C.ok] }
 
-export function MasterView({ master, ptd, livePool, isMobile, onChange }) {
+export function MasterView({ master, ptd, livePool, isMobile, onChange, onPlan, onSend }) {
   const [locale, setLocale] = useState('UK')
   const [big, setBig] = useState(null)
   const [picking, setPicking] = useState(false)
@@ -261,6 +261,8 @@ export function MasterView({ master, ptd, livePool, isMobile, onChange }) {
         <Note style={{ marginTop: 0 }}>Every market should carry these values (words in its own language). "Remove from all markets" marks an attribute Amazon does not require for removal everywhere.</Note>
         <GroupedTables rows={attrRows} isMobile={isMobile} headers={H} onSave={(row, value) => run({ asin: master.asin, op: 'attribute', name: row.name, value })} onWithdraw={async () => {}} />
       </Panel>
+      <TranslationsPanel master={master} isMobile={isMobile} onChange={onChange} />
+      <SendPanel master={master} isMobile={isMobile} onPlan={onPlan} onSend={onSend} />
     </div>
   )
 }
@@ -290,6 +292,126 @@ export function MarketAttributes({ product, master, ptd, titlesPtd, market, edit
       </div>
       {!master ? <Note>No master for this product yet, so nothing is scored.</Note> : null}
       {shown.length ? <GroupedTables rows={shown} isMobile={isMobile} onSave={onSave} onWithdraw={onWithdraw} headers={['Attribute', `Live on Amazon ${market}`, 'Master', 'State']} /> : <Note>{only ? 'Nothing to fix here: every attribute matches the master.' : 'No attributes match.'}</Note>}
+    </Panel>
+  )
+}
+
+// ─── Translations (one per non-English market) ───────────────────────────────
+export const LANG_MARKETS = { DE: 'German', FR: 'French', ES: 'Spanish', IT: 'Italian', NL: 'Dutch', BE: 'French (Belgium)', PL: 'Polish', SE: 'Swedish' }
+const ttl = { margin: '0 0 2px', fontSize: 12, fontWeight: 800, color: C.muted }
+const sbtn = (p) => ({ minHeight: 32, padding: '0 10px', borderRadius: 8, border: `1px solid ${p ? C.indigo : C.border}`, background: p ? C.indigo : '#fff', color: p ? '#fff' : C.indigo, font: "800 12.5px 'Nunito', sans-serif", cursor: 'pointer' })
+
+function TransRow({ label, english, value, onSave }) {
+  const [edit, setEdit] = useState(false)
+  const [v, setV] = useState(value || '')
+  const [busy, setBusy] = useState(false)
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: 'minmax(110px, 160px) minmax(0, 1fr) minmax(0, 1fr) auto', gap: 12, padding: '10px 0', borderTop: `1px solid ${C.line2}`, fontSize: 13.5, lineHeight: 1.45, alignItems: 'start' }}>
+      <b>{label}</b>
+      <span style={{ color: C.muted, overflowWrap: 'anywhere', whiteSpace: 'pre-wrap' }}>{english || '–'}</span>
+      {edit
+        ? <textarea value={v} onChange={e => setV(e.target.value)} rows={Math.min(8, Math.max(2, Math.ceil(v.length / 60)))} aria-label={`Translation of ${label}`} style={{ width: '100%', boxSizing: 'border-box', border: `1px solid ${C.indigo}`, borderRadius: 8, padding: '6px 8px', font: "600 13.5px/1.45 'Nunito', sans-serif" }} />
+        : <span style={{ overflowWrap: 'anywhere', whiteSpace: 'pre-wrap' }}>{value || <span style={{ color: C.muted }}>–</span>}</span>}
+      <span style={{ display: 'flex', gap: 6 }}>
+        {edit
+          ? <><button type="button" disabled={busy} onClick={async () => { setBusy(true); try { await onSave(v); setEdit(false) } finally { setBusy(false) } }} style={sbtn(true)}>Save</button><button type="button" onClick={() => { setV(value || ''); setEdit(false) }} style={sbtn(false)}>Cancel</button></>
+          : <button type="button" onClick={() => { setV(value || ''); setEdit(true) }} style={sbtn(false)}>Edit</button>}
+      </span>
+    </div>
+  )
+}
+
+export function TranslationsPanel({ master, isMobile, onChange }) {
+  const [loc, setLoc] = useState('DE')
+  const [busy, setBusy] = useState(false)
+  const [err, setErr] = useState('')
+  const v = (master.variants || {})[loc] || null
+  const call = async (body) => { setErr(''); setBusy(true); try { await onChange({ asin: master.asin, locale: loc, ...body }) } catch (e) { setErr(e.message) } finally { setBusy(false) } }
+  const words = (master.attributes || []).filter(a => a.keep !== false && v && v.attributes && a.name in v.attributes)
+  return (
+    <Panel pad={isMobile ? '14px' : undefined} style={{ marginTop: isMobile ? 0 : 20 }}>
+      <H2>Translations</H2>
+      <Note style={{ marginTop: 0 }}>Each non-English market is built from the UK English master. Translate it, check it, then approve it: your approval is the language review HQ needs before anything is sent to that market.</Note>
+      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', margin: '6px 0 10px' }}>
+        {Object.entries(LANG_MARKETS).map(([k]) => {
+          const s = ((master.variants || {})[k] || {}).status
+          return <Pill key={k} on={loc === k} onClick={() => setLoc(k)} style={{ minHeight: 34 }}>{k}{s === 'approved' ? ' ✓' : s === 'draft' ? ' ·' : ''}</Pill>
+        })}
+      </div>
+      <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap', background: C.bg, borderRadius: 10, padding: '8px 12px' }}>
+        <span style={{ flex: '1 1 260px', fontSize: 13.5 }}>
+          <b>{LANG_MARKETS[loc]} for Amazon {loc}: </b>
+          {!v ? 'not translated yet.' : v.status === 'approved' ? `approved by ${v.approved_by}.` : `translated${v.model ? ` by ${v.model}` : ''}, waiting for your check.`}
+          {v && v.cost_usd != null ? <span style={{ color: C.muted }}> (cost ${Number(v.cost_usd).toFixed(3)})</span> : null}
+        </span>
+        <button type="button" disabled={busy || !master.copy || !master.copy.title} onClick={() => call({ op: 'translate' })} style={sbtn(!v)}>{busy ? 'Working…' : v ? 'Translate again' : 'Translate with Claude (about $0.07)'}</button>
+        {v && v.status !== 'approved' ? <button type="button" disabled={busy} onClick={() => call({ op: 'variant_approve' })} style={sbtn(true)}>Approve the {LANG_MARKETS[loc]}</button> : null}
+      </div>
+      {err ? <p role="alert" style={{ color: C.bad, fontSize: 13 }}>{err}</p> : null}
+      {v ? (
+        <div style={{ marginTop: 8 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(110px, 160px) minmax(0, 1fr) minmax(0, 1fr) auto', gap: 12, padding: '6px 0' }}>
+            <span style={ttl}>Field</span><span style={ttl}>UK English (master)</span><span style={ttl}>{LANG_MARKETS[loc]}</span><span />
+          </div>
+          {COPY.map(([k, l]) => <TransRow key={`${loc}-${k}`} label={l} english={(master.copy || {})[k]} value={(v.copy || {})[k]} onSave={(value) => call({ op: 'variant_copy', field: k, value })} />)}
+          {words.map(a => <TransRow key={`${loc}-a-${a.name}`} label={a.name.replace(/_/g, ' ')} english={a.value} value={v.attributes[a.name]} onSave={(value) => call({ op: 'variant_attr', name: a.name, value })} />)}
+        </div>
+      ) : null}
+    </Panel>
+  )
+}
+
+// ─── Send the master to the markets ──────────────────────────────────────────
+export function SendPanel({ master, isMobile, onPlan, onSend }) {
+  const [plans, setPlans] = useState(null)
+  const [pick, setPick] = useState({})
+  const [open, setOpen] = useState({})
+  const [busy, setBusy] = useState(false)
+  const [err, setErr] = useState('')
+  const [done, setDone] = useState(null)
+  if (master.status !== 'approved') return (
+    <Panel pad={isMobile ? '14px' : undefined} style={{ marginTop: isMobile ? 0 : 20 }}><H2>Send to the markets</H2><Note>Approve the master first. Then you can see, market by market, what changes to match it, and send those changes for approval.</Note></Panel>
+  )
+  const plan = async () => {
+    setErr(''); setBusy(true); setDone(null)
+    try { const r = await onPlan(); setPlans(r.plans); setPick(Object.fromEntries(r.plans.filter(p => p.changes.length).map(p => [p.market, true]))) } catch (e) { setErr(e.message) } finally { setBusy(false) }
+  }
+  const chosen = Object.keys(pick).filter(k => pick[k])
+  const send = async () => {
+    setErr(''); setBusy(true)
+    try { const r = await onSend(chosen); setDone(r); setPlans(null) } catch (e) { setErr(e.message) } finally { setBusy(false) }
+  }
+  const short = (x) => { const s = String(x ?? ''); return !s ? '(none)' : /^https:\/\/m\.media-amazon/.test(s) ? 'image' : s.length > 70 ? `${s.slice(0, 67)}…` : s }
+  return (
+    <Panel pad={isMobile ? '14px' : undefined} style={{ marginTop: isMobile ? 0 : 20 }}>
+      <H2>Send to the markets</H2>
+      <Note style={{ marginTop: 0 }}>Work out what each market must change to match this master. Sending turns those changes into approval cards, one per market, after HQ's checks and Amazon's own validation. Nothing reaches Amazon until each card is approved.</Note>
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 8 }}>
+        <button type="button" onClick={plan} disabled={busy} style={sbtn(!plans)}>{busy && !plans ? 'Working it out…' : plans ? 'Work it out again' : 'Work out the changes'}</button>
+        {plans ? <button type="button" onClick={send} disabled={busy || !chosen.length} style={sbtn(true)}>{busy ? 'Sending…' : `Send ${chosen.length} market${chosen.length === 1 ? '' : 's'} for approval`}</button> : null}
+      </div>
+      {err ? <p role="alert" style={{ color: C.bad, fontSize: 13 }}>{err}</p> : null}
+      {done ? <p style={{ background: C.okBg, color: C.ok, borderRadius: 8, padding: '8px 12px', fontSize: 13.5, fontWeight: 700 }}>Sent {done.sent} change{done.sent === 1 ? '' : 's'} to {done.markets.filter(m => m.sent).map(m => m.market).join(', ') || 'no market'}. HQ checks them within the hour; each market's tab then shows its approval card.</p> : null}
+      {plans ? (
+        <div style={{ marginTop: 12 }}>
+          {plans.map(p => (
+            <div key={p.market} style={{ borderTop: `1px solid ${C.line2}`, padding: '8px 0' }}>
+              <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+                <input type="checkbox" checked={!!pick[p.market]} disabled={!p.changes.length} onChange={e => setPick(x => ({ ...x, [p.market]: e.target.checked }))} aria-label={`Send to Amazon ${p.market}`} />
+                <b style={{ width: 90 }}>Amazon {p.market}</b>
+                <span style={{ fontSize: 13.5, flex: 1 }}>{p.blocked ? <span style={{ color: C.muted }}>{p.blocked}</span> : p.changes.length ? `${p.changes.length} change${p.changes.length === 1 ? '' : 's'}` : 'Already matches the master'}{p.skipped.length ? <span style={{ color: C.warn }}> · {p.skipped.length} not sent yet</span> : null}</span>
+                {p.changes.length || p.skipped.length ? <button type="button" onClick={() => setOpen(o => ({ ...o, [p.market]: !o[p.market] }))} style={sbtn(false)}>{open[p.market] ? 'Hide' : 'Show'}</button> : null}
+              </div>
+              {open[p.market] ? (
+                <ul style={{ margin: '6px 0 0 26px', padding: 0, fontSize: 13, lineHeight: 1.5 }}>
+                  {p.changes.map(c => <li key={c.name}><b>{c.label}</b>: {c.remove ? <span style={{ color: C.bad }}>remove ({short(c.from)})</span> : <>{short(c.from)} → {short(c.to)}</>}</li>)}
+                  {p.skipped.map(s => <li key={`s-${s.name}`} style={{ color: C.warn }}><b>{s.name}</b>: not sent, {s.why}</li>)}
+                </ul>
+              ) : null}
+            </div>
+          ))}
+        </div>
+      ) : null}
     </Panel>
   )
 }
