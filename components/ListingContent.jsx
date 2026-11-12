@@ -6,11 +6,11 @@ import { C, Panel, H2, Note, Chip, Pill, fmtDay } from './approvals/renderers/re
 import { StatusChip } from './approvals/renderers/ListingChangeReview'
 
 const safeUrl = (u) => (/^https:\/\/m\.media-amazon\.com\//i.test(String(u || '')) ? u : null)
-const STATUS = { APPROVED: ['Live', C.okBg, C.ok], DRAFT: ['Draft', C.grey, C.muted], SUBMITTED: ['Submitted', C.blueBg, C.blue], REJECTED: ['Rejected', C.badBg, C.bad] }
+const STATUS = { LIVE: ['Live', C.okBg, C.ok], APPROVED: ['Approved, older version', C.grey, C.muted], DRAFT: ['Draft', C.grey, C.muted], SUBMITTED: ['Submitted', C.blueBg, C.blue], REJECTED: ['Rejected', C.badBg, C.bad] }
 
-function AplusDoc({ d, isMobile }) {
-  const [open, setOpen] = useState(d.status === 'APPROVED')
-  const [label, bg, fg] = STATUS[d.status] || [d.status, C.grey, C.muted]
+function AplusDoc({ d, isMobile, live = false }) {
+  const [open, setOpen] = useState(live)
+  const [label, bg, fg] = STATUS[live ? 'LIVE' : d.status] || [d.status, C.grey, C.muted]
   return (
     <div style={{ borderTop: `1px solid ${C.line2}`, padding: '12px 0' }}>
       <button type="button" onClick={() => setOpen(!open)} aria-expanded={open} style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap', width: '100%', background: 'none', border: 0, padding: 0, font: 'inherit', color: C.ink, cursor: 'pointer', textAlign: 'left', minHeight: 36 }}>
@@ -99,16 +99,36 @@ export function ImagesGallery({ field, isMobile }) {
   )
 }
 
+/** Amazon keeps every A+ version it ever approved, all marked "Approved". Shoppers see the newest approved product A+
+ * and the newest approved brand story; the rest are old versions. Pure. */
+export function liveAplus(docs) {
+  const isStory = (d) => /brand\s*story/i.test(d.name || '')
+  const newest = (list) => list.filter(d => d.status === 'APPROVED').sort((a, b) => String(b.updated || '').localeCompare(String(a.updated || '')))[0] || null
+  const live = [newest(docs.filter(d => !isStory(d))), newest(docs.filter(isStory))].filter(Boolean)
+  const pending = docs.filter(d => d.status !== 'APPROVED')
+  const old = docs.filter(d => !live.includes(d) && !pending.includes(d)).sort((a, b) => String(b.updated || '').localeCompare(String(a.updated || '')))
+  return { live, pending, old }
+}
+
 export function AplusPanel({ product, isMobile }) {
+  const [showOld, setShowOld] = useState(false)
   const docs = Array.isArray(product.aplus) ? product.aplus : null
   if (docs === null) return null
+  const { live, pending, old } = liveAplus(docs)
   return (
     <Panel pad={isMobile ? '14px' : undefined} style={{ marginTop: isMobile ? 0 : 20 }}>
-      <H2>A+ content</H2>
+      <H2>A+ content on Amazon now</H2>
       {docs.length
         ? <>
-            {docs.filter(d => d.status === 'APPROVED').length > 1 ? <Note style={{ marginTop: 0 }}>More than one live A+ document is applied to this product here.</Note> : null}
-            {docs.map(d => <AplusDoc key={d.ref} d={d} isMobile={isMobile} />)}
+            <Note style={{ marginTop: 0 }}>Shoppers see the newest approved product A+ and brand story. Amazon keeps every older approved version too; they are not shown on the page.</Note>
+            {live.map(d => <AplusDoc key={d.ref} d={d} isMobile={isMobile} live />)}
+            {pending.length ? <><p style={{ margin: '16px 0 4px', fontSize: 12, fontWeight: 800, color: C.muted, textTransform: 'uppercase' }}>With Amazon or not approved</p>{pending.map(d => <AplusDoc key={d.ref} d={d} isMobile={isMobile} />)}</> : null}
+            {old.length ? (
+              <div style={{ marginTop: 14 }}>
+                <button type="button" onClick={() => setShowOld(!showOld)} style={{ background: 'none', border: 0, padding: 0, color: C.indigo, font: "800 14px 'Nunito', sans-serif", cursor: 'pointer', minHeight: 36 }}>{showOld ? 'Hide' : 'Show'} {old.length} older version{old.length === 1 ? '' : 's'} (not on the page)</button>
+                {showOld ? old.map(d => <AplusDoc key={d.ref} d={d} isMobile={isMobile} />) : null}
+              </div>
+            ) : null}
           </>
         : <Note>No A+ content is applied to this product in this marketplace.</Note>}
     </Panel>

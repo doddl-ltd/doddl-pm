@@ -8,6 +8,7 @@ import { FIELD_STATUS, ImageCompare, differs } from './approvals/renderers/Listi
 import { AplusPanel, EditableTable, EditsBar, fieldRows } from './ListingContent'
 import { MasterView, MarketImages, MarketAttributes, withMaster } from './ListingMaster'
 import { LivePanel } from './ListingLive'
+import { AplusBuilder } from './ListingAplus'
 
 // Matrix columns; Bullets rolls up Bullet 1–5.
 const COLS = [
@@ -157,10 +158,11 @@ function Detail({ sel, rows, isMobile, onBack, onSelect, onOpenApproval }) {
   const events = (data && data.events) || []
 
   const tabs = siblings.length >= 1 ? (isMobile
-    ? <Pills label="Market"><Pill on={masterTab} onClick={() => setMasterTab(true)}>Master</Pill>{siblings.map(r => <Pill key={keyOf(r)} on={!masterTab && keyOf(r) === keyOf(sel)} onClick={() => { setMasterTab(false); onSelect(r) }}>Amazon {r.marketplace}</Pill>)}</Pills>
+    ? <Pills label="Market"><Pill on={masterTab === 'master'} onClick={() => setMasterTab('master')}>Master</Pill><Pill on={masterTab === 'aplus'} onClick={() => setMasterTab('aplus')}>A+ page</Pill>{siblings.map(r => <Pill key={keyOf(r)} on={!masterTab && keyOf(r) === keyOf(sel)} onClick={() => { setMasterTab(false); onSelect(r) }}>Amazon {r.marketplace}</Pill>)}</Pills>
     : (
       <div role="tablist" style={{ display: 'flex', gap: 22, borderBottom: `1px solid ${C.line}`, marginTop: 18, flexWrap: 'wrap' }}>
-        <button role="tab" aria-selected={masterTab} type="button" onClick={() => setMasterTab(true)} style={{ background: 'none', border: 0, borderBottom: `3px solid ${masterTab ? C.indigo : 'transparent'}`, font: "800 14px 'Nunito', sans-serif", color: masterTab ? C.indigo : C.muted, padding: '0 4px', minHeight: 44, cursor: 'pointer' }}>Master</button>
+<button role="tab" aria-selected={masterTab === 'master'} type="button" onClick={() => setMasterTab('master')} style={{ background: 'none', border: 0, borderBottom: `3px solid ${masterTab === 'master' ? C.indigo : 'transparent'}`, font: "800 14px 'Nunito', sans-serif", color: masterTab === 'master' ? C.indigo : C.muted, padding: '0 4px', minHeight: 44, cursor: 'pointer' }}>Master</button>
+        <button role="tab" aria-selected={masterTab === 'aplus'} type="button" onClick={() => setMasterTab('aplus')} style={{ background: 'none', border: 0, borderBottom: `3px solid ${masterTab === 'aplus' ? C.indigo : 'transparent'}`, font: "800 14px 'Nunito', sans-serif", color: masterTab === 'aplus' ? C.indigo : C.muted, padding: '0 4px', minHeight: 44, cursor: 'pointer' }}>A+ page</button>
         {siblings.map(r => {
           const on = !masterTab && keyOf(r) === keyOf(sel)
           return <button key={keyOf(r)} role="tab" aria-selected={on} type="button" onClick={() => { setMasterTab(false); onSelect(r) }} style={{ background: 'none', border: 0, borderBottom: `3px solid ${on ? C.indigo : 'transparent'}`, font: "800 14px 'Nunito', sans-serif", color: on ? C.indigo : C.muted, padding: '0 4px', minHeight: 44, cursor: 'pointer' }}>Amazon {r.marketplace}</button>
@@ -181,7 +183,9 @@ function Detail({ sel, rows, isMobile, onBack, onSelect, onOpenApproval }) {
     </div>
   ) : null
 
-  const body = data && masterTab ? (
+  const body = data && masterTab === 'aplus' ? (
+    <AplusBuilder asin={sel.asin} isMobile={isMobile} onUpload={uploadImage} />
+  ) : data && masterTab ? (
     <MasterView master={data.master} ptd={data.ptd_uk || data.ptd} livePool={img && Array.isArray(img.live) ? img.live.filter(x => x.slot !== 'SWCH') : []} isMobile={isMobile} onChange={saveMaster} onUpload={uploadImage}
       onPlan={() => masterCall({ asin: sel.asin, op: 'plan' })} onSend={async (markets) => { const r = await masterCall({ asin: sel.asin, op: 'send', markets }); setData(await load()); return r }} />
   ) : data ? (<>

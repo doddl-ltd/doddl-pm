@@ -14,7 +14,7 @@ export default uiRoute({
     const b = req.body || {}
     const asin = String(b.asin || '').trim().toUpperCase()
     if (!/^[A-Z0-9]{10}$/.test(asin)) throw fail(400, 'asin must be a 10-character ASIN')
-    if (!MARKETS.includes(b.locale)) throw fail(400, `locale must be one of ${MARKETS.join(', ')}`)
+    if (!MARKETS.includes(b.locale) && b.locale !== 'APLUS') throw fail(400, `locale must be one of ${MARKETS.join(', ')} or APLUS`)
     const ext = TYPES[b.type]
     if (!ext) throw fail(400, 'Amazon takes JPEG, PNG, TIFF or GIF images')
     if (!(Number(b.size) > 0) || Number(b.size) > MAX) throw fail(400, 'Images must be under 20 MB')
