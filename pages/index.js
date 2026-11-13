@@ -16,12 +16,12 @@ import InboxView from '../components/InboxView'
 import TriageView from '../components/TriageView'
 import ApprovalsHub from '../components/approvals/ApprovalsHub'
 import ApproversView from '../components/approvals/ApproversView'
-import IdeaView from '../components/approvals/IdeaView'
 import StudioView from '../components/StudioView'
 import B2BView from '../components/b2b/B2BView'
 import MailboxesView from '../components/b2b/MailboxesView'
 import CalendarView from '../components/CalendarView'
 import ListingsView from '../components/ListingsView'
+import RequestsView from '../components/RequestsView'
 import ProjectGallery from '../components/ProjectGallery'
 import ProjectSection from '../components/ProjectSection'
 
@@ -37,8 +37,8 @@ async function selectAll(build) {
 }
 
 // Views that can be opened by URL (/?view=approvals&task=<id> is the Teams deep link).
-const URL_VIEWS = ['approvals', 'studio', 'b2b', 'calendar', 'listings', 'idea', 'approvers', 'mailboxes', 'mywork', 'myprojects', 'triage', 'inbox', 'board']
-const HQ_VIEWS = ['studio', 'b2b', 'calendar', 'listings', 'idea', 'approvers', 'mailboxes']
+const URL_VIEWS = ['requests', 'approvals', 'studio', 'b2b', 'calendar', 'listings', 'idea', 'approvers', 'mailboxes', 'mywork', 'myprojects', 'triage', 'inbox', 'board']
+const HQ_VIEWS = ['requests', 'studio', 'b2b', 'calendar', 'listings', 'idea', 'approvers', 'mailboxes']
 
 export default function Home() {
   const [user, setUser]                         = useState(null)
@@ -223,8 +223,8 @@ export default function Home() {
             <ApproversView userName={userName} isMobile={isMobile} onBack={() => goView('approvals')} />
           ) : view === 'mailboxes' ? (
             <MailboxesView isMobile={isMobile} />
-          ) : view === 'idea' ? (
-            <IdeaView isMobile={isMobile} />
+          ) : view === 'idea' || view === 'requests' ? (
+            <RequestsView user={user} isMobile={isMobile} />
           ) : view === 'studio' ? (
             <StudioView user={user} isMobile={isMobile} onOpenApproval={openApprovalCard} />
           ) : view === 'b2b' ? (
