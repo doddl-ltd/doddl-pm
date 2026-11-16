@@ -76,11 +76,11 @@ function useWeekEvents() {
   return events
 }
 
-function Detail({ sel, rows, isMobile, onBack, onSelect, onOpenApproval }) {
+function Detail({ sel, rows, isMobile, onBack, onSelect, onOpenApproval, startTab = false }) {
   const [data, setData] = useState(null)
   const [error, setError] = useState('')
   const [onlyDiff, setOnlyDiff] = useState(isMobile)
-  const [masterTab, setMasterTab] = useState(false)
+  const [masterTab, setMasterTab] = useState(startTab)
   const load = async () => {
     const r = await apiFetch(`/api/listings/${encodeURIComponent(sel.asin)}/${encodeURIComponent(sel.marketplace)}`)
     const j = await r.json().catch(() => ({}))
@@ -293,12 +293,13 @@ function MasterCheck({ rows, isMobile, onOpen }) {
   )
 }
 
-export default function ListingsView({ user, isMobile, onOpenApproval }) {
+export default function ListingsView({ user, isMobile, onOpenApproval, openMaster = null }) {
   const [data, setData] = useState(null)
   const [error, setError] = useState('')
   const [market, setMarket] = useState('all')
   const [attention, setAttention] = useState(null) // null = the board's default per layout
   const [sel, setSel] = useState(null)
+  const [startTab, setStartTab] = useState(false)
   const [find, setFind] = useState('')
   const [open, setOpen] = useState({})
   const events = useWeekEvents()
@@ -317,6 +318,13 @@ export default function ListingsView({ user, isMobile, onOpenApproval }) {
   }, [])
 
   const rows = (data && data.listings) || []
+  // Rollout › "Open the master": straight to that product's Master tab (its UK listing, else its first store).
+  useEffect(() => {
+    if (!openMaster || !data) return
+    const mine = rows.filter(r => r.asin === openMaster.asin)
+    const r = mine.find(x => x.marketplace === 'UK') || mine[0]
+    if (r) { setStartTab('master'); setSel(r) }
+  }, [openMaster && openMaster.n, data])
   const markets = (data && data.marketplaces) || []
   const counts = (data && data.counts) || {}
   const att = attention == null ? isMobile : attention
@@ -339,7 +347,7 @@ export default function ListingsView({ user, isMobile, onOpenApproval }) {
   const asins = allGroups.length
 
   const wrap = (children) => <div style={{ padding: isMobile ? '4px 4px 16px' : '4px 16px 40px', color: C.ink, fontFamily: "'Nunito', sans-serif" }}>{children}</div>
-  if (sel) return wrap(<Detail sel={sel} rows={rows} isMobile={isMobile} onBack={() => setSel(null)} onSelect={setSel} onOpenApproval={onOpenApproval} />)
+  if (sel) return wrap(<Detail key={'d' + String(openMaster ? openMaster.n : 0)} sel={sel} rows={rows} isMobile={isMobile} onBack={() => { setSel(null); setStartTab(false) }} onSelect={setSel} onOpenApproval={onOpenApproval} startTab={startTab} />)
 
   const tiles = [
     ['Global listings', asins, C.ink, `${asins} ASIN${asins === 1 ? '' : 's'} across ${markets.length} market${markets.length === 1 ? '' : 's'} (${rows.length} market listings)`],

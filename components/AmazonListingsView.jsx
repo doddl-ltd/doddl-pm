@@ -9,6 +9,7 @@ const TABS = [['rollout', 'Rollout'], ['live', 'Live check']]
 
 export default function AmazonListingsView(props) {
   const [tab, setTab] = useState(() => { try { return sessionStorage.getItem('hq-listings-tab') || 'rollout' } catch { return 'rollout' } })
+  const [target, setTarget] = useState(null)
   const go = (k) => { setTab(k); try { sessionStorage.setItem('hq-listings-tab', k) } catch { /* private window */ } }
   return (
     <div style={{ color: C.ink, fontFamily: "'Nunito', sans-serif" }}>
@@ -17,7 +18,7 @@ export default function AmazonListingsView(props) {
           <button key={k} type="button" role="tab" aria-selected={tab === k} onClick={() => go(k)} style={{ minHeight: 38, padding: '0 16px', borderRadius: 999, border: `1px solid ${tab === k ? C.indigo : C.border}`, background: tab === k ? C.indigo : '#fff', color: tab === k ? '#fff' : C.indigo, font: "800 13.5px 'Nunito', sans-serif", cursor: 'pointer' }}>{label}</button>
         ))}
       </div>
-      {tab === 'rollout' ? <div style={{ padding: props.isMobile ? '0 4px 16px' : '0 16px 40px' }}><RolloutView isMobile={props.isMobile} /></div> : <ListingsView {...props} />}
+      {tab === 'rollout' ? <div style={{ padding: props.isMobile ? '0 4px 16px' : '0 16px 40px' }}><RolloutView isMobile={props.isMobile} onOpenMaster={(asin) => { setTarget({ asin, n: Date.now() }); go('live') }} /></div> : <ListingsView {...props} openMaster={target} />}
     </div>
   )
 }

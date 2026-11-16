@@ -96,12 +96,12 @@ function PieceDetail({ asin, row, piece, onDone }) {
           </div>
         ))}</div>
       ) : piece.kind !== 'keywords' ? <p style={{ margin: '8px 0 0', fontSize: 13.5 }}>{piece.why || 'Everything matches the master.'}</p> : null}
-      <p style={{ margin: '10px 0 0', fontSize: 13, color: C.muted }}>Translations and the master are edited and approved on the listing itself (Live check › open the listing › Master).</p>
+      <p style={{ margin: '10px 0 0', fontSize: 13, color: C.muted }}>Translations and the master are edited and approved on the master: use Open the master at the top.</p>
     </Panel>
   )
 }
 
-function ProductRollout({ asin, isMobile, onBack }) {
+function ProductRollout({ asin, isMobile, onBack, onOpenMaster }) {
   const [data, setData] = useState(null)
   const [err, setErr] = useState('')
   const [busy, setBusy] = useState('')
@@ -150,6 +150,7 @@ function ProductRollout({ asin, isMobile, onBack }) {
             </p>
             {r && r.last_error ? <p style={{ margin: '4px 0 0', fontSize: 13, color: C.bad }}>Last problem: {r.last_error}</p> : null}
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 10 }}>
+              {onOpenMaster ? <button type="button" onClick={() => onOpenMaster(asin)} style={btn(p.master !== 'approved')}>Open the master</button> : null}
               {p.master === 'approved' && (!r || r.paused) ? <button type="button" disabled={!!busy} onClick={start} style={btn(true)}>{r ? 'Restart the agent' : 'Start the agent'}</button> : null}
               {r && !r.paused ? <button type="button" disabled={!!busy} onClick={() => run({ op: 'stop', asin })} style={btn(false)}>Pause the agent</button> : null}
               {r && !r.paused ? <button type="button" disabled={!!busy} onClick={start} style={btn(false)}>Change the budget</button> : null}
@@ -189,12 +190,12 @@ function ProductRollout({ asin, isMobile, onBack }) {
   )
 }
 
-export default function RolloutView({ isMobile }) {
+export default function RolloutView({ isMobile, onOpenMaster }) {
   const [data, setData] = useState(null)
   const [err, setErr] = useState('')
   const [asin, setAsin] = useState(null)
   useEffect(() => { if (!asin) call('/api/listings/rollout').then(setData).catch((e) => setErr(e.message)) }, [asin])
-  if (asin) return <ProductRollout asin={asin} isMobile={isMobile} onBack={() => setAsin(null)} />
+  if (asin) return <ProductRollout asin={asin} isMobile={isMobile} onBack={() => setAsin(null)} onOpenMaster={onOpenMaster} />
   return (
     <div>
       <Lbl style={{ margin: '0 0 6px' }}>From the master to every store, done only when Amazon shows it</Lbl>
