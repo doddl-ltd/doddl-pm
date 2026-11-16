@@ -24,6 +24,9 @@ import ListingsView from '../components/ListingsView'
 import RequestsView from '../components/RequestsView'
 import ProjectGallery from '../components/ProjectGallery'
 import ProjectSection from '../components/ProjectSection'
+import HqShell from '../components/hq/HqShell'
+import { HomeView, ReportsView, HqLinksView } from '../components/hq/HqViews'
+import { defaultSub, subsOf } from '../lib/hq/sections'
 
 // PostgREST returns at most 1000 rows per request; page until a short page.
 async function selectAll(build) {
@@ -37,14 +40,18 @@ async function selectAll(build) {
 }
 
 // Views that can be opened by URL (/?view=approvals&task=<id> is the Teams deep link).
-const URL_VIEWS = ['requests', 'approvals', 'studio', 'b2b', 'calendar', 'listings', 'idea', 'approvers', 'mailboxes', 'mywork', 'myprojects', 'triage', 'inbox', 'board']
-const HQ_VIEWS = ['requests', 'studio', 'b2b', 'calendar', 'listings', 'idea', 'approvers', 'mailboxes']
+const URL_VIEWS = ['home', 'reports', 'hq', 'requests', 'approvals', 'studio', 'b2b', 'calendar', 'listings', 'idea', 'approvers', 'mailboxes', 'mywork', 'myprojects', 'triage', 'inbox', 'board']
+const HQ_VIEWS = ['home', 'reports', 'hq', 'requests', 'studio', 'b2b', 'calendar', 'listings', 'idea', 'approvers', 'mailboxes']
 
 export default function Home() {
   const [user, setUser]                         = useState(null)
   const [authLoading, setAuthLoading]           = useState(true)
   const [loginLoading, setLoginLoading]         = useState(false)
-  const [view, setView]                         = useState('board')
+  const [view, setView]                         = useState('home')
+  const [sub, setSub]                           = useState(null) // the sub-tab of Requests, Reports and HQ
+  const [reqWaiting, setReqWaiting]             = useState(0)
+  // doddlHQ is the frame; the old PM frame stays one switch away while people settle in (?classic=1, back with ?classic=0).
+  const [classic, setClassic]                   = useState(false)
   const [tasks, setTasks]                       = useState([])
   const [projects, setProjects]                 = useState([])
   const [programmes, setProgrammes]             = useState([])
@@ -77,7 +84,12 @@ export default function Home() {
     const params = new URLSearchParams(window.location.search)
     const v = params.get('view')
     const t = params.get('task')
-    if (v && URL_VIEWS.includes(v)) setView(v)
+    if (v && URL_VIEWS.includes(v)) { setView(v); const tb = params.get('tab'); setSub(tb && subsOf(v).includes(tb) ? tb : defaultSub(v)) }
+    try {
+      const c = params.get('classic')
+      if (c === '1' || c === '0') window.localStorage.setItem('doddlhq-classic', c)
+      setClassic(window.localStorage.getItem('doddlhq-classic') === '1')
+    } catch { /* storage blocked: the doddlHQ frame */ }
     if (t && /^[0-9a-f-]{36}$/i.test(t)) { setView('approvals'); setOpenApproval({ id: t, n: Date.now() }) }
   }, [])
 
@@ -143,9 +155,9 @@ export default function Home() {
     if (typeof window === 'undefined' || !user || view === 'approvals') return
     // The mailbox connect result (?connected= / ?mailbox_error=) is read, then cleared, by the mailboxes view.
     if (view === 'mailboxes' && /[?&](connected|mailbox_error)=/.test(window.location.search)) return
-    const want = HQ_VIEWS.includes(view) ? `/?view=${view}` : '/'
+    const want = HQ_VIEWS.includes(view) ? `/?view=${view}${sub ? `&tab=${sub}` : ''}` : '/'
     if (window.location.pathname + window.location.search !== want) window.history.replaceState(window.history.state, '', want)
-  }, [view, user])
+  }, [view, sub, user])
 
   // Optimistic single-task patch — used by row-level and sidebar edits so the
   // project-header progress bar (and any other derived count) updates in the
@@ -172,7 +184,9 @@ export default function Home() {
   const openProject = (id) => { setView('board'); setActiveProject(id) }
   // Phone tabs: Projects always lands on the project list.
   const navigate = (key) => { if (key === 'board') setActiveProject(null); setOpenApproval(null); setView(key) }
-  const goView = (key) => { setOpenApproval(null); setView(key) }
+  const goView = (key, s) => { setOpenApproval(null); setView(key); setSub(s ?? defaultSub(key)) }
+  // doddlHQ navigation: a section tab (view + optional sub-tab). All projects always lands on the project list.
+  const nav = (key, s) => { if (key === 'board') setActiveProject(null); goView(key, s) }
   const openApprovalCard = (id) => { setOpenApproval({ id, n: Date.now() }); setView('approvals') }
 
   // Visibility: flow tasks only show to the assigned user unless linked to a project
@@ -195,16 +209,17 @@ export default function Home() {
   const activeProjectData = activeProject ? projects.find(p => p.id === activeProject) : null
   const activeProjectIdx  = activeProject ? projects.findIndex(p => p.id === activeProject) : -1
 
-  return (
+  const counts = { unread: unreadCount, mine: myOpenTasksCount, triage: triageCount, approvals: approvalsCount, requests: reqWaiting }
+  const body = (
     <>
-      <GlobalStyles />
-      <AppShell isMobile={isMobile} scrollKey={`${view}|${activeProject || ''}`} onNavigate={navigate}
-        mainRightPad={selectedTask && !isMobile ? taskPanelW : 0}
-        header={{ search, setSearch, userName, handleLogout, onAddTaskClick: onHeaderAddTask, onAddProjectClick: () => setShowAddProject(true) }}
-        sidebar={{ view, setView: goView, projects, programmes, activeProject, setActiveProject: openProject,
-          myFlowCount: myOpenTasksCount, unreadCount, approvalsCount, triageCount }}>
           {loading ? (
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '60%', color: '#6b778c', fontWeight: 600 }}>Loading...</div>
+          ) : view === 'home' ? (
+            <HomeView userName={userName} visibleTasks={visibleTasks} projects={projects} counts={counts} nav={nav} setSelectedTask={setSelectedTask} />
+          ) : view === 'reports' ? (
+            <ReportsView tab={sub || 'dashboard'} nav={nav} />
+          ) : view === 'hq' ? (
+            <HqLinksView tab={sub || 'agents'} />
           ) : view === 'mywork' ? (
             <MyWorkView visibleTasks={visibleTasks} userName={userName}
               projects={projects} setSelectedTask={setSelectedTask} load={load} />
@@ -224,7 +239,8 @@ export default function Home() {
           ) : view === 'mailboxes' ? (
             <MailboxesView isMobile={isMobile} />
           ) : view === 'idea' || view === 'requests' ? (
-            <RequestsView user={user} isMobile={isMobile} />
+            classic ? <RequestsView user={user} isMobile={isMobile} onWaiting={setReqWaiting} />
+              : <RequestsView user={user} isMobile={isMobile} inShell tab={sub || 'new'} setTab={(k) => goView('requests', k)} onWaiting={setReqWaiting} />
           ) : view === 'studio' ? (
             <StudioView user={user} isMobile={isMobile} onOpenApproval={openApprovalCard} />
           ) : view === 'b2b' ? (
@@ -251,7 +267,27 @@ export default function Home() {
             <ProjectGallery projects={projects} visibleTasks={visibleTasks} allTasks={tasks}
               setActiveProject={setActiveProject} setShowAddProject={setShowAddProject} onUpdate={load} />
           )}
-      </AppShell>
+    </>
+  )
+
+  return (
+    <>
+      <GlobalStyles />
+      {classic ? (
+        <AppShell isMobile={isMobile} scrollKey={`${view}|${activeProject || ''}`} onNavigate={navigate}
+          mainRightPad={selectedTask && !isMobile ? taskPanelW : 0}
+          header={{ search, setSearch, userName, handleLogout, onAddTaskClick: onHeaderAddTask, onAddProjectClick: () => setShowAddProject(true) }}
+          sidebar={{ view, setView: goView, projects, programmes, activeProject, setActiveProject: openProject,
+            myFlowCount: myOpenTasksCount, unreadCount, approvalsCount, triageCount }}>
+          {body}
+        </AppShell>
+      ) : (
+        <HqShell view={view} sub={sub} nav={nav} userName={userName} counts={counts} projects={projects} programmes={programmes}
+          openProject={openProject} onLogout={handleLogout} search={search} setSearch={setSearch} isMobile={isMobile}
+          mainRightPad={selectedTask && !isMobile ? taskPanelW : 0} scrollKey={`${view}|${sub || ''}|${activeProject || ''}`}>
+          {body}
+        </HqShell>
+      )}
 
       {selectedTask && <TaskDetailPanel task={selectedTask} user={user} allTasks={tasks} onClose={() => setSelectedTask(null)} onUpdate={load} onPatch={patchTask} panelW={taskPanelW} setPanelW={setTaskPanelW} />}
       {showAddTask && <AddTaskModal projects={projects} parentId={addTaskParentId} projectId={addTaskProjectId} allTasks={tasks} onClose={() => setShowAddTask(false)} onSaved={load} currentUser={user} />}

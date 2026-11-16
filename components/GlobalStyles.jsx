@@ -3,7 +3,7 @@ import Head from 'next/head'
 export default function GlobalStyles() {
   return (
     <Head>
-      <title>doddl PM</title>
+      <title>doddlHQ</title>
       <link rel="preconnect" href="https://fonts.googleapis.com" />
       <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
       <style>{`

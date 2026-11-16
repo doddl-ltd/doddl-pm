@@ -31,8 +31,11 @@ function Rows({ rows }) {
 const Box = ({ children, style }) => <div style={{ background: C.bg, borderRadius: 12, padding: '12px 16px', ...style }}>{children}</div>
 const Err = ({ children }) => (children ? <p role="alert" style={{ fontSize: 13, fontWeight: 700, color: C.bad, margin: '8px 0 0' }}>{children}</p> : null)
 
-export default function RequestsView({ user, isMobile }) {
-  const [tab, setTab] = useState('new')
+// In doddlHQ the shell owns the title and the tabs: it passes `tab`/`setTab` in and sets `inShell`.
+export default function RequestsView({ user, isMobile, tab: shellTab, setTab: shellSetTab, inShell = false, onWaiting }) {
+  const [ownTab, setOwnTab] = useState('new')
+  const tab = shellTab || ownTab
+  const setTab = shellSetTab || setOwnTab
   const [list, setList] = useState(null)
   const [error, setError] = useState('')
   const [sel, setSel] = useState(null)
@@ -55,9 +58,11 @@ export default function RequestsView({ user, isMobile }) {
   const waiting = reqs.filter(isWaiting)
   const tabs = [['new', 'New request'], ['board', 'All requests'], ['standing', 'Standing work'], ['inbox', `Waiting on me (${waiting.length})`]]
   const on = (k) => tab === k || (k === 'new' && tab === 'form') || (k === 'board' && tab === 'detail')
+  useEffect(() => { if (onWaiting && list !== null) onWaiting(waiting.length) }, [onWaiting, list, waiting.length])
 
   return (
-    <div style={{ maxWidth: 1180, margin: '0 auto', fontFamily: "'Nunito', sans-serif", color: C.ink }}>
+    <div style={{ maxWidth: 1180, margin: inShell ? 0 : '0 auto', fontFamily: "'Nunito', sans-serif", color: C.ink }}>
+      {inShell ? null : <>
       <div style={{ display: 'flex', alignItems: 'flex-end', gap: 16, flexWrap: 'wrap' }}>
         <div style={{ flex: '1 1 320px' }}>
           <p style={{ margin: 0, fontSize: 11.5, fontWeight: 800, letterSpacing: '.06em', textTransform: 'uppercase', color: C.muted }}>Requests</p>
@@ -71,6 +76,7 @@ export default function RequestsView({ user, isMobile }) {
           <button key={k} type="button" role="tab" aria-selected={on(k)} onClick={() => setTab(k)} style={{ background: 'none', border: 0, borderBottom: `3px solid ${on(k) ? C.indigo : 'transparent'}`, font: "800 14px 'Nunito', sans-serif", color: on(k) ? C.indigo : C.muted, padding: '0 2px', minHeight: 44, cursor: 'pointer' }}>{label}</button>
         ))}
       </div>
+      </>}
       {error ? <Err>{error}</Err> : null}
       {list === null && !error ? <Note>Loading requests…</Note> : null}
       {list !== null && (tab === 'new' || tab === 'form') ? <NewRequest reqs={reqs} isMobile={isMobile} call={call} open={open} tab={tab} setTab={setTab} /> : null}
