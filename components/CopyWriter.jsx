@@ -39,7 +39,7 @@ export default function CopyWriter({ master, onSave }) {
         <label style={{ fontSize: 13, fontWeight: 800 }}>Anything else it should know (optional)<textarea value={focus} onChange={(e) => setFocus(e.target.value)} rows={2} placeholder="e.g. lead with occupational therapist design; shorter bullets" style={{ ...box, marginTop: 4 }} /></label>
       </div>
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', marginTop: 10 }}>
-        <button type="button" disabled={!!busy} onClick={write} style={btn(true)}>{busy === 'write' ? 'Writing… (about 30 seconds)' : out ? 'Write again (about $0.08)' : 'Write new copy (about $0.08)'}</button>
+        <button type="button" disabled={!!busy} onClick={write} style={btn(true)}>{busy === 'write' ? 'Writing… (about 30 seconds)' : out ? 'Write again (under 1p)' : 'Write new copy (under 1p)'}</button>
         <button type="button" onClick={() => { setOpen(false); setOut(null) }} style={btn(false)}>Close</button>
         <Note style={{ margin: 0 }}>Uses your key terms, the UK Brand Analytics searches for this product, its attributes and the copy in place. Nothing changes until you take a field.</Note>
       </div>
@@ -47,7 +47,7 @@ export default function CopyWriter({ master, onSave }) {
       {out ? (
         <div style={{ marginTop: 12 }}>
           {out.notes ? <p style={{ margin: '0 0 6px', fontSize: 13.5 }}><b>What changed:</b> {out.notes}</p> : null}
-          <p style={{ margin: '0 0 10px', fontSize: 12.5, color: C.muted }}>{out.keywords.basis === 'none' ? 'No UK Brand Analytics searches for this product.' : `Brand Analytics ${out.keywords.period_from} to ${out.keywords.period_to}: ${out.searches_used.length} of ${out.keywords.offered} searches used${out.searches_used.length ? ` (${out.searches_used.slice(0, 12).join(' · ')}${out.searches_used.length > 12 ? '…' : ''})` : ''}.`} Cost ${out.cost_usd.toFixed(2)}.</p>
+          <p style={{ margin: '0 0 10px', fontSize: 12.5, color: C.muted }}>{out.keywords.basis === 'none' ? 'No UK Brand Analytics searches for this product.' : `Brand Analytics ${out.keywords.period_from} to ${out.keywords.period_to}: ${out.searches_used.length} of ${out.keywords.offered} searches used${out.searches_used.length ? ` (${out.searches_used.slice(0, 12).join(' · ')}${out.searches_used.length > 12 ? '…' : ''})` : ''}.`} Cost ${out.cost_usd < 0.01 ? "under 1 cent" : "$" + out.cost_usd.toFixed(2)}.</p>
           {Object.keys(LABEL).map((f) => {
             const now = (master.copy || {})[f] || ''
             const p = (out.problems || {})[f]

@@ -230,7 +230,7 @@ export function AplusBuilder({ asin, sku, isMobile, onUpload }) {
       <Panel pad={isMobile ? '14px' : undefined} style={{ marginTop: isMobile ? 0 : 20 }}>
         <H2>Modules (UK English)</H2>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-          <Btn primary disabled={!!busy || !page.brief.trim() || !images.length} onClick={() => { if (!mods.length || window.confirm('Claude will replace the current modules (and clear the translations). Carry on?')) op({ op: 'build' }, 'Claude is building the page (about 30 seconds)…') }}>Build with Claude (about $0.20)</Btn>
+          <Btn primary disabled={!!busy || !page.brief.trim() || !images.length} onClick={() => { if (!mods.length || window.confirm('Claude will replace the current modules (and clear the translations). Carry on?')) op({ op: 'build' }, 'Claude is building the page (about 30 seconds)…') }}>Build with Claude (about 1p)</Btn>
           {!page.brief.trim() || !images.length ? <span style={{ fontSize: 13, color: C.muted }}>Save a brief and upload images first.</span> : null}
           <span style={{ flex: 1 }} />
           <select value={addType} onChange={e => setAddType(e.target.value)} style={{ ...input, width: 'auto', minHeight: 36 }}>{Object.entries(MODULES).map(([k, d]) => <option key={k} value={k}>{d.label}</option>)}</select>
