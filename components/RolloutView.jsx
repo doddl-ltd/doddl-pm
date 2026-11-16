@@ -88,7 +88,7 @@ function PieceDetail({ asin, row, piece, onDone }) {
     return (
       <Panel style={{ marginTop: 16 }}>
         <H2 style={{ margin: 0, fontSize: 17 }}>{row.market} · Category (browse node)</H2>
-        <p style={{ margin: '8px 0 0', fontSize: 13.5 }}>Browse node numbers are different in every Amazon store, so each store gets its own: matched to the UK category by name, approved by you, then sent and checked like everything else.</p>
+        <p style={{ margin: '8px 0 0', fontSize: 13.5 }}>Browse node numbers are different in every Amazon store, so each store gets its own: the category Amazon itself files the product under there. You approve a change; it is then sent and checked like everything else.</p>
         <p style={{ margin: '10px 0 0', fontSize: 13.5 }}><b>On the listing now:</b> {piece.current && piece.current.length ? piece.current.map(name).join(' · ') : 'none'}</p>
         <p style={{ margin: '6px 0 0', fontSize: 13.5 }}><b>Amazon ranks it in:</b> {piece.ranked && piece.ranked.length ? piece.ranked.map(name).join(' · ') : 'no rank read yet'}</p>
         {ch ? <p style={{ margin: '6px 0 0', fontSize: 13.5 }}><b>{ch.status === 'approved' ? 'Chosen' : 'Suggested'}:</b> {name(ch)}{ch.why ? ` · ${ch.why}` : ''}{ch.status === 'approved' && ch.by ? ` · approved by ${ch.by}` : ''}</p> : null}
@@ -184,7 +184,7 @@ function ProductRollout({ asin, isMobile, onBack, onOpenMaster }) {
             {r && r.last_error ? <p style={{ margin: '4px 0 0', fontSize: 13, color: C.bad }}>Last problem: {r.last_error}</p> : null}
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 10 }}>
               {onOpenMaster ? <button type="button" onClick={() => onOpenMaster(asin)} style={btn(p.master !== 'approved')}>Open the master</button> : null}
-              <button type="button" disabled={!!busy} onClick={() => run({ op: 'suggest', asin }, "Suggest a category for every store from Amazon's own category names? About $0.05 of Claude. You approve each one.", '/api/listings/categories')} style={btn(false)}>{busy === 'suggest' ? 'Suggesting…' : 'Suggest categories'}</button>
+              <button type="button" disabled={!!busy} onClick={() => run({ op: 'suggest', asin }, null, '/api/listings/categories')} style={btn(false)}>{busy === 'suggest' ? 'Suggesting…' : 'Suggest categories'}</button>
               {p.master === 'approved' && (!r || r.paused) ? <button type="button" disabled={!!busy} onClick={start} style={btn(true)}>{r ? 'Restart the agent' : 'Start the agent'}</button> : null}
               {r && !r.paused ? <button type="button" disabled={!!busy} onClick={() => run({ op: 'stop', asin })} style={btn(false)}>Pause the agent</button> : null}
               {r && !r.paused ? <button type="button" disabled={!!busy} onClick={start} style={btn(false)}>Change the budget</button> : null}

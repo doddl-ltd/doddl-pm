@@ -115,3 +115,11 @@ test('the server repaint takes the old words off and sets the translation', asyn
   for (let i = 0; i < mid.length; i += 4) if (mid[i] < 120 && mid[i + 2] > 80) n++
   assert.ok(n > 100, 'the translation is drawn in the middle')
 })
+
+test('a store category is the one Amazon files the product under there, free; kept when the listing already has it', async () => {
+  const { pickCategory } = await import('../lib/pm/categories.js')
+  const de = pickCategory({ current: [{ node: '3968936031' }], ranked: [{ node: '26129871031', title: 'Bestecksets für Kleinkinder', rank: 11 }, { node: '3968936031', title: 'Geschirr', rank: 400 }] })
+  assert.equal(de.node, '26129871031'); assert.equal(de.keep, false)
+  assert.equal(pickCategory({ current: [{ node: '26119033031' }], ranked: [{ node: '26119033031', title: 'Toddler Cutlery Sets', rank: 5 }] }).keep, true)
+  assert.equal(pickCategory({ current: [], ranked: [] }), null)
+})
