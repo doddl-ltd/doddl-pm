@@ -27,6 +27,9 @@ import ProjectSection from '../components/ProjectSection'
 import HqShell from '../components/hq/HqShell'
 import { HomeView, ReportsView, HqLinksView } from '../components/hq/HqViews'
 import { defaultSub, subsOf } from '../lib/hq/sections'
+import { prefetchReports } from '../lib/hq/prefetch'
+
+const CACHE_KEY = 'hq-work-v1'
 
 // PostgREST returns at most 1000 rows per request; page until a short page.
 async function selectAll(build) {
@@ -97,11 +100,16 @@ export default function Home() {
     (async () => {
       try {
         const msal = await getMsal()
-        await msal.handleRedirectPromise()
+        const r = await msal.handleRedirectPromise()
         const accounts = msal.getAllAccounts()
-        if (accounts.length > 0) setUser(accounts[0])
-      } catch (e) { console.error('MSAL init', e) }
-      finally { setAuthLoading(false) }
+        if (accounts.length > 0) { msal.setActiveAccount(r?.account || accounts[0]); setUser(r?.account || accounts[0]); setAuthLoading(false); return }
+        // Nobody signed in in this browser yet: go straight to Microsoft (people are already signed in there, so it comes
+        // straight back). Once per tab, so a failed sign-in shows the button instead of looping.
+        let tried = true
+        try { tried = !!window.sessionStorage.getItem('hqAutoLogin'); window.sessionStorage.setItem('hqAutoLogin', '1') } catch { /* storage blocked */ }
+        if (!tried) { await msal.loginRedirect({ scopes: ['User.Read'], redirectStartPage: window.location.href }); return }
+        setAuthLoading(false)
+      } catch (e) { console.error('MSAL init', e); setAuthLoading(false) }
     })()
   }, [])
 
@@ -117,6 +125,8 @@ export default function Home() {
       selectAll(() => supabase.from('programmes').select('id, name, position').is('archived_at', null).order('position', { ascending: true }).order('name', { ascending: true })),
     ])
     setTasks(t); setProjects(p); setTaskGroups(g); setProgrammes(pr)
+    // Kept for this tab only, so coming back from a report shows the work at once while it refreshes behind.
+    try { window.sessionStorage.setItem(CACHE_KEY, JSON.stringify({ t, p, g, pr })) } catch { /* too big or blocked: no cache */ }
   }, [])
   const loadTriageCount = useCallback(async () => {
     try {
@@ -134,9 +144,19 @@ export default function Home() {
   useEffect(() => { if (user) loadApprovalsBadge() }, [user, loadApprovalsBadge])
   useEffect(() => {
     if (!user) return
+    let cached = null
+    try { cached = JSON.parse(window.sessionStorage.getItem(CACHE_KEY) || 'null') } catch { /* no cache */ }
+    if (cached?.t) {
+      // Show the last copy straight away, then refresh quietly.
+      setTasks(cached.t); setProjects(cached.p || []); setTaskGroups(cached.g || []); setProgrammes(cached.pr || []); setLoading(false)
+      load().catch((e) => console.error('refresh', e))
+      return
+    }
     setLoading(true)
     load().finally(() => setLoading(false))
   }, [user, load])
+  // Fetch the reports' scripts while people are elsewhere, so the first report opens quickly.
+  useEffect(() => { if (user && !classic) prefetchReports() }, [user, classic])
 
   const loadNotifications = useCallback(async () => {
     if (!userName) return
