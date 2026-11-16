@@ -61,7 +61,7 @@ export function HomeView({ userName, visibleTasks = [], projects = [], counts = 
           <p style={{ margin: '0 0 10px', fontSize: 18, fontWeight: 900 }}>Jump to</p>
           {[['Ask for something', () => nav('requests', 'new'), '#eec682'], ['Daily read', hubLink('/hub'), '#9ecfc6'], ['All projects', () => nav('board'), '#e8a5a9'], ['Content calendar', () => nav('calendar'), '#30BEAA']].map(([l, a, c]) => (
             typeof a === 'string'
-              ? <a key={l} href={a} target="_blank" rel="noreferrer" style={{ display: 'block', padding: '11px 0', borderTop: '1.5px solid #947FB6', color: '#fff', textDecoration: 'none', fontWeight: 900, fontSize: 15 }}><span style={{ color: c }}>●</span> {l} ›</a>
+              ? <a key={l} href={a} style={{ display: 'block', padding: '11px 0', borderTop: '1.5px solid #947FB6', color: '#fff', textDecoration: 'none', fontWeight: 900, fontSize: 15 }}><span style={{ color: c }}>●</span> {l} ›</a>
               : <button key={l} type="button" onClick={a} style={{ display: 'block', width: '100%', textAlign: 'left', padding: '11px 0', border: 0, borderTop: '1.5px solid #947FB6', background: 'none', color: '#fff', fontWeight: 900, fontSize: 15, cursor: 'pointer', fontFamily: 'inherit' }}><span style={{ color: c }}>●</span> {l} ›</button>
           ))}
         </section>
@@ -70,7 +70,7 @@ export function HomeView({ userName, visibleTasks = [], projects = [], counts = 
   )
 }
 
-// Reports: the directory for one tab (every Hub report, grouped, with one line each). Reports open in the Hub.
+// Reports: the directory for one tab (every Hub report, grouped, with one line each).
 export function ReportsView({ tab = 'dashboard', nav }) {
   const r = REPORTS[tab] || REPORTS.dashboard
   if (tab === 'mine') {
@@ -86,13 +86,13 @@ export function ReportsView({ tab = 'dashboard', nav }) {
   }
   return (
     <div style={{ maxWidth: 1180, display: 'flex', flexDirection: 'column', gap: 26 }}>
-      <p style={{ margin: 0, fontSize: 15, fontWeight: 700 }}>{r.blurb} Each report opens in the Hub.</p>
+      <p style={{ margin: 0, fontSize: 15, fontWeight: 700 }}>{r.blurb}</p>
       {r.groups.map((g) => (
         <section key={g.h}>
           <p style={{ ...sec, display: 'flex', alignItems: 'center', gap: 8 }}><i style={{ width: 12, height: 12, borderRadius: '50%', background: g.dot, display: 'block' }} />{g.h}</p>
           <Grid min={230} gap={14}>
             {g.items.map(([t, path, line, fin]) => (
-              <a key={path + t} href={hubLink(path)} target="_blank" rel="noreferrer" style={{ ...card, display: 'block', textDecoration: 'none', color: ink }}>
+              <a key={path + t} href={hubLink(path)} style={{ ...card, display: 'block', textDecoration: 'none', color: ink }}>
                 <span style={{ display: 'block', fontSize: 16, fontWeight: 900 }}>{t} ›</span>
                 <span style={{ display: 'block', fontSize: 13.5, fontWeight: 600, marginTop: 4 }}>{line}</span>
                 {fin ? <span style={{ display: 'inline-block', marginTop: 8, fontSize: 11.5, fontWeight: 900, background: '#fff', borderRadius: 999, padding: '2px 10px' }}>Finance access</span> : null}
@@ -105,15 +105,15 @@ export function ReportsView({ tab = 'dashboard', nav }) {
   )
 }
 
-// HQ: the agent and data pages, which live in the Hub today.
+// HQ: the agent and data pages, served at /hub inside this frame.
 export function HqLinksView({ tab = 'agents' }) {
   const links = HQ_LINKS[tab] || HQ_LINKS.agents
   return (
     <div style={{ maxWidth: 1180, display: 'flex', flexDirection: 'column', gap: 18 }}>
-      <p style={{ margin: 0, fontSize: 15, fontWeight: 700 }}>{tab === 'agents' ? 'Agents are switched on and off, with a reason, in the Hub’s control room.' : 'Where every number comes from, and whether it is fresh.'} These pages open in the Hub.</p>
+      <p style={{ margin: 0, fontSize: 15, fontWeight: 700 }}>{tab === 'agents' ? 'Agents are switched on and off, with a reason, in Controls.' : 'Where every number comes from, and whether it is fresh.'}</p>
       <Grid min={240} gap={14}>
         {links.map(([t, path, line]) => (
-          <a key={path} href={hubLink(path)} target="_blank" rel="noreferrer" style={{ ...card, display: 'block', textDecoration: 'none', color: ink }}>
+          <a key={path} href={hubLink(path)} style={{ ...card, display: 'block', textDecoration: 'none', color: ink }}>
             <span style={{ display: 'block', fontSize: 16, fontWeight: 900 }}>{t} ›</span>
             <span style={{ display: 'block', fontSize: 13.5, fontWeight: 600, marginTop: 4 }}>{line}</span>
           </a>

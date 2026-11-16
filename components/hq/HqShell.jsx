@@ -77,13 +77,13 @@ function Mega({ tab, nav, projects, programmes, openProject }) {
           {r.groups.map((g) => (
             <MenuCol key={g.h} g={g}>
               {g.items.map(([t, path, line, fin]) => (
-                <a key={path + t} className="hq-ml" href={hubLink(path)} target="_blank" rel="noreferrer" role="menuitem"><b>{t}</b><span>{line}{fin ? ' · finance access' : ''}</span></a>
+                <a key={path + t} className="hq-ml" href={hubLink(path)} role="menuitem"><b>{t}</b><span>{line}{fin ? ' · finance access' : ''}</span></a>
               ))}
             </MenuCol>
           ))}
           <div className="hq-feat">
             <p style={{ margin: 0, fontWeight: 900 }}>{r.label}</p>
-            <p style={{ margin: '6px 0 0', fontSize: 13, lineHeight: 1.45, color: '#e0daeb' }}>{r.blurb} Reports open in the Hub.</p>
+            <p style={{ margin: '6px 0 0', fontSize: 13, lineHeight: 1.45, color: '#e0daeb' }}>{r.blurb}</p>
             <button type="button" className="hq-ask" onClick={() => nav('requests', 'new')}>Ask for a new report</button>
           </div>
         </div>
@@ -95,7 +95,7 @@ function Mega({ tab, nav, projects, programmes, openProject }) {
     return (
       <div className="hq-mega" role="menu">
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '4px 22px' }}>
-          {links.map(([t, path, line]) => <a key={path} className="hq-ml" href={hubLink(path)} target="_blank" rel="noreferrer" role="menuitem"><b>{t}</b><span>{line}</span></a>)}
+          {links.map(([t, path, line]) => <a key={path} className="hq-ml" href={hubLink(path)} role="menuitem"><b>{t}</b><span>{line}</span></a>)}
         </div>
       </div>
     )
@@ -132,7 +132,8 @@ export default function HqShell({ view, sub, nav, userName, counts = {}, project
   const [more, setMore] = useState(false)
   const badge = (k) => (k ? counts[k] || 0 : 0)
   const railBadge = { home: counts.unread, projects: counts.triage, approvals: counts.approvals, requests: counts.requests }
-  const go = (t) => nav(t.view, t.sub)
+  // Hub reports and the HQ agent and data pages are pages at /hub on this address, shown in this same frame.
+  const go = (t) => (t.href ? window.location.assign(t.href) : nav(t.view, t.sub))
   useEffect(() => { if (isMobile && typeof window !== 'undefined') window.scrollTo(0, 0) }, [isMobile, scrollKey])
   useEffect(() => { setMore(false) }, [view])
 

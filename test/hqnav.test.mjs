@@ -1,7 +1,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
-import { SECTIONS, SECTION, REPORTS, REPORT_TABS, HQ_LINKS, BRAND, sectionOf, activeTab, defaultSub, subsOf, hubLink } from '../lib/hq/sections.js'
+import { SECTIONS, SECTION, REPORTS, REPORT_TABS, HQ_LINKS, BRAND, HUB_ORIGIN, sectionOf, activeTab, defaultSub, subsOf, hubLink } from '../lib/hq/sections.js'
 
 // Every view pages/index.js can render must sit in exactly one doddlHQ section.
 const src = readFileSync(new URL('../pages/index.js', import.meta.url), 'utf8')
@@ -47,7 +47,9 @@ test('reports: every Hub link is a /hub path, unique within its tab; stock lives
   assert.ok(REPORTS.finance.groups.some((g) => g.items.some((i) => i[1] === '/hub/amazon/stock')))
   assert.ok(ecommerce.length >= 10, 'Ecommerce has its 10+ reports')
   for (const l of Object.values(HQ_LINKS).flat()) assert.match(l[1], /^\/hub/)
-  assert.match(hubLink('/hub'), /^https:\/\/.+\/hub$/)
+  assert.equal(hubLink('/hub'), HUB_ORIGIN + '/hub')
+  for (const t of SECTION.reports.tabs) if (t.sub !== 'mine') assert.ok(t.href.startsWith(HUB_ORIGIN + '/hub'), t.href)
+  for (const t of SECTION.hq.tabs) assert.ok(t.href.startsWith(HUB_ORIGIN + '/hub/'), t.href)
 })
 
 test('the rail opens each section on its first tab', () => {
