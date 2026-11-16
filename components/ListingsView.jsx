@@ -246,6 +246,53 @@ function Detail({ sel, rows, isMobile, onBack, onSelect, onOpenApproval }) {
   )
 }
 
+// The daily master check (migration 36): every listing against its master, field by field and attribute by attribute.
+const AUDIT_KINDS = [['to_send', 'To send', 'Sending the master fixes it'], ['translate', 'Translation', 'Waiting on an approved translation'], ['manual', 'Seller Central', 'Several parts: change it there'], ['extra', 'Not in the master', 'Add to the master or remove'], ['problems', 'Case', 'Sent, Amazon still wrong']]
+function MasterCheck({ rows, isMobile, onOpen }) {
+  const [audit, setAudit] = useState(null)
+  const [busy, setBusy] = useState(false)
+  const [err, setErr] = useState('')
+  const load = async () => { const r = await apiFetch('/api/listings/audit'); const j = await r.json().catch(() => ({})); if (!r.ok) throw new Error(j.error || `Could not load the master check (${r.status})`); setAudit(j.audit || []) }
+  useEffect(() => { load().catch(e => setErr(e.message)) }, [])
+  const runNow = async () => { setBusy(true); setErr(''); try { const r = await apiFetch('/api/listings/audit', { method: 'POST', body: '{}' }); const j = await r.json().catch(() => ({})); if (!r.ok) throw new Error(j.error || `Could not run the check (${r.status})`); await load() } catch (e) { setErr(e.message) } finally { setBusy(false) } }
+  if (audit == null) return err ? <Note style={{ color: C.bad }}>{err}</Note> : null
+  const open = (a) => AUDIT_KINDS.reduce((n, [k]) => n + (a[k] || 0), 0)
+  const differing = audit.filter(a => open(a) > 0).sort((a, b) => open(b) - open(a))
+  const when = audit.reduce((t, a) => (a.checked_at > t ? a.checked_at : t), '')
+  const name = (a) => { const r = rows.find(x => x.asin === a.asin && x.marketplace === a.marketplace); return r ? `${r.product || r.sku || a.asin} · ${a.marketplace}` : `${a.asin} · ${a.marketplace}` }
+  return (
+    <Panel pad={isMobile ? '14px' : '18px 20px'} style={{ marginTop: isMobile ? 0 : 20 }}>
+      <div style={{ display: 'flex', gap: 12, alignItems: 'baseline', flexWrap: 'wrap' }}>
+        <H2 style={{ margin: 0, flex: '1 1 320px' }}>Against the master: {audit.length - differing.length} of {audit.length} listings match</H2>
+        <span style={{ fontSize: 13, color: C.muted }}>{when ? `Checked ${fmtWhen(when)}` : 'Not checked yet'}</span>
+        <button type="button" onClick={runNow} disabled={busy} style={{ minHeight: 36, padding: '0 14px', borderRadius: 8, border: `1px solid ${C.border}`, background: '#fff', color: C.indigo, font: "800 13px 'Nunito', sans-serif", cursor: busy ? 'wait' : 'pointer' }}>{busy ? 'Checking…' : 'Check now'}</button>
+      </div>
+      <Note style={{ marginTop: 4 }}>Every copy field, attribute and image on every listing, compared with its master each day after HQ reads Amazon.</Note>
+      {err ? <p role="alert" style={{ color: C.bad, fontSize: 13 }}>{err}</p> : null}
+      <div style={{ display: 'grid', gridTemplateColumns: `repeat(${isMobile ? 2 : 5}, minmax(0, 1fr))`, gap: 10, marginTop: 12 }}>
+        {AUDIT_KINDS.map(([k, label, sub]) => (
+          <div key={k} style={{ background: '#F7F5FB', borderRadius: 12, padding: '10px 12px' }}>
+            <p style={{ margin: 0, fontSize: 12, fontWeight: 800, color: C.muted, textTransform: 'uppercase' }}>{label}</p>
+            <p style={{ margin: '2px 0 0', fontSize: 22, fontWeight: 800, color: audit.some(a => a[k]) ? (k === 'problems' ? C.bad : C.warn) : C.ok }}>{audit.reduce((n, a) => n + (a[k] || 0), 0)}</p>
+            <p style={{ margin: 0, fontSize: 12, color: C.muted }}>{sub}</p>
+          </div>
+        ))}
+      </div>
+      {differing.length ? (
+        <div style={{ marginTop: 12 }}>
+          {differing.slice(0, 12).map(a => (
+            <button key={a.asin + a.marketplace} type="button" onClick={() => onOpen(a)} style={{ display: 'flex', width: '100%', gap: 10, alignItems: 'center', textAlign: 'left', padding: '9px 0', border: 0, borderTop: '1px solid #F1EEF6', background: 'none', cursor: 'pointer', font: "600 14px 'Nunito', sans-serif", color: C.ink }}>
+              <b style={{ flex: '1 1 auto' }}>{name(a)}</b>
+              <span style={{ fontSize: 13, color: C.muted }}>{AUDIT_KINDS.filter(([k]) => a[k]).map(([k, label]) => `${a[k]} ${label.toLowerCase()}`).join(' · ')}{a.master && a.master !== 'approved' ? ' · master not approved' : ''}</span>
+            </button>
+          ))}
+          {differing.length > 12 ? <Note style={{ marginTop: 6 }}>And {differing.length - 12} more.</Note> : null}
+        </div>
+      ) : null}
+    </Panel>
+  )
+}
+
 export default function ListingsView({ user, isMobile, onOpenApproval }) {
   const [data, setData] = useState(null)
   const [error, setError] = useState('')
@@ -335,6 +382,7 @@ export default function ListingsView({ user, isMobile, onOpenApproval }) {
               </div>
             ))}
           </div>
+          <MasterCheck rows={rows} isMobile onOpen={(a) => { const r = rows.find(x => x.asin === a.asin && x.marketplace === a.marketplace); if (r) setSel(r) }} />
           {searchBox}
           <Pills label="Market">{['all', ...markets].map(m => <Pill key={m} on={market === m} onClick={() => setMarket(m)}>{m === 'all' ? 'All markets' : m}</Pill>)}</Pills>
           <Tick checked={att} onChange={setAttention}>Only listings that need attention</Tick>
@@ -376,6 +424,7 @@ export default function ListingsView({ user, isMobile, onOpenApproval }) {
           </Panel>
         ))}
       </div>
+      <MasterCheck rows={rows} isMobile={false} onOpen={(a) => { const r = rows.find(x => x.asin === a.asin && x.marketplace === a.marketplace); if (r) setSel(r) }} />
       <div style={{ marginTop: 22 }}>{searchBox}{words.length ? <span style={{ marginLeft: 12, fontSize: 14, color: C.muted }}>{groups.length} ASIN{groups.length === 1 ? '' : 's'} found</span> : null}</div>
       <div role="tablist" style={{ display: 'flex', gap: 22, borderBottom: `1px solid ${C.line}`, marginTop: 14, flexWrap: 'wrap' }}>
         {['all', ...markets].map(m => {
