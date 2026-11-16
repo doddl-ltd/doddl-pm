@@ -47,6 +47,8 @@ test('rollout stages: live only when Amazon shows it; made / needs you / ready t
   assert.match(de.next, /needs you/)
   const nl = rolloutMarket({ master: master({ status: 'draft' }), market: 'NL', product: product(), fields: [] })
   assert.equal(nl.images[1].stage, 'todo')
+  assert.equal(nl.pieces.you, 0, 'an unapproved master is one job (approve it), not one per piece')
+  assert.match(nl.next, /Waits for the master/)
   assert.equal(rolloutMarket({ master: master(), market: 'PL', product: null }).sold, false)
   assert.equal(worst(['live', 'sent', 'problem']), 'problem')
 })
