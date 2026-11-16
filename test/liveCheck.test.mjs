@@ -76,7 +76,7 @@ test('the planner does not send again what is already sent and waiting, or live'
   const p = product({ attributes: [{ name: 'main_product_image_locator', value: `media_location: ${ours}`, source: 'our listing' }] })
   const fields = [{ field: 'Title', live: 'doddl Old title' }, { field: 'Images', live: [{ slot: 'MAIN', url: 'https://m.media-amazon.com/images/I/new.jpg' }] }]
   const held = [
-    edit({ now: undefined }),
+    edit({ now: undefined, sent_at: new Date(Date.now() - 3600e3).toISOString() }), // sent an hour ago: inside Amazon's 72 hours whatever today is
     edit({ id: 'e2', kind: 'attribute', name: 'main_product_image_locator', value: ours, live: 'https://m.media-amazon.com/images/I/old.jpg' }),
   ]
   const plan = planMarket({ master, market: 'UK', product: p, fields, held })

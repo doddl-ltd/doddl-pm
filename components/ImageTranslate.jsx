@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { apiFetch } from '../lib/supabase'
 import { C, Panel, H2, Note } from './approvals/renderers/reviewKit'
 import { FONT, WEIGHT, layoutBlock, lineOrigin, panelColour } from '../lib/pm/imagePaint'
+import { masterImages } from '../lib/pm/marketImages'
 
 // Listing images translated per market, in doddlHQ (lib/pm/imageTranslate.js, migration 39). Claude reads the words and
 // translates them; this browser repaints each text panel and sets the translation in the brand font; Claude checks the
@@ -59,7 +60,7 @@ export function ImageTranslate({ master, locale, onUpload, onApproved }) {
   const [rows, setRows] = useState(null)
   const [busy, setBusy] = useState('')
   const [err, setErr] = useState('')
-  const source = (((master.images || {}).UK) || []).filter((x) => x && x.slot !== 'MAIN' && x.url)
+  const source = masterImages(master).slice(1).filter((x) => x && x.url)
   const load = async () => {
     const r = await apiFetch(`/api/listings/image-translate?asin=${master.asin}&locale=${locale}`)
     const j = await r.json().catch(() => ({}))

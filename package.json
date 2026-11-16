@@ -11,6 +11,7 @@
     "@anthropic-ai/sdk": "0.133.0",
     "@azure/msal-browser": "3.11.1",
     "@modelcontextprotocol/sdk": "1.32.1",
+    "@napi-rs/canvas": "1.1.0",
     "@supabase/supabase-js": "2.39.0",
     "docx": "^9.6.1",
     "next": "14.1.0",

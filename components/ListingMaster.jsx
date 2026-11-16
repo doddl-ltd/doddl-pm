@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { C, Panel, H2, Note, Pill } from './approvals/renderers/reviewKit'
 import { EditableTable } from './ListingContent'
 import MediaView from './hq/MediaView'
-import { ImageTranslate } from './ImageTranslate'
+import { masterImages, marketImages } from '../lib/pm/marketImages'
 
 export const ENGLISH = ['UK', 'US', 'CA', 'IE']
 export const LOCALES = ['UK', 'US', 'CA', 'DE', 'FR', 'ES', 'IT', 'NL', 'BE', 'IE', 'PL', 'SE']
@@ -180,18 +180,20 @@ export function Lightbox({ im, onClose }) {
 export function MarketImages({ field, master, market, isMobile }) {
   const [big, setBig] = useState(null)
   const live = Array.isArray(field && field.live) ? field.live.filter(x => x && x.slot !== 'SWCH') : []
-  const want = master && master.images ? master.images[market] || null : null
+  // The store's set is made from the one master set (lib/pm/marketImages.js); translated slots show once approved.
+  const derived = master ? marketImages(master, market, []) : []
+  const want = derived.length ? (ENGLISH.includes(market) ? derived : derived.map((x) => ({ slot: x.slot, url: x.source }))) : null
   const off = want ? live.filter((x, i) => !want[i] || want[i].url !== x.url).length + Math.max(0, want.length - live.length) : null
   return (
     <Panel pad={isMobile ? '14px' : undefined} style={{ marginTop: isMobile ? 0 : 20 }}>
       <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, flexWrap: 'wrap' }}>
         <H2 style={{ margin: 0 }}>Images on Amazon {market}</H2>
-        {want ? <span style={{ fontSize: 13, fontWeight: 800, color: off ? C.warn : C.ok }}>{off ? `${off} slot${off === 1 ? '' : 's'} differ from the master` : 'Every slot matches the master'}</span> : <span style={{ fontSize: 13, color: C.muted }}>No master image set for {market} yet</span>}
+        {want ? <span style={{ fontSize: 13, fontWeight: 800, color: off ? C.warn : C.ok }}>{ENGLISH.includes(market) ? (off ? `${off} slot${off === 1 ? '' : 's'} differ from the master` : 'Every slot matches the master') : 'Translated versions: see Rollout'}</span> : <span style={{ fontSize: 13, color: C.muted }}>No master images yet</span>}
       </div>
       {field && field.note ? <p style={{ margin: '8px 0 0', fontSize: 13, background: C.badBg, color: C.bad, borderRadius: 8, padding: '6px 10px' }}>{field.note}</p> : null}
       <div style={{ marginTop: 10 }}><Filmstrip slots={live} expected={want} onOpen={setBig} size={isMobile ? 84 : 104} /></div>
       {want ? (<>
-        <p style={{ margin: '14px 0 6px', fontSize: 12, fontWeight: 800, color: C.muted, textTransform: 'uppercase', letterSpacing: '.05em' }}>Master images for {market}</p>
+        <p style={{ margin: '14px 0 6px', fontSize: 12, fontWeight: 800, color: C.muted, textTransform: 'uppercase', letterSpacing: '.05em' }}>{ENGLISH.includes(market) ? `Master images (what ${market} should show)` : `Master images (${market} gets the agent's translated versions)`}</p>
         <Filmstrip slots={want} onOpen={setBig} size={isMobile ? 70 : 84} />
       </>) : null}
       <Lightbox im={big} onClose={() => setBig(null)} />
@@ -217,7 +219,7 @@ const STATUS = { seed: ['Started from the live UK listing: check it, edit it, th
 
 export function MasterView({ master, ptd, livePool, isMobile, onChange, onPlan, onSend, onUpload, onReload }) {
   const [uploading, setUploading] = useState('')
-  const [locale, setLocale] = useState('UK')
+  const locale = 'MASTER'
   const [big, setBig] = useState(null)
   const [picking, setPicking] = useState(false)
   const [library, setLibrary] = useState(false)
@@ -249,7 +251,7 @@ export function MasterView({ master, ptd, livePool, isMobile, onChange, onPlan, 
       ),
     }
   })
-  const imgs = (master.images || {})[locale] || []
+  const imgs = masterImages(master)
   const setImgs = (slots) => run({ asin: master.asin, op: 'images', locale, slots: slots.map(x => ({ url: x.url })) })
   const move = (i, d) => { const s = imgs.slice(); const j = i + d; if (j < 0 || j >= s.length) return; [s[i], s[j]] = [s[j], s[i]]; setImgs(s) }
   const ctl = (i) => (
@@ -275,10 +277,8 @@ export function MasterView({ master, ptd, livePool, isMobile, onChange, onPlan, 
       </Panel>
 
       <Panel pad={isMobile ? '14px' : undefined} style={{ marginTop: isMobile ? 0 : 20 }}>
-        <H2>Images per market</H2>
-        <div role="tablist" aria-label="Market" style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 10 }}>
-          {LOCALES.map(l => <Pill key={l} on={locale === l} onClick={() => { setLocale(l); setPicking(false) }} style={{ minHeight: 34 }}>{l}{((master.images || {})[l] || []).length ? '' : ' ·'}</Pill>)}
-        </div>
+        <H2>Master images (one set for every store)</H2>
+        <Note style={{ marginTop: 0, marginBottom: 10 }}>UK, US, CA and IE use this set as it is. For every other store the listing agent makes a translated version of each image (the main image stays as it is); you approve them in Rollout.</Note>
         <Filmstrip slots={imgs} onOpen={setBig} size={isMobile ? 84 : 110} controls={ctl} />
         <div style={{ marginTop: 10, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           <button type="button" onClick={() => setPicking(!picking)} disabled={imgs.length >= 9} style={{ minHeight: 34, padding: '0 12px', borderRadius: 8, border: `1px solid ${C.border}`, background: '#fff', color: C.indigo, font: "800 13px 'Nunito', sans-serif", cursor: 'pointer' }}>{picking ? 'Done adding' : 'Add an image'}</button>
@@ -303,21 +303,19 @@ export function MasterView({ master, ptd, livePool, isMobile, onChange, onPlan, 
             </label>
           ) : null}
           <button type="button" onClick={() => setLibrary(!library)} disabled={imgs.length >= 9} style={{ minHeight: 34, padding: '0 12px', borderRadius: 8, border: `1px solid ${C.border}`, background: library ? C.indigo : '#fff', color: library ? '#fff' : C.indigo, font: "800 13px 'Nunito', sans-serif", cursor: 'pointer' }}>{library ? 'Close the library' : 'From the image library'}</button>
-          {locale !== 'UK' && ((master.images || {}).UK || []).length ? <button type="button" onClick={() => setImgs((master.images || {}).UK)} style={{ minHeight: 34, padding: '0 12px', borderRadius: 8, border: `1px solid ${C.border}`, background: '#fff', color: C.indigo, font: "800 13px 'Nunito', sans-serif", cursor: 'pointer' }}>Use the UK set for {locale}</button> : null}
         </div>
         {picking ? (
           <div style={{ marginTop: 10, padding: 10, background: C.bg, borderRadius: 10 }}>
-            <p style={{ margin: '0 0 8px', fontSize: 13, color: C.muted }}>Images on Amazon or uploaded for this product (any market). Click one to add it to the end of the {locale} set.</p>
+            <p style={{ margin: '0 0 8px', fontSize: 13, color: C.muted }}>Images on Amazon or uploaded for this product (any market). Click one to add it to the end of the master set.</p>
             <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
               {pool.map(im => <button key={im.url} type="button" onClick={() => setImgs([...imgs, im])} title="Add" style={{ width: 72, height: 72, padding: 0, border: `1px solid ${C.line}`, borderRadius: 6, background: '#fff', cursor: 'copy', overflow: 'hidden' }}><img src={safeImg(im.url)} alt="" loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'contain' }} /></button>)}
             </div>
           </div>
         ) : null}
-        {!ENGLISH.includes(locale) && onUpload ? <ImageTranslate master={master} locale={locale} onUpload={onUpload} onApproved={onReload} /> : null}
         {library ? (
           <div style={{ marginTop: 12, padding: 12, background: C.bg, borderRadius: 12 }}>
-            <p style={{ margin: '0 0 10px', fontSize: 13, color: C.muted }}>The doddl image library (doddl HQ Knowledge › 14 Media), cleared for Amazon. The image you pick goes to the end of the {locale} set.</p>
-            <MediaView compact defaultType="02 Product images" pickLabel={`Add to ${locale}`} onPick={(im) => setImgs([...imgs, { url: im.url }])} />
+            <p style={{ margin: '0 0 10px', fontSize: 13, color: C.muted }}>The doddl image library (doddl HQ Knowledge › 14 Media), cleared for Amazon. The image you pick goes to the end of the master set.</p>
+            <MediaView compact defaultType="02 Product images" pickLabel="Add to the master" onPick={(im) => setImgs([...imgs, { url: im.url }])} />
           </div>
         ) : null}
         <Lightbox im={big} onClose={() => setBig(null)} />
