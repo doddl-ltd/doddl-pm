@@ -5,6 +5,7 @@ import { apiFetch } from '../lib/supabase'
 import { C, Panel, H2, Note, Chip, Pill, Btn, fmtWhen } from './approvals/renderers/reviewKit'
 import { MODULES, MAX_MODULES, ALT_MAX, aplusProblems, fits, aplusLiveState, modulesFor } from '../lib/pm/aplusModel'
 import { liveAplus } from './ListingContent'
+import MediaView from './hq/MediaView'
 
 const MARKETS = ['UK', 'US', 'CA', 'DE', 'FR', 'ES', 'IT', 'NL', 'BE', 'IE', 'PL', 'SE']
 const LOCALES = ['DE', 'FR', 'ES', 'IT', 'NL', 'BE', 'PL', 'SE']
@@ -101,7 +102,8 @@ function ModuleEditor({ m, i, n, images, onChange, onMove, onRemove }) {
   )
 }
 
-export function AplusBuilder({ asin, isMobile, onUpload }) {
+export function AplusBuilder({ asin, sku, isMobile, onUpload }) {
+  const [library, setLibrary] = useState(false)
   const [data, setData] = useState(null)
   const [mods, setMods] = useState(null)
   const [dirty, setDirty] = useState(false)
@@ -160,6 +162,14 @@ export function AplusBuilder({ asin, isMobile, onUpload }) {
     }
     setBusy(''); await load().catch(() => {})
   }
+  // A library image (doddl HQ Knowledge › 14 Media): already copied to the listing store by the picker; read its size here.
+  const addFromLibrary = async (im) => {
+    const px = await new Promise((ok) => { const i = new Image(); i.onload = () => ok({ w: i.naturalWidth, h: i.naturalHeight }); i.onerror = () => ok(null); i.src = im.url })
+    if (!px) throw new Error(`${im.name}: could not read its size`)
+    const r = await apiFetch('/api/listings/aplus', { method: 'POST', body: JSON.stringify({ asin, op: 'image_add', url: im.url, w: px.w, h: px.h, name: im.name }) })
+    if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || 'Could not add the image')
+    await load().catch(() => {})
+  }
   const setMod = (i, m) => { setMods(mods.map((x, j) => j === i ? m : x)); setDirty(true) }
   const move = (i, d) => { const s = mods.slice(); const j = i + d; [s[i], s[j]] = [s[j], s[i]]; setMods(s); setDirty(true) }
   const v = (page.variants || {})[locale]
@@ -193,6 +203,12 @@ export function AplusBuilder({ asin, isMobile, onUpload }) {
           Upload A+ images
           <input type="file" accept="image/jpeg,image/png" multiple style={{ display: 'none' }} onChange={upload} disabled={!!busy} />
         </label>
+        <button type="button" onClick={() => setLibrary(!library)} style={{ ...small, marginLeft: 8, minHeight: 36, fontSize: 13 }}>{library ? 'Close the library' : 'From the image library'}</button>
+        {library ? (
+          <div style={{ marginTop: 12, padding: 12, background: C.bg, borderRadius: 12 }}>
+            <MediaView compact pickLabel="Add to A+" onPick={addFromLibrary} />
+          </div>
+        ) : null}
         <div style={{ display: 'grid', gridTemplateColumns: `repeat(auto-fill, minmax(${isMobile ? 150 : 200}px, 1fr))`, gap: 12, marginTop: 12 }}>
           {images.map(x => {
             const ok = Object.entries(MODULES).filter(([, d]) => (d.image && fits(x, d.image)) || (d.block && fits(x, d.block.image))).map(([, d]) => d.label)

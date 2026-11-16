@@ -26,6 +26,7 @@ import ProjectGallery from '../components/ProjectGallery'
 import ProjectSection from '../components/ProjectSection'
 import HqShell from '../components/hq/HqShell'
 import { HomeView, ReportsView, HqLinksView } from '../components/hq/HqViews'
+import MediaView from '../components/hq/MediaView'
 import { defaultSub, subsOf } from '../lib/hq/sections'
 import { prefetchReports } from '../lib/hq/prefetch'
 
@@ -43,8 +44,8 @@ async function selectAll(build) {
 }
 
 // Views that can be opened by URL (/?view=approvals&task=<id> is the Teams deep link).
-const URL_VIEWS = ['home', 'reports', 'hq', 'requests', 'approvals', 'studio', 'b2b', 'calendar', 'listings', 'idea', 'approvers', 'mailboxes', 'mywork', 'myprojects', 'triage', 'inbox', 'board']
-const HQ_VIEWS = ['home', 'reports', 'hq', 'requests', 'studio', 'b2b', 'calendar', 'listings', 'idea', 'approvers', 'mailboxes']
+const URL_VIEWS = ['home', 'reports', 'hq', 'media', 'requests', 'approvals', 'studio', 'b2b', 'calendar', 'listings', 'idea', 'approvers', 'mailboxes', 'mywork', 'myprojects', 'triage', 'inbox', 'board']
+const HQ_VIEWS = ['home', 'reports', 'hq', 'media', 'requests', 'studio', 'b2b', 'calendar', 'listings', 'idea', 'approvers', 'mailboxes']
 
 export default function Home() {
   const [user, setUser]                         = useState(null)
@@ -238,6 +239,8 @@ export default function Home() {
             <HomeView userName={userName} visibleTasks={visibleTasks} projects={projects} counts={counts} nav={nav} setSelectedTask={setSelectedTask} />
           ) : view === 'reports' ? (
             <ReportsView tab={sub || 'dashboard'} nav={nav} />
+          ) : view === 'media' ? (
+            <MediaView />
           ) : view === 'hq' ? (
             <HqLinksView tab={sub || 'agents'} />
           ) : view === 'mywork' ? (

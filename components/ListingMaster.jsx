@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { C, Panel, H2, Note, Pill } from './approvals/renderers/reviewKit'
 import { EditableTable } from './ListingContent'
+import MediaView from './hq/MediaView'
 
 export const ENGLISH = ['UK', 'US', 'CA', 'IE']
 export const LOCALES = ['UK', 'US', 'CA', 'DE', 'FR', 'ES', 'IT', 'NL', 'BE', 'IE', 'PL', 'SE']
@@ -218,6 +219,7 @@ export function MasterView({ master, ptd, livePool, isMobile, onChange, onPlan, 
   const [locale, setLocale] = useState('UK')
   const [big, setBig] = useState(null)
   const [picking, setPicking] = useState(false)
+  const [library, setLibrary] = useState(false)
   const [err, setErr] = useState('')
   const [saved, setSaved] = useState({})
   useEffect(() => { setSaved({}) }, [master && master.asin])
@@ -299,6 +301,7 @@ export function MasterView({ master, ptd, livePool, isMobile, onChange, onPlan, 
               }} />
             </label>
           ) : null}
+          <button type="button" onClick={() => setLibrary(!library)} disabled={imgs.length >= 9} style={{ minHeight: 34, padding: '0 12px', borderRadius: 8, border: `1px solid ${C.border}`, background: library ? C.indigo : '#fff', color: library ? '#fff' : C.indigo, font: "800 13px 'Nunito', sans-serif", cursor: 'pointer' }}>{library ? 'Close the library' : 'From the image library'}</button>
           {locale !== 'UK' && ((master.images || {}).UK || []).length ? <button type="button" onClick={() => setImgs((master.images || {}).UK)} style={{ minHeight: 34, padding: '0 12px', borderRadius: 8, border: `1px solid ${C.border}`, background: '#fff', color: C.indigo, font: "800 13px 'Nunito', sans-serif", cursor: 'pointer' }}>Use the UK set for {locale}</button> : null}
         </div>
         {picking ? (
@@ -307,6 +310,12 @@ export function MasterView({ master, ptd, livePool, isMobile, onChange, onPlan, 
             <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
               {pool.map(im => <button key={im.url} type="button" onClick={() => setImgs([...imgs, im])} title="Add" style={{ width: 72, height: 72, padding: 0, border: `1px solid ${C.line}`, borderRadius: 6, background: '#fff', cursor: 'copy', overflow: 'hidden' }}><img src={safeImg(im.url)} alt="" loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'contain' }} /></button>)}
             </div>
+          </div>
+        ) : null}
+        {library ? (
+          <div style={{ marginTop: 12, padding: 12, background: C.bg, borderRadius: 12 }}>
+            <p style={{ margin: '0 0 10px', fontSize: 13, color: C.muted }}>The doddl image library (doddl HQ Knowledge › 14 Media), cleared for Amazon. The image you pick goes to the end of the {locale} set.</p>
+            <MediaView compact defaultType="02 Product images" pickLabel={`Add to ${locale}`} onPick={(im) => setImgs([...imgs, { url: im.url }])} />
           </div>
         ) : null}
         <Lightbox im={big} onClose={() => setBig(null)} />

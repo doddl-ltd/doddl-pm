@@ -187,7 +187,7 @@ function Detail({ sel, rows, isMobile, onBack, onSelect, onOpenApproval }) {
   ) : null
 
   const body = data && masterTab === 'aplus' ? (
-    <AplusBuilder asin={sel.asin} isMobile={isMobile} onUpload={uploadImage} />
+    <AplusBuilder asin={sel.asin} sku={(data && data.master && data.master.master_sku) || sel.sku || ''} isMobile={isMobile} onUpload={uploadImage} />
   ) : data && masterTab ? (
     <MasterView master={data.master} ptd={data.ptd_uk || data.ptd} livePool={img && Array.isArray(img.live) ? img.live.filter(x => x.slot !== 'SWCH') : []} isMobile={isMobile} onChange={saveMaster} onUpload={uploadImage}
       onPlan={() => masterCall({ asin: sel.asin, op: 'plan' })} onSend={async (markets) => { const r = await masterCall({ asin: sel.asin, op: 'send', markets }); setData(await load()); return r }} />

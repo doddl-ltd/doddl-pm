@@ -1,5 +1,6 @@
 import { adminClient } from '../../../../lib/server/admin'
 import { finishConnect, CONNECT_COOKIE } from '../../../../lib/pm/b2bMail'
+import { finishMediaConnect, MEDIA_COOKIE } from '../../../../lib/pm/mediaLibrary'
 
 // GET /api/b2b/mailboxes/callback?code=&state= (Microsoft redirects here). No MSAL header can ride on a redirect, so
 // the caller is proved by the encrypted cookie set by POST /connect (state + PKCE verifier + who, 10 minutes).
@@ -15,8 +16,19 @@ function cookieValue(req, name) {
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') { res.setHeader('Allow', 'GET'); return res.status(405).end() }
-  res.setHeader('Set-Cookie', `${CONNECT_COOKIE}=; Path=/api/b2b/mailboxes; Max-Age=0; HttpOnly; Secure; SameSite=Lax`)
   res.setHeader('Cache-Control', 'no-store')
+  // The image library's Microsoft sign-in shares this return address (no new address on the Entra app).
+  const media = cookieValue(req, MEDIA_COOKIE)
+  if (media) {
+    res.setHeader('Set-Cookie', `${MEDIA_COOKIE}=; Path=/api/b2b/mailboxes; Max-Age=0; HttpOnly; Secure; SameSite=Lax`)
+    let m
+    try { m = await finishMediaConnect(adminClient('media connect'), { query: req.query || {}, cookie: media }) } catch (e) { console.error('media callback:', e.message); m = { error: 'server' } }
+    const mq = new URLSearchParams({ view: 'media' })
+    if (m.ok) mq.set('library', 'connected'); else mq.set('library_error', m.error || 'unknown')
+    res.writeHead(302, { Location: `/?${mq}` })
+    return res.end()
+  }
+  res.setHeader('Set-Cookie', `${CONNECT_COOKIE}=; Path=/api/b2b/mailboxes; Max-Age=0; HttpOnly; Secure; SameSite=Lax`)
   let out
   try {
     out = await finishConnect(adminClient('mailbox connect'), { query: req.query || {}, cookie: cookieValue(req, CONNECT_COOKIE) })
