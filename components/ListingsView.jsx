@@ -6,7 +6,7 @@ import { apiFetch, supabase } from '../lib/supabase'
 import { C, Panel, H2, Lbl, Note, Chip, Pill, Pills, Tick, Btn, StateLine, fmtDay, fmtWhen } from './approvals/renderers/reviewKit'
 import { FIELD_STATUS, ImageCompare, differs } from './approvals/renderers/ListingChangeReview'
 import { AplusPanel, EditableTable, EditsBar, fieldRows } from './ListingContent'
-import { MasterView, MarketImages, MarketAttributes, withMaster } from './ListingMaster'
+import { MasterView, MarketImages, MarketAttributes, withMaster, masterDiffCount } from './ListingMaster'
 import { LivePanel } from './ListingLive'
 import { AplusBuilder } from './ListingAplus'
 
@@ -152,6 +152,9 @@ function Detail({ sel, rows, isMobile, onBack, onSelect, onOpenApproval }) {
   const fields = (data && data.fields) || []
   const diff = fields.filter(f => differs(f.status))
   const edits = (data && data.edits) || []
+  // Against the master when there is one (Jon 2026-11-16: a saved master change must show up here at once); HQ's own
+  // field checks otherwise.
+  const vsMaster = data && data.master ? masterDiffCount({ fields, product: p, master: data.master, ptd: data.ptd, titlesPtd: data.ptd_uk, market: sel.marketplace, edits }) : null
   const shown = onlyDiff ? fields.filter(f => differs(f.status) || edits.some(e => e.kind === 'field' && e.name === f.field)) : fields
   const img = fields.find(f => f.field === 'Images')
   const openApproval = ((data && data.approvals) || []).find(a => !a.decision)
@@ -172,7 +175,7 @@ function Detail({ sel, rows, isMobile, onBack, onSelect, onOpenApproval }) {
 
   const tiles = [
     [`Listing status on ${p.marketplace}`, p.listing_status || '–', /active|buyable/i.test(p.listing_status || '') ? C.ok : C.ink],
-    ['Fields that differ', `${diff.length} of ${fields.length}`, diff.length ? C.warn : C.ok],
+    vsMaster ? ['Differs from master', `${vsMaster.n} of ${vsMaster.total}`, vsMaster.n ? C.warn : C.ok] : ['Fields that differ', `${diff.length} of ${fields.length}`, diff.length ? C.warn : C.ok],
     ['Buy Box', p.buy_box || '–', C.ink],
     ['Master', data && data.master ? ({ seed: 'Not checked yet', draft: 'Draft', approved: 'Approved' })[data.master.status] || '–' : 'None yet', C.ink],
   ]

@@ -1,6 +1,6 @@
 // The master listing (Jon 2026-11-12): one per ASIN, UK English copy, ONE attribute set for every market (keep or remove
 // each), and an image list per market locale. The Master tab edits it; every market tab is scored against it.
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { C, Panel, H2, Note, Pill } from './approvals/renderers/reviewKit'
 import { EditableTable } from './ListingContent'
 
@@ -37,6 +37,23 @@ export function compare(live, master, market, { keep = true } = {}) {
   if (norm(live) === norm(master)) return 'match'
   if (!ENGLISH.includes(market) && /\p{L}/u.test(String(master))) return 'translate'
   return 'differs'
+}
+
+/** How many fields and attributes on a market differ from the master (the summary tile). Copy that only needs its
+ * translation checked is not counted; attributes count the same way as the "To fix" list. null when there is no master. */
+export function masterDiffCount({ fields, product, master, ptd, titlesPtd, market, edits }) {
+  if (!master) return null
+  const copy = (fields || []).filter(f => {
+    const k = COPY_KEY[f.field]
+    if (!k) return false
+    const kind = compare(typeof f.live === 'string' ? f.live : null, (master.copy || {})[k] ?? null, market)
+    return kind === 'differs' || kind === 'missing'
+  }).length
+  const attrs = Array.isArray(product && product.attributes)
+    ? attributeRowsVsMaster({ live: product.attributes, master, ptd, titlesPtd, market, edits }).filter(r => ['differs', 'missing', 'remove', 'extra'].includes(r.kindKey)).length
+    : 0
+  const total = Object.keys(COPY_KEY).length + (Array.isArray(product && product.attributes) ? product.attributes.length : 0)
+  return { n: copy + attrs, total }
 }
 
 /** The copy rows of a market tab, with the master as "should be live". */
@@ -193,6 +210,7 @@ function imageSize(file) {
   })
 }
 
+const SAVED_CHIP = { label: 'Saved to the master', bg: C.okBg, fg: C.ok }
 const STATUS = { seed: ['Started from the live UK listing: check it, edit it, then approve it', C.blueBg, C.blue], draft: ['Draft: edited, not yet approved', C.warnBg, C.warn], approved: ['Approved', C.okBg, C.ok] }
 
 export function MasterView({ master, ptd, livePool, isMobile, onChange, onPlan, onSend, onUpload }) {
@@ -201,6 +219,8 @@ export function MasterView({ master, ptd, livePool, isMobile, onChange, onPlan, 
   const [big, setBig] = useState(null)
   const [picking, setPicking] = useState(false)
   const [err, setErr] = useState('')
+  const [saved, setSaved] = useState({})
+  useEffect(() => { setSaved({}) }, [master && master.asin])
   const run = async (body) => { setErr(''); try { await onChange(body) } catch (e) { setErr(e.message); throw e } }
   const pool = useMemo(() => {
     const seen = new Set(), out = []
@@ -209,7 +229,10 @@ export function MasterView({ master, ptd, livePool, isMobile, onChange, onPlan, 
   }, [master, livePool])
   if (!master) return <Panel style={{ marginTop: 16 }}><H2>Master listing</H2><Note>No master for this ASIN yet. HQ seeds one from the live UK listing.</Note></Panel>
   const [label, bg, fg] = STATUS[master.status] || STATUS.seed
-  const copyRows = COPY.map(([k, l]) => ({ key: `master:${k}`, kind: 'copy', name: k, label: l, live: (master.copy || {})[k] ?? null, should: null, editable: true,
+  // A copy change is saved to the master at once but reaches Amazon only when sent to the markets and approved: say so
+  // on the row (Jon 2026-11-16: saved edits looked lost because nothing on the page changed state).
+  const copyRows = COPY.map(([k, l]) => ({ key: `master:${k}`, kind: 'copy', name: k, label: l, live: (master.copy || {})[k] ?? null, should: null, editable: true, allowEmpty: k !== 'title',
+    chip: saved[k] ? SAVED_CHIP : null, shouldMeta: saved[k] ? `Saved ${saved[k]}. Send to the markets below to put it on Amazon.` : null,
     limit: k === 'title' ? '200 characters' : /^bullet/.test(k) ? '500 characters' : k === 'description' ? '2,000 characters' : '249 bytes', ...(k === 'title' ? { limitChars: 200 } : /^bullet/.test(k) ? { limitChars: 500 } : k === 'description' ? { limitChars: 2000 } : { limitBytes: 249 }) }))
   const groups = groupOf(ptd), titles = (ptd && ptd.titles) || {}, req = new Set((ptd && ptd.required) || [])
   const attrRows = ((master.attributes) || []).map(a => {
@@ -245,7 +268,7 @@ export function MasterView({ master, ptd, livePool, isMobile, onChange, onPlan, 
 
       <Panel pad="0" style={{ marginTop: 14, overflow: 'hidden' }}>
         <div style={{ padding: '14px 16px 4px' }}><H2 style={{ margin: 0 }}>Copy (UK English, the source for every market)</H2></div>
-        <EditableTable rows={copyRows} isMobile={isMobile} headers={H} onSave={(row, value) => run({ asin: master.asin, op: 'copy', field: row.name, value })} onWithdraw={async () => {}} />
+        <EditableTable rows={copyRows} isMobile={isMobile} headers={H} onSave={async (row, value) => { await run({ asin: master.asin, op: 'copy', field: row.name, value }); setSaved((s) => ({ ...s, [row.name]: new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) })) }} onWithdraw={async () => {}} />
       </Panel>
 
       <Panel pad={isMobile ? '14px' : undefined} style={{ marginTop: isMobile ? 0 : 20 }}>
