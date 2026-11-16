@@ -184,7 +184,7 @@ function ProductRollout({ asin, isMobile, onBack, onOpenMaster }) {
             {r && r.last_error ? <p style={{ margin: '4px 0 0', fontSize: 13, color: C.bad }}>Last problem: {r.last_error}</p> : null}
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 10 }}>
               {onOpenMaster ? <button type="button" onClick={() => onOpenMaster(asin)} style={btn(p.master !== 'approved')}>Open the master</button> : null}
-              <button type="button" disabled={!!busy} onClick={() => run({ op: 'suggest', asin }, 'Suggest a category for every store from Amazon's own category names? About $0.05 of Claude. You approve each one.', '/api/listings/categories')} style={btn(false)}>{busy === 'suggest' ? 'Suggesting…' : 'Suggest categories'}</button>
+              <button type="button" disabled={!!busy} onClick={() => run({ op: 'suggest', asin }, "Suggest a category for every store from Amazon's own category names? About $0.05 of Claude. You approve each one.", '/api/listings/categories')} style={btn(false)}>{busy === 'suggest' ? 'Suggesting…' : 'Suggest categories'}</button>
               {p.master === 'approved' && (!r || r.paused) ? <button type="button" disabled={!!busy} onClick={start} style={btn(true)}>{r ? 'Restart the agent' : 'Start the agent'}</button> : null}
               {r && !r.paused ? <button type="button" disabled={!!busy} onClick={() => run({ op: 'stop', asin })} style={btn(false)}>Pause the agent</button> : null}
               {r && !r.paused ? <button type="button" disabled={!!busy} onClick={start} style={btn(false)}>Change the budget</button> : null}
