@@ -71,6 +71,8 @@ test('translate request: structured JSON, low effort, words only; parse refuses 
   const sent = JSON.parse(r.messages[0].content)
   assert.deepEqual(sent.attributes.map(a => a.name), ['color'])
   assert.match(r.system, /German/)
+  assert.match(r.system, /Keywords are local, not translated/)
+  assert.match(r.system, /native German-speaking parent types into Amazon DE/)
   assert.throws(() => parseTranslation({ stop_reason: 'refusal', stop_details: { category: 'cyber' }, content: [] }), /declined/)
   assert.throws(() => parseTranslation({ stop_reason: 'max_tokens', content: [] }), /stopped early/)
   const ok = parseTranslation({ stop_reason: 'end_turn', usage: { input_tokens: 1000, output_tokens: 2000 }, content: [{ type: 'text', text: JSON.stringify({ copy: { title: 'doddl X' }, attributes: [{ name: 'color', value: 'Indigo' }] }) }] })

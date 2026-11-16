@@ -400,7 +400,7 @@ export function TranslationsPanel({ master, isMobile, onChange }) {
           {!v ? 'not translated yet.' : v.status === 'approved' ? `approved by ${v.approved_by}.` : `translated${v.model ? ` by ${v.model}` : ''}, waiting for your check.`}
           {v && v.cost_usd != null ? <span style={{ color: C.muted }}> (cost ${Number(v.cost_usd).toFixed(3)})</span> : null}
         </span>
-        <button type="button" disabled={busy || !master.copy || !master.copy.title} onClick={() => call({ op: 'translate' })} style={sbtn(!v)}>{busy ? 'Working…' : v ? 'Translate again' : 'Translate with Claude (about $0.04)'}</button>
+        <button type="button" disabled={busy || !master.copy || !master.copy.title} onClick={() => call({ op: 'translate' })} style={sbtn(!v)}>{busy ? 'Working…' : v ? 'Translate again (local keywords)' : 'Translate with local keywords (about $0.04)'}</button>
         {v && v.status !== 'approved' ? <button type="button" disabled={busy} onClick={() => call({ op: 'variant_approve' })} style={sbtn(true)}>Approve the {LANG_MARKETS[loc]}</button> : null}
       </div>
       {err ? <p role="alert" style={{ color: C.bad, fontSize: 13 }}>{err}</p> : null}
