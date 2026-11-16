@@ -87,6 +87,17 @@ function PieceDetail({ asin, row, piece, onDone }) {
           <p style={{ margin: '8px 0 0', fontSize: 13.5 }}>{piece.info ? piece.info.basis === 'master' ? 'English store: the master\'s search terms as they are.' : piece.info.basis === 'none' ? `No Brand Analytics for Amazon ${row.market}: the agent chose local keywords itself. Check them.` : `From Brand Analytics (${piece.info.period_from || '?'} to ${piece.info.period_to || '?'}, ${piece.info.basis === 'product' ? 'searches that showed this product' : "the store's biggest doddl searches"}): ${piece.info.offered} searches offered, ${(piece.info.used || []).length} used.` : 'Not written yet.'}</p>
           {piece.value ? <p style={{ margin: '8px 0 0', fontSize: 13.5, background: C.bg, borderRadius: 8, padding: 10 }}>{piece.value}</p> : null}
           {piece.info && (piece.info.used || []).length ? <p style={{ margin: '8px 0 0', fontSize: 13, color: C.muted }}>Searches used: {piece.info.used.join(' · ')}</p> : null}
+          {piece.ba && piece.ba.terms && piece.ba.terms.length ? (
+            <div style={{ marginTop: 12 }}>
+              <Lbl>Brand Analytics: what shoppers searched on Amazon {row.market} ({piece.ba.period_from} to {piece.ba.period_to}{piece.ba.basis === 'store' ? ", the store's biggest doddl searches: this product has none of its own" : ', searches that showed this product'})</Lbl>
+              <div style={{ overflowX: 'auto', marginTop: 6 }}><table style={{ borderCollapse: 'collapse', fontSize: 13, minWidth: 520 }}>
+                <thead><tr>{['Search', 'Searches (3 months)', 'Showed us', 'Clicks', 'Bought', 'Used'].map((h) => <th key={h} style={{ textAlign: h === 'Search' ? 'left' : 'right', padding: '4px 10px', fontSize: 11.5, color: C.muted, borderBottom: `1px solid ${C.line}` }}>{h}</th>)}</tr></thead>
+                <tbody>{piece.ba.terms.slice(0, 40).map((t) => (
+                  <tr key={t.search_query}><td style={{ padding: '4px 10px', fontWeight: 700 }}>{t.search_query}</td>{[t.query_volume, t.asin_impressions, t.asin_clicks, t.asin_purchases].map((v, i) => <td key={i} style={{ padding: '4px 10px', textAlign: 'right' }}>{v == null ? '–' : Number(v).toLocaleString('en-GB')}</td>)}<td style={{ padding: '4px 10px', textAlign: 'right' }}>{piece.info && (piece.info.used || []).includes(t.search_query) ? '✓' : ''}</td></tr>
+                ))}</tbody>
+              </table></div>
+            </div>
+          ) : piece.ba ? <p style={{ margin: '8px 0 0', fontSize: 13, color: C.muted }}>No Brand Analytics data for Amazon {row.market}.</p> : null}
         </>
       ) : null}
       {items.length ? (
