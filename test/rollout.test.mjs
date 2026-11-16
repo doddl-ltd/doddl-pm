@@ -6,6 +6,7 @@ import { rolloutMarket, estimate, worst } from '../lib/pm/rollout.js'
 import { agentQueue } from '../lib/pm/listingAgent.js'
 import { keywordBrief } from '../lib/pm/keywords.js'
 import { paintImage } from '../lib/pm/imageRender.js'
+import { eraseText } from '../lib/pm/imagePaint.js'
 
 const img = (n) => `https://m.media-amazon.com/images/I/img${n}.jpg`
 const master = (over = {}) => ({ asin: 'B0779CZ9FD', status: 'approved', product: 'Cutlery', copy: { title: 'doddl Toddler Cutlery', bullet_1: 'Easy grip', search_terms: 'toddler cutlery' }, attributes: [], images: { MASTER: [{ url: img(0) }, { url: img(1) }, { url: img(2) }] }, variants: {}, ...over })
@@ -79,19 +80,34 @@ test('keywords: Brand Analytics searches go into the translation prompt; no data
   assert.match(keywordBrief({ basis: 'none', terms: [] }, 'IT', 'Italian'), /no Brand Analytics data/)
 })
 
-test('the server repaint covers the English words with the panel colour and sets the translation', async () => {
+test('the eraser takes off only the letters: the curve of a shape behind them stays', () => {
+  const W = 120, H = 60, d = new Uint8ClampedArray(W * H * 4)
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    const i = (y * W + x) * 4, inShape = (x - 60) ** 2 + (y - 80) ** 2 < 60 ** 2   // a purple circle's top edge under teal
+    const c = inShape ? [148, 127, 182] : [158, 207, 198]
+    d[i] = c[0]; d[i + 1] = c[1]; d[i + 2] = c[2]; d[i + 3] = 255
+  }
+  const before = d.slice()
+  for (let y = 30; y < 36; y++) for (let x = 40; x < 80; x++) { const i = (y * W + x) * 4; d[i] = 255; d[i + 1] = 255; d[i + 2] = 255 }   // white words
+  eraseText(d, W, H, { x: 30, y: 20, w: 60, h: 30 }, '#ffffff', '#947FB6')
+  let off = 0
+  for (let i = 0; i < d.length; i += 4) off = Math.max(off, Math.abs(d[i] - before[i]) + Math.abs(d[i + 1] - before[i + 1]) + Math.abs(d[i + 2] - before[i + 2]))
+  assert.ok(off < 40, 'within a few shades of the picture without the words (got ' + off + ')')
+})
+
+test('the server repaint takes the old words off and sets the translation', async () => {
   const c = createCanvas(400, 200), x = c.getContext('2d')
   x.fillStyle = '#C9B6F2'; x.fillRect(0, 0, 400, 200)
-  x.fillStyle = '#FF0000'; x.fillRect(40, 60, 320, 40)   // stands in for the old words
-  const block = { text: 'Easy grip', translated: 'Leichter Griff', x: 0.1, y: 0.3, w: 0.8, h: 0.2, color: '#3D157D', background: '#C9B6F2', weight: 'bold', align: 'center', line_height: 0.2 }
-  const { png, flags } = await paintImage(c.toBuffer('image/png'), [block])
+  x.fillStyle = '#3D157D'; x.fillRect(40, 70, 6, 20); x.fillRect(340, 70, 6, 20)   // old letters at both ends of the line
+  const block = { text: 'Easy grip for little hands', translated: 'Griff', x: 0.1, y: 0.3, w: 0.8, h: 0.2, color: '#3D157D', background: '#C9B6F2', weight: 'bold', align: 'center', line_height: 0.2 }
+  const { png } = await paintImage(c.toBuffer('image/png'), [block])
   const { loadImage } = await import('@napi-rs/canvas')
   const out = await loadImage(png), c2 = createCanvas(400, 200), y = c2.getContext('2d')
   y.drawImage(out, 0, 0)
-  const d = y.getImageData(40, 60, 320, 40).data
-  let red = 0, ink = 0
-  for (let i = 0; i < d.length; i += 4) { if (d[i] > 200 && d[i + 1] < 60) red++; if (d[i] < 90 && d[i + 2] > 90 && d[i + 1] < 60) ink++ }
-  assert.equal(red, 0, 'no trace of the old words')
-  assert.ok(ink > 200, 'the translation is drawn in the text colour')
-  assert.deepEqual(flags.filter(f => /flat/.test(f)), [])
+  const ink = (x0) => { const d = y.getImageData(x0, 70, 6, 20).data; let n = 0; for (let i = 0; i < d.length; i += 4) if (d[i] < 120) n++; return n }
+  assert.equal(ink(40) + ink(340), 0, 'the old letters at the ends are gone')
+  const mid = y.getImageData(150, 60, 100, 40).data
+  let n = 0
+  for (let i = 0; i < mid.length; i += 4) if (mid[i] < 120 && mid[i + 2] > 80) n++
+  assert.ok(n > 100, 'the translation is drawn in the middle')
 })
