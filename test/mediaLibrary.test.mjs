@@ -20,3 +20,12 @@ test('reads imagery-index.csv: quoted cells, commas and quotes inside, BOM, CRLF
   assert.equal(b.kind, 'video')
   assert.equal(b.master_sku, null)
 })
+
+test('a file is handed to an agent only for a channel it is cleared for', async () => {
+  const { clearedFor } = await import('../lib/pm/mediaLibrary.js')
+  assert.ok(clearedFor('all', 'social'))
+  assert.ok(clearedFor('amazon;website', 'website'))
+  assert.ok(!clearedFor('amazon;website', 'social'))
+  assert.ok(!clearedFor('', 'amazon'))
+  assert.ok(!clearedFor(null, 'amazon'))
+})
