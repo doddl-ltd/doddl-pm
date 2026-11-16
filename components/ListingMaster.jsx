@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { C, Panel, H2, Note, Pill } from './approvals/renderers/reviewKit'
 import { EditableTable } from './ListingContent'
 import MediaView from './hq/MediaView'
+import CopyWriter from './CopyWriter'
 import { masterImages, marketImages } from '../lib/pm/marketImages'
 
 export const ENGLISH = ['UK', 'US', 'CA', 'IE']
@@ -272,7 +273,10 @@ export function MasterView({ master, ptd, livePool, isMobile, onChange, onPlan, 
       {master.seeded_from ? <Note style={{ marginTop: 6 }}>Started from: {master.seeded_from}. Changes are saved in PM. Nothing reaches Amazon until you send it to the markets and each approval is approved.</Note> : null}
 
       <Panel pad="0" style={{ marginTop: 14, overflow: 'hidden' }}>
-        <div style={{ padding: '14px 16px 4px' }}><H2 style={{ margin: 0 }}>Copy (UK English, the source for every market)</H2></div>
+        <div style={{ padding: '14px 16px 4px' }}>
+          <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}><H2 style={{ margin: 0, flex: 1 }}>Copy (UK English, the source for every market)</H2></div>
+          <CopyWriter master={master} onSave={async (field, value) => { await run({ asin: master.asin, op: 'copy', field, value }); setSaved((s) => ({ ...s, [field]: new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) })) }} />
+        </div>
         <EditableTable rows={copyRows} isMobile={isMobile} headers={H} onSave={async (row, value) => { await run({ asin: master.asin, op: 'copy', field: row.name, value }); setSaved((s) => ({ ...s, [row.name]: new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) })) }} onWithdraw={async () => {}} />
       </Panel>
 

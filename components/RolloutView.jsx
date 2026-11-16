@@ -78,6 +78,28 @@ function PieceDetail({ asin, row, piece, onDone }) {
       </Panel>
     )
   }
+  if (piece.kind === 'category') {
+    const decide = async (op) => {
+      setBusy(op); setErr('')
+      try { await call('/api/listings/categories', { op, asin, market: row.market }); await onDone() } catch (e) { setErr(e.message) } finally { setBusy('') }
+    }
+    const name = (c) => `${c.title || 'name not known yet'} (${c.node}${c.rank ? `, rank ${Number(c.rank).toLocaleString('en-GB')}` : ''})`
+    const ch = piece.chosen
+    return (
+      <Panel style={{ marginTop: 16 }}>
+        <H2 style={{ margin: 0, fontSize: 17 }}>{row.market} · Category (browse node)</H2>
+        <p style={{ margin: '8px 0 0', fontSize: 13.5 }}>Browse node numbers are different in every Amazon store, so each store gets its own: matched to the UK category by name, approved by you, then sent and checked like everything else.</p>
+        <p style={{ margin: '10px 0 0', fontSize: 13.5 }}><b>On the listing now:</b> {piece.current && piece.current.length ? piece.current.map(name).join(' · ') : 'none'}</p>
+        <p style={{ margin: '6px 0 0', fontSize: 13.5 }}><b>Amazon ranks it in:</b> {piece.ranked && piece.ranked.length ? piece.ranked.map(name).join(' · ') : 'no rank read yet'}</p>
+        {ch ? <p style={{ margin: '6px 0 0', fontSize: 13.5 }}><b>{ch.status === 'approved' ? 'Chosen' : 'Suggested'}:</b> {name(ch)}{ch.why ? ` · ${ch.why}` : ''}{ch.status === 'approved' && ch.by ? ` · approved by ${ch.by}` : ''}</p> : null}
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', marginTop: 10 }}>
+          <Stage k={piece.stage} /><span style={{ fontSize: 13.5, fontWeight: 700 }}>{piece.why}</span>
+          {ch && ch.status === 'suggested' ? <><button type="button" disabled={!!busy} onClick={() => decide('approve')} style={btn(true)}>{busy === 'approve' ? 'Approving…' : 'Approve this category'}</button><button type="button" disabled={!!busy} onClick={() => decide('reject')} style={btn(false)}>Reject</button></> : null}
+        </div>
+        {err ? <p role="alert" style={{ color: C.bad, fontSize: 13 }}>{err}</p> : null}
+      </Panel>
+    )
+  }
   const items = piece.items || []
   return (
     <Panel style={{ marginTop: 16 }}>
@@ -122,10 +144,10 @@ function ProductRollout({ asin, isMobile, onBack, onOpenMaster }) {
   if (err && !data) return <p role="alert" style={{ color: C.bad }}>{err}</p>
   if (!data) return <Note>Loading…</Note>
   const p = data.product, est = data.estimate, r = p.rollout
-  const run = async (body, confirmText) => {
+  const run = async (body, confirmText, path = '/api/listings/rollout') => {
     if (confirmText && !window.confirm(confirmText)) return
     setBusy(body.op); setErr('')
-    try { await call('/api/listings/rollout', body); await load() } catch (e) { setErr(e.message) } finally { setBusy('') }
+    try { await call(path, body); await load() } catch (e) { setErr(e.message) } finally { setBusy('') }
   }
   const start = () => {
     const v = window.prompt(`Start the listing agent on ${p.product || asin}?\n\nIt will make ${est.translations} listing translation${est.translations === 1 ? '' : 's'} (with Brand Analytics keywords), ${est.images} translated image${est.images === 1 ? '' : 's'}${est.aplus ? ` and ${est.aplus} A+ translation${est.aplus === 1 ? '' : 's'}` : ''} for ${est.markets.join(', ') || 'no non-English store'}: about $${est.usd.toFixed(2)} of Claude.\nNothing goes to Amazon: you approve each piece and push it.\n\nBudget in USD (the agent stops there):`, String(est.budget))
@@ -134,7 +156,7 @@ function ProductRollout({ asin, isMobile, onBack, onOpenMaster }) {
   }
   const kpi = [['Live everywhere', `${p.live_markets} of ${p.markets.length}`, 'stores fully live'], ['Needs you', p.you, 'pieces waiting for a person'], ['Sent, waiting for Amazon', p.sent, "inside Amazon's 72 hours"], ['Amazon problems', p.problems, p.problems ? 'case drafted' : 'none']]
   const sel = pick && p.markets.find((m) => m.market === pick.market)
-  const piece = sel ? (pick.kind === 'image' ? { kind: 'image', ...sel.images[pick.i] } : pick.kind === 'copy' ? { kind: 'copy', label: 'Copy', ...sel.copy } : pick.kind === 'keywords' ? { kind: 'keywords', label: 'Keywords', ...sel.keywords } : pick.kind === 'attributes' ? { kind: 'attributes', label: 'Attributes', ...sel.attributes } : { kind: 'aplus', label: 'A+', ...(sel.aplus || {}) }) : null
+  const piece = sel ? (pick.kind === 'image' ? { kind: 'image', ...sel.images[pick.i] } : pick.kind === 'copy' ? { kind: 'copy', label: 'Copy', ...sel.copy } : pick.kind === 'keywords' ? { kind: 'keywords', label: 'Keywords', ...sel.keywords } : pick.kind === 'attributes' ? { kind: 'attributes', label: 'Attributes', ...sel.attributes } : pick.kind === 'category' ? { kind: 'category', label: 'Category', ...sel.category } : { kind: 'aplus', label: 'A+', ...(sel.aplus || {}) }) : null
   const cell = (m, kind, st, i) => {
     if (!st) return <span style={{ color: C.faint }}>–</span>
     const on = pick && pick.market === m.market && pick.kind === kind && (kind !== 'image' || pick.i === i)
@@ -162,6 +184,7 @@ function ProductRollout({ asin, isMobile, onBack, onOpenMaster }) {
             {r && r.last_error ? <p style={{ margin: '4px 0 0', fontSize: 13, color: C.bad }}>Last problem: {r.last_error}</p> : null}
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 10 }}>
               {onOpenMaster ? <button type="button" onClick={() => onOpenMaster(asin)} style={btn(p.master !== 'approved')}>Open the master</button> : null}
+              <button type="button" disabled={!!busy} onClick={() => run({ op: 'suggest', asin }, 'Suggest a category for every store from Amazon's own category names? About $0.05 of Claude. You approve each one.', '/api/listings/categories')} style={btn(false)}>{busy === 'suggest' ? 'Suggesting…' : 'Suggest categories'}</button>
               {p.master === 'approved' && (!r || r.paused) ? <button type="button" disabled={!!busy} onClick={start} style={btn(true)}>{r ? 'Restart the agent' : 'Start the agent'}</button> : null}
               {r && !r.paused ? <button type="button" disabled={!!busy} onClick={() => run({ op: 'stop', asin })} style={btn(false)}>Pause the agent</button> : null}
               {r && !r.paused ? <button type="button" disabled={!!busy} onClick={start} style={btn(false)}>Change the budget</button> : null}
@@ -176,14 +199,15 @@ function ProductRollout({ asin, isMobile, onBack, onOpenMaster }) {
 
       <H2 style={{ margin: '18px 0 6px', fontSize: 18 }}>Every store, every piece</H2>
       <div style={{ overflowX: 'auto' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 860, fontSize: 13.5 }}>
-          <thead><tr>{['Store', 'Copy', 'Keywords', 'Attributes', 'Images (main + others)', 'A+', 'What happens next'].map((h) => <th key={h} style={{ textAlign: 'left', fontSize: 12, fontWeight: 800, letterSpacing: '.05em', textTransform: 'uppercase', color: C.muted, padding: '8px 8px', borderBottom: `1px solid ${C.line}` }}>{h}</th>)}</tr></thead>
+        <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 980, fontSize: 13.5 }}>
+          <thead><tr>{['Store', 'Copy', 'Keywords', 'Attributes', 'Category', 'Images (main + others)', 'A+', 'What happens next'].map((h) => <th key={h} style={{ textAlign: 'left', fontSize: 12, fontWeight: 800, letterSpacing: '.05em', textTransform: 'uppercase', color: C.muted, padding: '8px 8px', borderBottom: `1px solid ${C.line}` }}>{h}</th>)}</tr></thead>
           <tbody>{p.markets.map((m) => (
             <tr key={m.market} style={{ borderBottom: `1px solid ${C.line2}` }}>
               <td style={{ padding: '10px 8px' }}><b style={{ fontSize: 15 }}>{m.market}</b><span style={{ display: 'block', fontSize: 12, color: C.muted }}>{m.language}</span></td>
               <td style={{ padding: 8 }}>{cell(m, 'copy', m.copy.stage)}</td>
               <td style={{ padding: 8 }}>{cell(m, 'keywords', m.keywords.stage)}{m.keywords.info && m.keywords.info.basis && m.keywords.info.basis !== 'master' ? <span style={{ display: 'block', fontSize: 11.5, color: C.muted, marginTop: 2 }}>{m.keywords.info.basis === 'none' ? 'no Brand Analytics' : 'Brand Analytics'}</span> : null}</td>
               <td style={{ padding: 8 }}>{cell(m, 'attributes', m.attributes.stage)}</td>
+              <td style={{ padding: 8 }}>{cell(m, 'category', m.category && m.category.stage)}{m.category && m.category.chosen && m.category.chosen.title ? <span style={{ display: 'block', fontSize: 11.5, color: C.muted, marginTop: 2, maxWidth: 140 }}>{m.category.chosen.title}</span> : null}</td>
               <td style={{ padding: 8 }}><span style={{ display: 'inline-flex', gap: 4, flexWrap: 'wrap' }}>{m.images.map((im, i) => <Square key={i} k={im.stage} on={pick && pick.market === m.market && pick.kind === 'image' && pick.i === i} title={`${im.label}: ${STAGE[im.stage][0]}`} onClick={() => setPick({ market: m.market, kind: 'image', i })} />)}</span></td>
               <td style={{ padding: 8 }}>{cell(m, 'aplus', m.aplus && m.aplus.stage)}</td>
               <td style={{ padding: 8, fontWeight: 700 }}>

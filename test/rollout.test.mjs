@@ -30,7 +30,7 @@ test('the planner never sends an English image to a store still waiting for its 
 })
 
 test('rollout stages: live only when Amazon shows it; made / needs you / ready to push before that', () => {
-  const uk = rolloutMarket({ master: master(), market: 'UK', product: product(), fields: liveFields([img(0), img(1), img(2)], { Title: 'doddl Toddler Cutlery', 'Bullet 1': 'Easy grip', 'Search terms': 'toddler cutlery' }) })
+  const uk = rolloutMarket({ master: master({ categories: { UK: { node: '26119033031', status: 'approved', keep: true } } }), market: 'UK', product: product({ attributes: [{ name: 'recommended_browse_nodes', value: '26119033031', source: 'our listing' }] }), fields: liveFields([img(0), img(1), img(2)], { Title: 'doddl Toddler Cutlery', 'Bullet 1': 'Easy grip', 'Search terms': 'toddler cutlery' }) })
   assert.equal(uk.images.every(x => x.stage === 'live'), true)
   assert.equal(uk.copy.stage, 'live')
   assert.equal(uk.done, true)
@@ -45,12 +45,16 @@ test('rollout stages: live only when Amazon shows it; made / needs you / ready t
   assert.equal(de.images[1].stage, 'you')
   assert.equal(de.images[2].stage, 'made')
   assert.equal(de.copy.stage, 'made')
-  assert.match(de.next, /needs you/)
+  assert.match(de.next, /needs? you/)
   const nl = rolloutMarket({ master: master({ status: 'draft' }), market: 'NL', product: product(), fields: [] })
   assert.equal(nl.images[1].stage, 'todo')
   assert.equal(nl.pieces.you, 0, 'an unapproved master is one job (approve it), not one per piece')
   assert.match(nl.next, /Waits for the master/)
   assert.equal(rolloutMarket({ master: master(), market: 'PL', product: null }).sold, false)
+  assert.equal(us.category.stage, 'you', 'a store with no category set needs a person')
+  const fr = rolloutMarket({ master: master({ categories: { FR: { node: '525747031', title: 'Couverts', status: 'approved' } } }), market: 'FR', product: product({ attributes: [{ name: 'recommended_browse_nodes', value: '26119038031 | 3966362031', source: 'our listing' }] }), fields: [] })
+  assert.equal(fr.category.stage, 'approved', 'an approved category that differs is ready to push')
+  assert.ok(planMarket({ master: master({ categories: { FR: { node: '525747031', status: 'approved' } } }), market: 'FR', product: product(), fields: [], held: [] }).changes.some(c => c.name === 'recommended_browse_nodes' && c.to === '525747031'))
   assert.equal(worst(['live', 'sent', 'problem']), 'problem')
 })
 
