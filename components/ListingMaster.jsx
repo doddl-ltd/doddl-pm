@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { C, Panel, H2, Note, Pill } from './approvals/renderers/reviewKit'
 import { EditableTable } from './ListingContent'
 import MediaView from './hq/MediaView'
+import { ImageTranslate } from './ImageTranslate'
 
 export const ENGLISH = ['UK', 'US', 'CA', 'IE']
 export const LOCALES = ['UK', 'US', 'CA', 'DE', 'FR', 'ES', 'IT', 'NL', 'BE', 'IE', 'PL', 'SE']
@@ -214,7 +215,7 @@ function imageSize(file) {
 const SAVED_CHIP = { label: 'Saved to the master', bg: C.okBg, fg: C.ok }
 const STATUS = { seed: ['Started from the live UK listing: check it, edit it, then approve it', C.blueBg, C.blue], draft: ['Draft: edited, not yet approved', C.warnBg, C.warn], approved: ['Approved', C.okBg, C.ok] }
 
-export function MasterView({ master, ptd, livePool, isMobile, onChange, onPlan, onSend, onUpload }) {
+export function MasterView({ master, ptd, livePool, isMobile, onChange, onPlan, onSend, onUpload, onReload }) {
   const [uploading, setUploading] = useState('')
   const [locale, setLocale] = useState('UK')
   const [big, setBig] = useState(null)
@@ -312,6 +313,7 @@ export function MasterView({ master, ptd, livePool, isMobile, onChange, onPlan, 
             </div>
           </div>
         ) : null}
+        {!ENGLISH.includes(locale) && onUpload ? <ImageTranslate master={master} locale={locale} onUpload={onUpload} onApproved={onReload} /> : null}
         {library ? (
           <div style={{ marginTop: 12, padding: 12, background: C.bg, borderRadius: 12 }}>
             <p style={{ margin: '0 0 10px', fontSize: 13, color: C.muted }}>The doddl image library (doddl HQ Knowledge › 14 Media), cleared for Amazon. The image you pick goes to the end of the {locale} set.</p>
