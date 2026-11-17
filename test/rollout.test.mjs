@@ -139,3 +139,14 @@ test('search terms are whole generic phrases: Brand Analytics ones as listed, co
   assert.ok(Buffer.byteLength(f.search_terms, 'utf8') <= 249)
   assert.ok(f.used.every((u) => f.search_terms.includes(u.text)), 'every phrase kept whole')
 })
+
+test('several values (" | ") on the master or on Amazon are never sent as one string: change them in Seller Central', async () => {
+  const { planMarket, hasParts } = await import('../lib/pm/masterSend.js')
+  assert.equal(hasParts('Plastic | Silicone'), true)
+  assert.equal(hasParts('Dusky Rose'), false)
+  const m = master({ attributes: [{ name: 'material', value: 'Plastic | Silicone' }, { name: 'theme', value: 'Classic' }, { name: 'color', value: 'Dusky Rose' }] })
+  const product = { asin: m.asin, marketplace: 'US', sku: 'DOD053', attributes: [{ name: 'material', value: 'Plastic' }, { name: 'theme', value: 'Classic | Modern' }, { name: 'color', value: 'Pink' }] }
+  const p = planMarket({ master: m, market: 'US', product, fields: [], held: [] })
+  assert.deepEqual(p.changes.filter((c) => c.kind === 'attribute' && !/image_locator/.test(c.name)).map((c) => c.name), ['color'])
+  assert.deepEqual(p.skipped.filter((x) => /several parts/.test(x.why)).map((x) => x.name).sort(), ['material', 'theme'])
+})
