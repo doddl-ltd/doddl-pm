@@ -6,7 +6,7 @@ const HUB = 'https://doddl-reports.vercel.app'
 const nextConfig = {
   reactStrictMode: true,
   // The listing agent repaints images on the server in the brand font (lib/pm/imageRender.js): ship the font files.
-  experimental: { outputFileTracingIncludes: { '/api/cron/listing-agent': ['./lib/fonts/**'] } },
+  experimental: { outputFileTracingIncludes: { '/api/cron/listing-agent': ['./lib/fonts/**'], '/api/listings/aplus': ['./lib/fonts/**'] } },
   // OAuth discovery for the MCP connector (lib/server/oauth.js), and the Hub under /hub.
   async rewrites() {
     return [

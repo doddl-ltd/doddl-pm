@@ -5,7 +5,7 @@ import { approvalError as fail } from '../../../lib/pm/approvals'
 // GET  /api/listings/aplus?asin=   -> { page, products: [{ marketplace, aplus }] } (the page and each market's A+ on Amazon)
 // POST /api/listings/aplus { asin, op, ... }   brief, images, build (Claude, about $0.20), edit, approve, translate, send
 // Nothing here writes to Amazon: "send" hands each market to HQ for checks and an approval card.
-export const config = { maxDuration: 120 }
+export const config = { maxDuration: 300 }
 
 export default uiRoute({
   GET: async ({ req, db }) => {

@@ -175,13 +175,14 @@ export function AplusBuilder({ asin, sku, isMobile, onUpload }) {
   const v = (page.variants || {})[locale]
   const vm = vmods || (v ? v.modules : null)
   const approved = page.status === 'approved'
+  const house = page.house && page.house.words ? page.house : null
   const sendable = MARKETS.filter(m => modulesFor(page, m))
 
   return (
     <div>
       <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap', background: approved ? C.okBg : C.warnBg, color: approved ? C.ok : C.warn, borderRadius: 12, padding: '10px 14px', marginTop: 16 }}>
-        <b style={{ flex: '1 1 260px', fontSize: 14 }}>{approved ? `Approved by ${page.approved_by}` : 'Draft: not approved yet'}{page.cost_usd ? ` · Claude so far: $${Number(page.cost_usd).toFixed(2)}` : ''}</b>
-        {approved ? <Btn onClick={() => op({ op: 'reopen' })}>Reopen for edits</Btn> : <Btn primary disabled={!!busy || dirty || problems.length > 0} onClick={() => op({ op: 'approve' })}>Approve the page</Btn>}
+        <b style={{ flex: '1 1 260px', fontSize: 14 }}>{approved ? `Approved by ${page.approved_by}` : house && page.review_task_id && !(house.feedback && house.feedback.at > house.built_at) ? 'In approvals: waiting for Jon and Laura' : house && house.feedback ? 'Sent back by Jon and Laura: see their notes under the brief' : 'Draft: not approved yet'}{page.cost_usd ? ` · Claude so far: $${Number(page.cost_usd).toFixed(2)}` : ''}</b>
+        {house && !approved ? <Btn disabled={!!busy} onClick={() => op({ op: 'review' }, 'Sending to Jon and Laura…')}>Send for review</Btn> : approved ? <Btn onClick={() => op({ op: 'reopen' })}>Reopen for edits</Btn> : <Btn primary disabled={!!busy || dirty || problems.length > 0} onClick={() => op({ op: 'approve' })}>Approve the page</Btn>}
       </div>
       {err ? <p role="alert" style={{ color: C.bad, fontSize: 13 }}>{err}</p> : null}
       {busy ? <p style={{ color: C.indigo, fontSize: 13, fontWeight: 700 }}>{busy}</p> : null}
@@ -193,6 +194,12 @@ export function AplusBuilder({ asin, sku, isMobile, onUpload }) {
         <textarea value={brief} onChange={e => setBrief(e.target.value)} rows={6} style={input} placeholder="e.g. Lead with how the cutlery helps toddlers feed themselves from 18 months; show the short handles and the knife that cuts safely; end with the brand story of two parents who designed it." />
         <div style={{ display: 'flex', gap: 8, marginTop: 8, flexWrap: 'wrap' }}>
           <Btn disabled={brief === page.brief || !!busy} onClick={() => op({ op: 'brief', brief })}>Save the brief</Btn>
+          <Btn primary disabled={!!busy || !brief.trim()} onClick={() => { if (!mods || !mods.length || window.confirm('The agent will build a new page from the brief and the image library, replacing the current modules, and send it to Jon and Laura. Carry on?')) op({ op: 'house_build', brief }, 'The agent is building the page from the image library (1 to 2 minutes)…') }}>Build from the image library and send for review (a few cents)</Btn>
+        </div>
+        <Note>The agent finds this product's photos in the image library (only files cleared for Amazon), lays the page out in doddl's house design (as the live A+ pages), writes the words from your brief and the master copy, and puts it in approvals for Jon and Laura. Panels with no suitable photo go on a shot list.</Note>
+        {house && house.feedback ? <div style={{ marginTop: 8, background: C.warnBg, color: C.warn, borderRadius: 10, padding: '8px 12px', fontSize: 13, whiteSpace: 'pre-wrap' }}><b>Feedback from {house.feedback.by}:</b> {house.feedback.notes || 'Sent back (see the comments on the card).'}</div> : null}
+        {house && (house.shot_list || []).length ? <div style={{ marginTop: 8, background: C.bg, borderRadius: 10, padding: '8px 12px', fontSize: 13 }}><b>Shot list (missing photos):</b> {house.shot_list.map(x => `${x.slot}: ${x.need}`).join(' · ')}</div> : null}
+        <div>
         </div>
       </Panel>
 
