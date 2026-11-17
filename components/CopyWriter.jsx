@@ -95,9 +95,10 @@ function SearchTerms({ master, onSave }) {
       {err ? <p role="alert" style={{ color: C.bad, fontSize: 13, margin: 0, flexBasis: '100%' }}>{err}</p> : null}
       {out ? (
         <div style={{ flexBasis: '100%', background: C.bg, borderRadius: 12, padding: 12, display: 'grid', gap: 6 }}>
-          <b style={{ fontSize: 13.5 }}>Search terms from Brand Analytics and the copy · {out.bytes} of 249 bytes</b>
-          <p style={{ margin: 0, fontSize: 14, background: '#fff', borderRadius: 8, padding: 10, border: `1px solid ${C.line}` }}>{out.search_terms || '–'}</p>
-          <span style={{ fontSize: 12.5, color: C.muted }}>{out.keywords.basis === 'none' ? 'No UK Brand Analytics searches for this product: written from the copy.' : `Brand Analytics ${out.keywords.period_from} to ${out.keywords.period_to}: ${out.searches_used.length} of ${out.keywords.offered} searches used.`} {out.notes} Words already in the title are left out, as Amazon advises.</span>
+          <b style={{ fontSize: 13.5 }}>Proposed search terms · {out.bytes} of 249 bytes · not saved yet</b>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>{(out.phrases || []).map((p) => <span key={p.text} title={p.from === 'copy' ? 'From the product copy' : 'A real Brand Analytics search'} style={{ fontSize: 13, fontWeight: 700, borderRadius: 999, padding: '3px 10px', background: p.from === 'copy' ? C.soft : C.okBg, color: C.ink }}>{p.text}</span>)}</div>
+          <span style={{ fontSize: 12, color: C.muted }}>Green: real Brand Analytics searches · lilac: phrases from the product copy. Saved as one line of words, as Amazon takes it.</span>
+          <span style={{ fontSize: 12.5, color: C.muted }}>{out.keywords.basis === 'none' ? 'No UK Brand Analytics searches for this product: phrases from the copy.' : `Brand Analytics ${out.keywords.period_from} to ${out.keywords.period_to}: ${(out.phrases || []).filter((p) => p.from !== 'copy').length} of ${out.keywords.offered} searches used.`} {out.notes}</span>
           {out.current ? <span style={{ fontSize: 12.5, color: C.muted }}>Now: {out.current}</span> : null}
           <div>{saved ? <span style={{ fontSize: 13, fontWeight: 800, color: C.ok }}>Saved to the master</span> : <button type="button" disabled={!!busy || !out.search_terms} onClick={use} style={btn(true)}>{busy === 'use' ? 'Saving…' : 'Use these'}</button>}</div>
         </div>

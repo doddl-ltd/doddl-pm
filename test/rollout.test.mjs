@@ -124,10 +124,18 @@ test('a store category is the one Amazon files the product under there, free; ke
   assert.equal(pickCategory({ current: [], ranked: [] }), null)
 })
 
-test('search terms are tidied to Amazon rules: lower case, no brand, no title words, no repeats, 249 bytes', async () => {
-  const { tidySearchTerms } = await import('../lib/pm/copyWriter.js')
-  const t = tidySearchTerms('Weaning Plate, weaning DODDL suction-plate bowl BPA free  bowl', 'doddl 2-in-1 Suction Plate')
-  assert.equal(t, 'weaning suction-plate bowl bpa free')
-  const long = tidySearchTerms(Array.from({ length: 120 }, (_, i) => `word${i}`).join(' '))
-  assert.ok(Buffer.byteLength(long, 'utf8') <= 249 && !long.endsWith(' '))
+test('search terms are whole generic phrases: Brand Analytics ones as listed, copy ones allowed, no brand, no repeats, 249 bytes', async () => {
+  const { assembleSearchTerms } = await import('../lib/pm/copyWriter.js')
+  const offered = ['toddler suction plate not divided', 'raised lip plates', 'doddl plate', 'highchair plate']
+  const r = assembleSearchTerms([
+    { text: 'Toddler suction plate not divided', from: 'brand_analytics' }, { text: 'made up search', from: 'brand_analytics' },
+    { text: 'doddl plate', from: 'brand_analytics' }, { text: 'raised lip plates', from: 'brand_analytics' },
+    { text: 'raised lip plates', from: 'copy' }, { text: 'baby weaning plate', from: 'copy' }, { text: 'highchair plate', from: 'brand_analytics' },
+  ], offered)
+  assert.equal(r.search_terms, 'toddler suction plate not divided raised lip plates baby weaning plate highchair plate')
+  assert.deepEqual(r.used.map((u) => u.from), ['brand_analytics', 'brand_analytics', 'copy', 'brand_analytics'])
+  const many = Array.from({ length: 40 }, (_, k) => ({ text: 'baby plate search number ' + k, from: 'copy' }))
+  const f = assembleSearchTerms(many, [])
+  assert.ok(Buffer.byteLength(f.search_terms, 'utf8') <= 249)
+  assert.ok(f.used.every((u) => f.search_terms.includes(u.text)), 'every phrase kept whole')
 })
