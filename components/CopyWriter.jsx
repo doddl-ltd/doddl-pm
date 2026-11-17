@@ -31,7 +31,7 @@ export default function CopyWriter({ master, onSave }) {
     try { await onSave(f, out.draft[f]); setTaken((t) => ({ ...t, [f]: true })) } catch (e) { setErr(e.message) } finally { setBusy('') }
   }
   const takeAll = async () => { for (const f of Object.keys(LABEL)) if (out.draft[f] && !taken[f] && !(out.problems || {})[f]) await take(f) }
-  if (!open) return <button type="button" onClick={() => setOpen(true)} style={btn(false)}>Write new copy</button>
+  if (!open) return <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 8 }}><button type="button" onClick={() => setOpen(true)} style={btn(false)}>Write new copy</button><SearchTerms master={master} onSave={onSave} /></div>
   return (
     <div style={{ marginTop: 10, padding: 14, background: C.bg, borderRadius: 12 }}>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 10 }}>
@@ -68,5 +68,40 @@ export default function CopyWriter({ master, onSave }) {
         </div>
       ) : null}
     </div>
+  )
+}
+
+// Master › Copy › "Generate search terms" (Jon 2026-11-17): Amazon's back-end search terms from the UK Brand Analytics
+// searches and the product copy (lib/pm/copyWriter.js writeSearchTerms, Claude Haiku 5.5, under 1p). Shown first; saved
+// to the master only on "Use these".
+function SearchTerms({ master, onSave }) {
+  const [busy, setBusy] = useState('')
+  const [err, setErr] = useState('')
+  const [out, setOut] = useState(null)
+  const [saved, setSaved] = useState(false)
+  const gen = async () => {
+    setBusy('gen'); setErr(''); setSaved(false)
+    try {
+      const r = await apiFetch('/api/listings/master-write', { method: 'POST', body: JSON.stringify({ op: 'search_terms', asin: master.asin }) })
+      const j = await r.json().catch(() => ({}))
+      if (!r.ok) throw new Error(j.error || `Could not write the search terms (${r.status})`)
+      setOut(j)
+    } catch (e) { setErr(e.message) } finally { setBusy('') }
+  }
+  const use = async () => { setBusy('use'); setErr(''); try { await onSave('search_terms', out.search_terms); setSaved(true) } catch (e) { setErr(e.message) } finally { setBusy('') } }
+  return (
+    <>
+      <button type="button" disabled={!!busy} onClick={gen} style={btn(false)}>{busy === 'gen' ? 'Writing search terms…' : out ? 'Generate again' : 'Generate search terms'}</button>
+      {err ? <p role="alert" style={{ color: C.bad, fontSize: 13, margin: 0, flexBasis: '100%' }}>{err}</p> : null}
+      {out ? (
+        <div style={{ flexBasis: '100%', background: C.bg, borderRadius: 12, padding: 12, display: 'grid', gap: 6 }}>
+          <b style={{ fontSize: 13.5 }}>Search terms from Brand Analytics and the copy · {out.bytes} of 249 bytes</b>
+          <p style={{ margin: 0, fontSize: 14, background: '#fff', borderRadius: 8, padding: 10, border: `1px solid ${C.line}` }}>{out.search_terms || '–'}</p>
+          <span style={{ fontSize: 12.5, color: C.muted }}>{out.keywords.basis === 'none' ? 'No UK Brand Analytics searches for this product: written from the copy.' : `Brand Analytics ${out.keywords.period_from} to ${out.keywords.period_to}: ${out.searches_used.length} of ${out.keywords.offered} searches used.`} {out.notes} Words already in the title are left out, as Amazon advises.</span>
+          {out.current ? <span style={{ fontSize: 12.5, color: C.muted }}>Now: {out.current}</span> : null}
+          <div>{saved ? <span style={{ fontSize: 13, fontWeight: 800, color: C.ok }}>Saved to the master</span> : <button type="button" disabled={!!busy || !out.search_terms} onClick={use} style={btn(true)}>{busy === 'use' ? 'Saving…' : 'Use these'}</button>}</div>
+        </div>
+      ) : null}
+    </>
   )
 }

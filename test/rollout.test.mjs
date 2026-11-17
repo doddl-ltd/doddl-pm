@@ -123,3 +123,11 @@ test('a store category is the one Amazon files the product under there, free; ke
   assert.equal(pickCategory({ current: [{ node: '26119033031' }], ranked: [{ node: '26119033031', title: 'Toddler Cutlery Sets', rank: 5 }] }).keep, true)
   assert.equal(pickCategory({ current: [], ranked: [] }), null)
 })
+
+test('search terms are tidied to Amazon rules: lower case, no brand, no title words, no repeats, 249 bytes', async () => {
+  const { tidySearchTerms } = await import('../lib/pm/copyWriter.js')
+  const t = tidySearchTerms('Weaning Plate, weaning DODDL suction-plate bowl BPA free  bowl', 'doddl 2-in-1 Suction Plate')
+  assert.equal(t, 'weaning suction-plate bowl bpa free')
+  const long = tidySearchTerms(Array.from({ length: 120 }, (_, i) => `word${i}`).join(' '))
+  assert.ok(Buffer.byteLength(long, 'utf8') <= 249 && !long.endsWith(' '))
+})
