@@ -161,6 +161,7 @@ function show(v, field) {
 }
 
 function EditBox({ row, onSave, onCancel }) {
+  // A refused edit can be saved again as it is (after HQ or the listing is fixed), so its value counts as a change.
   const start = row.edit ? row.edit.value : (typeof row.live === 'string' ? row.live : '')
   const [v, setV] = useState(start)
   const [busy, setBusy] = useState(false)
@@ -178,7 +179,7 @@ function EditBox({ row, onSave, onCancel }) {
       <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', marginTop: 6 }}>
         <span style={{ fontSize: 12, color: over ? C.bad : C.muted, fontWeight: 700, marginRight: 'auto' }}>{count}{over ? ' (over the limit)' : ''}</span>
         <button type="button" onClick={onCancel} disabled={busy} style={btn(false)}>Cancel</button>
-        <button type="button" onClick={save} disabled={busy || (!row.allowEmpty && !v.trim()) || v.trim() === String(start).trim()} style={btn(true)}>{busy ? 'Saving…' : 'Save edit'}</button>
+        <button type="button" onClick={save} disabled={busy || (!row.allowEmpty && !v.trim()) || (v.trim() === String(start).trim() && !(row.edit && row.edit.status === 'refused'))} style={btn(true)}>{busy ? 'Saving…' : 'Save edit'}</button>
       </div>
       {err ? <p role="alert" style={{ margin: '6px 0 0', fontSize: 13, color: C.bad }}>{err}</p> : null}
     </div>
