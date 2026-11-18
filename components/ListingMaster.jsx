@@ -100,7 +100,10 @@ export function attributeRowsVsMaster({ live, master, ptd, titlesPtd, market, ed
       key: `attribute:${name}`, kind: 'attribute', name, label: titles[name] || name.replace(/_/g, ' '), limit: [req.has(name) ? 'Required by Amazon' : null, name].filter(Boolean).join(' · '),
       live: value, liveMeta: l.page == null && l.ours != null ? 'Only on our listing (not on the live page)' : l.ours != null && l.page != null && norm(l.ours) !== norm(l.page) ? `Our listing says: ${l.ours}` : null,
       should: m ? (m.keep === false ? '(remove)' : m.value) : null, shouldMeta: m ? null : null, chip: CHIPS[kind], kindKey: kind,
-      edit: byEdit[name] || null, editable: scored, group: g, required: req.has(name),
+      // The parent link is editable on its own (Jon 2026-11-18, DOD053 UK split): enter the PARENT'S SELLER SKU (e.g.
+      // 2in1plate), never an ASIN. HQ checks the parent is one of ours with the same theme before anything is sent.
+      edit: byEdit[name] || null, editable: scored || name === 'child_parent_sku_relationship', group: g, required: req.has(name),
+      ...(name === 'child_parent_sku_relationship' ? { limit: "Parent link: the parent's seller SKU, never an ASIN" } : {}),
     }
   })
 }
