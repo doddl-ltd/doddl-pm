@@ -150,3 +150,12 @@ test('several values (" | ") on the master or on Amazon are never sent as one st
   assert.deepEqual(p.changes.filter((c) => c.kind === 'attribute' && !/image_locator/.test(c.name)).map((c) => c.name), ['color'])
   assert.deepEqual(p.skipped.filter((x) => /several parts/.test(x.why)).map((x) => x.name).sort(), ['material', 'theme'])
 })
+
+test("a child's parent link is saved as the parent's seller SKU; an ASIN is refused (DOD053 UK, 2026-11-18)", async () => {
+  const { cleanListingEdit } = await import('../lib/pm/hq.js')
+  const base = { asin: 'B0H6XSBMSD', marketplace: 'UK', kind: 'attribute', name: 'child_parent_sku_relationship' }
+  assert.equal(cleanListingEdit({ ...base, value: '2in1plate' }).value, '2in1plate')
+  assert.equal(cleanListingEdit({ ...base, value: 'child_relationship_type: variation; parent_sku: 2in1plate' }).value, '2in1plate')
+  assert.throws(() => cleanListingEdit({ ...base, value: 'B0H7C1VDSM' }), /is an ASIN/)
+  assert.throws(() => cleanListingEdit({ ...base, value: '' }), /seller SKU/)
+})
