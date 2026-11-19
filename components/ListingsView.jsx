@@ -76,7 +76,7 @@ function useWeekEvents() {
   return events
 }
 
-function Detail({ sel, rows, isMobile, onBack, onSelect, onOpenApproval, startTab = false }) {
+export function Detail({ sel, rows, isMobile, onBack, onSelect, onOpenApproval, startTab = false }) {
   const [data, setData] = useState(null)
   const [error, setError] = useState('')
   const [onlyDiff, setOnlyDiff] = useState(isMobile)
