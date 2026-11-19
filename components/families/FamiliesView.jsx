@@ -402,7 +402,7 @@ function ImagesTab({ data, isMobile, op, onEdit }) {
         <Panel style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           <b style={{ fontSize: 16, color: B.indigo }}>Master set</b>
           <span style={{ fontSize: 13, color: C.muted }}>{SLOTS.filter(s => im.slot_map[s] !== 'colour').join(', ') || 'No slots'} · used by every colour</span>
-          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>{(im.master || []).filter(x => x.url).slice(0, 6).map(x => <Thumb key={x.slot} s={{ ...x, from: 'master' }} size={48} />)}</div>
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>{SLOTS.filter(s => im.slot_map[s] !== 'colour' && (im.master || {})[s]).map(s => <Thumb key={s} s={{ slot: s, url: im.master[s], from: 'master' }} size={48} />)}</div>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}><Btn onClick={onEdit}>Upload</Btn><Btn onClick={onEdit}>Pick from library</Btn></div>
         </Panel>
         {im.colours.map((c, i) => (
