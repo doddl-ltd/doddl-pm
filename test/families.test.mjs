@@ -1,0 +1,83 @@
+import { test } from 'node:test'
+import assert from 'node:assert/strict'
+import { deriveFamilies, seoScore, composeImages, keywordFocus, slotsOf, isPack, covers } from '../lib/pm/families.js'
+
+const parent = (asin, marketplace, sku, kids, title = 'Parent · 2-in-1 Suction Plate') => ({ asin, marketplace, sku, product: title, parent_asin: null, listing_status: 'Variation parent (not sold itself)', variations: { theme: 'COLOR', child_asins: kids, parent_asins: [] } })
+const child = (asin, marketplace, sku, parent_asin, colour) => ({ asin, marketplace, sku, product: `${sku} · Thing`, parent_asin, colour, listing_status: 'Buyable', variations: null })
+
+test('one family across stores, each store keeps its own parent (map only)', () => {
+  const d = deriveFamilies([
+    parent('PUK0000001', 'UK', '2in1plate', ['C000000001', 'C000000002']),
+    child('C000000001', 'UK', 'DOD053', 'PUK0000001', 'Dusky Rose'), child('C000000002', 'UK', 'DOD017', 'PUK0000001', 'Fresh Green'),
+    parent('PUS0000001', 'US', '2in1platemaster', ['C000000001', 'C000000002']),
+    child('C000000001', 'US', 'DOD053', 'PUS0000001', 'Dusky Rose'), child('C000000002', 'US', 'DOD017', 'PUS0000001', 'Fresh Green'),
+  ])
+  assert.equal(d.families.length, 1)
+  assert.equal(d.families[0].family_code, 'P-2IN1-PLATE')
+  assert.deepEqual(d.parents.map(p => [p.marketplace, p.parent_sku, p.children]).sort(), [['UK', '2in1plate', 2], ['US', '2in1platemaster', 2]])
+  assert.equal(d.cleanup.length, 0)
+})
+
+test('an emptied parent joins its old family as a clean-up item, not a family of its own', () => {
+  const d = deriveFamilies([
+    parent('PUK0000001', 'UK', '2in1plate', ['C000000001', 'C000000002']),
+    parent('PUK0000002', 'UK', 'B0H7C1VDSM', ['C000000001']),
+    child('C000000001', 'UK', 'DOD053', 'PUK0000001', 'Dusky Rose'), child('C000000002', 'UK', 'DOD017', 'PUK0000001', 'Fresh Green'),
+  ])
+  assert.equal(d.families.length, 1)
+  assert.ok(d.cleanup.some(c => c.problem_key === 'empty_parent' && c.fix_kind === 'in_place'))
+})
+
+test('split, outside, packs, one child and colour names are found', () => {
+  const d = deriveFamilies([
+    parent('PA00000001', 'UK', 'BOWL PARENT', ['B000000001', 'B000000002'], 'Parent · Bowl'),
+    child('B000000001', 'UK', 'DOD011', 'PA00000001', 'Fresh Green'), child('B000000002', 'UK', 'DOD011x2', 'PA00000001', 'Fresh Gree - Twin Pack'),
+    child('B000000003', 'UK', 'DOD054', null, 'Dusky Rose'),
+    parent('PB00000001', 'US', 'X', ['B000000001'], 'Parent · Bowl'), child('B000000001', 'US', 'DOD011', 'PB00000001', 'Magento'),
+  ])
+  const keys = d.cleanup.map(c => `${c.marketplace}:${c.problem_key}`).sort()
+  assert.deepEqual(keys, ['UK:colour_names', 'UK:outside', 'UK:packs', 'US:colour_names', 'US:one_child'])
+  assert.equal(d.families[0].family_code, 'P-2IN1-BOWL')
+  assert.equal(d.parents.find(p => p.marketplace === 'UK').status, 'rebuild')
+})
+
+test('packs and keyword coverage helpers', () => {
+  assert.ok(isPack('DOD011x2')); assert.ok(isPack('DOD001010')); assert.ok(isPack('VMP_DOD004_EU_2_PK')); assert.ok(!isPack('DOD011'))
+  assert.ok(covers('Strong Suction Plate for Toddlers', 'suction plate toddler'))
+  assert.ok(!covers('Suction Bowl', 'suction plate'))
+})
+
+test('SEO score: 100-point formula, weighted by search volume, with penalties', () => {
+  const keywords = [{ search_query: 'suction plate', query_volume: 900 }, { search_query: 'toddler plate', query_volume: 100 }]
+  const full = seoScore({ copy: { title: 'x'.repeat(170) + ' suction plate toddler', bullet_1: 'suction plate '.repeat(12), bullet_2: 'toddler plate '.repeat(12), bullet_3: 'y'.repeat(160), bullet_4: 'y'.repeat(160), bullet_5: 'y'.repeat(160), description: 'z'.repeat(1000), search_terms: 'w'.repeat(220) }, keywords, images: 7, aplusLive: true })
+  assert.equal(full.parts.title, 30); assert.equal(full.parts.bullets, 15); assert.equal(full.parts.terms, 10)
+  assert.equal(full.parts.images, 15); assert.equal(full.parts.aplus, 5); assert.equal(full.parts.family, 5)
+  assert.equal(full.score, 100)
+  const weak = seoScore({ copy: { title: 'toddler plate', search_terms: 'doddl ' + 'a'.repeat(260) }, keywords, images: 3 })
+  assert.equal(weak.parts.title, 3) // 100 of 1000 volume → 3 of 30 (parts add to 90, shown out of 100)
+  assert.ok(weak.penalties.some(p => /249 bytes/.test(p[0])) && weak.penalties.some(p => /Brand/.test(p[0])))
+  assert.ok(weak.score < 20)
+})
+
+test('images: each colour = master slots + its own colour slots; a missing colour picture is never borrowed', () => {
+  const master = slotsOf([{ slot: 'MAIN', url: 'm0' }, { slot: 'PT01', url: 'm1' }, { slot: 'PT02', url: 'm2' }, { slot: 'PT04', url: 'm4' }])
+  const out = composeImages({ PT04: 'colour' }, master, [{ asin: 'A', colour: 'Rose', images: { MAIN: 'r0', PT03: 'r3', PT04: 'r4' } }, { asin: 'B', colour: 'Green', images: { MAIN: 'g0' } }])
+  const a = Object.fromEntries(out[0].slots.map(s => [s.slot, s.url])), b = Object.fromEntries(out[1].slots.map(s => [s.slot, s.url]))
+  assert.deepEqual([a.MAIN, a.PT01, a.PT03, a.PT04], ['r0', 'm1', 'r3', 'r4'])
+  assert.deepEqual([b.MAIN, b.PT01, b.PT03, b.PT04], ['g0', 'm1', null, null])
+  assert.ok(out[1].slots.find(s => s.slot === 'PT03').missing)
+})
+
+test('keyword focus merges the family, adds own keywords and says where each search sits', () => {
+  const f = keywordFocus([
+    { asin: 'A', search_query: 'Suction plate', query_volume: 500, asin_impressions: 10, asin_clicks: 4, asin_purchases: 1 },
+    { asin: 'B', search_query: 'suction plate', query_volume: 500, asin_impressions: 5, asin_clicks: 1, asin_purchases: 1 },
+    { asin: 'A', search_query: 'doddl plate', query_volume: 50, is_brand_term: true },
+    { asin: 'A', search_query: 'plate with lip', query_volume: 90 },
+  ], { title: 'doddl Suction Plate', search_terms: '' }, ['plate for 1 year old'])
+  assert.equal(f.length, 3)
+  assert.deepEqual([f[0].search_query, f[0].impressions, f[0].clicks, f[0].purchases, f[0].where], ['Suction plate', 15, 5, 2, 'Title'])
+  assert.equal(f[0].conversion, 0.4)
+  assert.equal(f.find(k => k.search_query === 'plate with lip').where, 'Missing')
+  assert.ok(f.find(k => k.own))
+})
