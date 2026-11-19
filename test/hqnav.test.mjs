@@ -7,8 +7,16 @@ import { SECTIONS, SECTION, REPORTS, REPORT_TABS, HQ_LINKS, BRAND, HUB_ORIGIN, s
 const src = readFileSync(new URL('../pages/index.js', import.meta.url), 'utf8')
 const URL_VIEWS = JSON.parse(src.match(/const URL_VIEWS = (\[[^\]]*\])/)[1].replace(/'/g, '"'))
 
-test('eight sections, each in a brand-book colour, each with tabs', () => {
-  assert.deepEqual(SECTIONS.map((s) => s.key), ['home', 'projects', 'requests', 'approvals', 'reports', 'studio', 'b2b', 'hq'])
+test('Amazon is its own section: listings, clean-up, rank + reviews, evidence, classic; Studio no longer holds listings', () => {
+  assert.equal(sectionOf('listings').key, 'amazon')
+  assert.deepEqual(SECTION.amazon.tabs.map((t) => t.sub), ['families', 'cleanup', 'rank', 'evidence', 'classic'])
+  assert.equal(defaultSub('listings'), 'families')
+  assert.equal(activeTab('listings', 'rank').label, 'Rank & reviews')
+  assert.ok(!SECTION.studio.tabs.some((t) => t.view === 'listings'))
+})
+
+test('nine sections, each in a brand-book colour, each with tabs', () => {
+  assert.deepEqual(SECTIONS.map((s) => s.key), ['home', 'projects', 'requests', 'approvals', 'reports', 'studio', 'amazon', 'b2b', 'hq'])
   for (const s of SECTIONS) {
     for (const c of [s.c, s.big, s.acc, s.pip].filter(Boolean)) assert.ok(BRAND.includes(c), `${s.key} uses ${c}, not a brand colour`)
     assert.ok(s.tabs.length >= 2, s.key)

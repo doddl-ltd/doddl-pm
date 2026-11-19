@@ -271,7 +271,7 @@ export default function Home() {
           ) : view === 'calendar' ? (
             <CalendarView user={user} isMobile={isMobile} onOpenApproval={openApprovalCard} />
           ) : view === 'listings' ? (
-            <ListingsView user={user} isMobile={isMobile} onOpenApproval={openApprovalCard} />
+            <ListingsView user={user} isMobile={isMobile} onOpenApproval={openApprovalCard} tab={sub || 'families'} setTab={(k) => goView('listings', k)} />
           ) : activeProjectData ? (
             <>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>

@@ -34,15 +34,18 @@ function useLoad(url, deps = []) {
   return [data, error, () => setN(x => x + 1), setData]
 }
 const pill = (on) => ({ minHeight: 38, padding: '0 14px', borderRadius: 999, border: `1px solid ${on ? B.indigo : C.border}`, background: on ? B.indigo : '#fff', color: on ? '#fff' : B.indigo, font: `800 13px ${F}`, cursor: 'pointer' })
-const tabBtn = (on) => ({ background: 'none', border: 0, borderBottom: `3px solid ${on ? B.indigo : 'transparent'}`, font: `800 14px ${F}`, color: on ? B.indigo : C.muted, padding: '0 4px', minHeight: 44, cursor: 'pointer' })
 const Score = ({ v }) => v == null ? <span style={{ color: C.faint }}>–</span> : <b style={{ color: v >= 75 ? C.ok : v >= 55 ? C.warn : C.bad }}>{v}</b>
 
-export default function FamiliesView({ isMobile, onOpenApproval }) {
-  const [view, setView] = useState({ page: 'list' })
-  if (view.page === 'family') return <FamilyPage code={view.code} isMobile={isMobile} onOpenApproval={onOpenApproval} onBack={() => setView({ page: 'list' })} />
-  if (view.page === 'cleanup') return <CleanupPage isMobile={isMobile} onBack={() => setView({ page: 'list' })} onOpen={(code) => setView({ page: 'family', code })} />
-  return <FamilyList isMobile={isMobile} onOpen={(code) => setView({ page: 'family', code })} onCleanup={() => setView({ page: 'cleanup' })} />
+// mode: 'list' (Amazon › Listings) or 'cleanup' (Amazon › Clean-up); a family opens inside either and goes back to it.
+export default function FamiliesView({ mode = 'list', isMobile, onOpenApproval, onCleanup }) {
+  const [view, setView] = useState({ page: mode })
+  const home = mode === 'cleanup' ? 'Clean-up' : 'Amazon listings'
+  if (view.page === 'family') return <FamilyPage code={view.code} isMobile={isMobile} onOpenApproval={onOpenApproval} backLabel={home} onBack={() => setView({ page: mode })} />
+  if (view.page === 'cleanup') return <CleanupPage isMobile={isMobile} onBack={mode === 'cleanup' ? null : () => setView({ page: 'list' })} onOpen={(code) => setView({ page: 'family', code })} />
+  return <FamilyList isMobile={isMobile} onOpen={(code) => setView({ page: 'family', code })} onCleanup={onCleanup || (() => setView({ page: 'cleanup' }))} />
 }
+const signedOff = (f) => !!(f.signoff && f.signoff.Jon && f.signoff.Laura)
+const liveEverywhere = (f) => !f.problems && Object.values(f.stores || {}).every(s => s.state === 'none' || s.state === 'live') && Object.values(f.stores || {}).some(s => s.state === 'live')
 
 // ─── every family ─────────────────────────────────────────────────────────────────────────────────────────────────
 function FamilyList({ isMobile, onOpen, onCleanup }) {
@@ -55,6 +58,8 @@ function FamilyList({ isMobile, onOpen, onCleanup }) {
     let r = (data && data.families) || []
     if (filter === 'problems') r = r.filter(f => f.problems)
     if (filter === 'decisions') r = r.filter(f => f.decisions.length)
+    if (filter === 'signoff') r = r.filter(f => !signedOff(f))
+    if (filter === 'live') r = r.filter(liveEverywhere)
     const s = search.trim().toLowerCase()
     if (s) r = r.filter(f => `${f.name} ${f.family_code} ${f.lead_asin}`.toLowerCase().includes(s))
     return r
@@ -74,6 +79,8 @@ function FamilyList({ isMobile, onOpen, onCleanup }) {
         <button type="button" style={pill(filter === 'all')} onClick={() => setFilter('all')}>All {data ? data.counts.all : ''}</button>
         <button type="button" style={pill(filter === 'problems')} onClick={() => setFilter('problems')}>Needs fixing {data ? data.counts.problems : ''}</button>
         <button type="button" style={pill(filter === 'decisions')} onClick={() => setFilter('decisions')}>Needs your decision {data ? data.counts.decisions : ''}</button>
+        <button type="button" style={pill(filter === 'signoff')} onClick={() => setFilter('signoff')}>Waiting for sign-off {data ? data.families.filter(f => !signedOff(f)).length : ''}</button>
+        <button type="button" style={pill(filter === 'live')} onClick={() => setFilter('live')}>Live everywhere {data ? data.families.filter(liveEverywhere).length : ''}</button>
         <button type="button" style={{ ...pill(false), borderColor: B.pink, color: '#a33d62' }} onClick={onCleanup}>Clean-up list {data ? `(${data.counts.cleanup_open} open)` : ''} ›</button>
       </div>
       <StateLine loading={!data && !error} error={error} empty={data && !rows.length ? 'No families match.' : ''} />
@@ -110,7 +117,7 @@ function CleanupPage({ isMobile, onBack, onOpen }) {
   const counts = (k) => ((data && data.items) || []).filter(k).length
   return (
     <div style={{ padding: isMobile ? '0 4px 16px' : '0 16px 40px', display: 'flex', flexDirection: 'column', gap: 14 }}>
-      <button type="button" onClick={onBack} style={{ alignSelf: 'flex-start', background: 'none', border: 0, padding: 0, font: `800 14px ${F}`, color: B.indigo, cursor: 'pointer', minHeight: 40 }}>‹ Amazon listings</button>
+      {onBack ? <button type="button" onClick={onBack} style={{ alignSelf: 'flex-start', background: 'none', border: 0, padding: 0, font: `800 14px ${F}`, color: B.indigo, cursor: 'pointer', minHeight: 40 }}>‹ Amazon listings</button> : null}
       <div><H2 style={{ margin: 0 }}>Clean-up: every parent and child, all stores</H2><Note>Found from the live listings on each refresh. Each is fixed the least risky way, with rank and reviews snapshotted before and after. A problem that disappears from Amazon is marked fixed by itself.</Note></div>
       <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, minmax(0, 1fr))', gap: 10 }}>
         {Object.entries(FIX).map(([k, [t, fg, bg, d]]) => <div key={k} style={{ background: bg, borderRadius: 12, padding: '10px 14px' }}><b style={{ color: fg }}>{t}</b><div style={{ fontSize: 13 }}>{d}</div></div>)}
@@ -156,7 +163,7 @@ function CleanupPage({ isMobile, onBack, onOpen }) {
 // ─── one family ───────────────────────────────────────────────────────────────────────────────────────────────────
 const TABS = [['master', 'Master'], ['colours', 'Colours'], ['images', 'Images'], ['aplus', 'A+ page'], ['countries', 'Countries'], ['rank', 'Rank & reviews'], ['evidence', 'Evidence']]
 
-function FamilyPage({ code, isMobile, onBack, onOpenApproval }) {
+function FamilyPage({ code, isMobile, onBack, onOpenApproval, backLabel = 'Amazon listings' }) {
   const [data, error, reload] = useLoad(`/api/listings/families?code=${encodeURIComponent(code)}`)
   const [tab, setTab] = useState('master')
   const [open, setOpen] = useState(null) // { asin, marketplace, startTab }
@@ -169,30 +176,37 @@ function FamilyPage({ code, isMobile, onBack, onOpenApproval }) {
   const detail = (sel, startTab) => <Detail key={`${sel.asin}|${sel.marketplace}|${startTab}`} sel={{ ...sel, sku: (sold.find(m => m.asin === sel.asin && m.marketplace === sel.marketplace) || {}).sku }} rows={rowsFor(sel.asin)} isMobile={isMobile} onBack={() => setOpen(null)} onSelect={(r) => setOpen({ asin: r.asin, marketplace: r.marketplace, startTab: false })} onOpenApproval={onOpenApproval} startTab={startTab} />
   const signed = f.signoff || {}
   const pad = isMobile ? '0 4px 16px' : '0 16px 40px'
+  const soldIn = [...new Set(sold.map(m => m.marketplace))].sort((a, b) => STORE_ORDER.indexOf(a) - STORE_ORDER.indexOf(b))
+  const homeStore = soldIn.includes('UK') ? 'UK' : soldIn[0]
+  const colourCount = new Set(sold.filter(m => m.marketplace === homeStore && !m.is_pack).map(m => m.asin)).size
   if (open) return <div style={{ padding: pad }}><button type="button" onClick={() => setOpen(null)} style={{ background: 'none', border: 0, padding: 0, font: `800 14px ${F}`, color: B.indigo, cursor: 'pointer', minHeight: 40 }}>‹ {f.name}</button>{detail(open, open.startTab)}</div>
   return (
     <div style={{ padding: pad, display: 'flex', flexDirection: 'column', gap: 14 }}>
-      <button type="button" onClick={onBack} style={{ alignSelf: 'flex-start', background: 'none', border: 0, padding: 0, font: `800 14px ${F}`, color: B.indigo, cursor: 'pointer', minHeight: 40 }}>‹ Amazon listings</button>
-      <div style={{ display: 'flex', alignItems: 'flex-end', gap: 12, flexWrap: 'wrap' }}>
-        <div style={{ flex: '1 1 300px' }}>
-          <h1 style={{ margin: 0, font: `900 28px ${F}`, color: B.indigo }}>{f.name}</h1>
-          <Note>{f.family_code} · theme {f.theme || '–'} · {new Set(sold.map(m => m.asin)).size} products · sold in {[...new Set(sold.map(m => m.marketplace))].sort((a, b) => STORE_ORDER.indexOf(a) - STORE_ORDER.indexOf(b)).join(', ')}</Note>
+      <button type="button" onClick={onBack} style={{ alignSelf: 'flex-start', background: 'none', border: 0, padding: 0, font: `800 14px ${F}`, color: B.indigo, cursor: 'pointer', minHeight: 40 }}>‹ {backLabel}</button>
+      <div style={{ display: 'flex', alignItems: 'flex-end', gap: 14, flexWrap: 'wrap' }}>
+        <div style={{ flex: '1 1 300px', display: 'flex', flexDirection: 'column', gap: 4 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+            <h1 style={{ margin: 0, font: `900 30px ${F}`, color: B.indigo }}>{f.name}</h1>
+            <Chip bg={B.lilac}>Family code {f.family_code}</Chip>
+            <Chip bg={data.seo.score >= 75 ? B.mint : B.cream} fg={data.seo.score >= 75 ? C.ok : C.warn}>SEO (UK) {data.seo.score}</Chip>
+          </div>
+          <span style={{ fontSize: 14, color: C.muted }}>Theme: {String(f.theme || 'none').toLowerCase().replace(/_/g, ' ')} · {colourCount} colour{colourCount === 1 ? '' : 's'} · sold in {soldIn.join(', ') || 'no store yet'} · every field is editable</span>
         </div>
-        <Chip bg={B.lilac}>SEO (UK) {data.seo.score}</Chip>
+        <nav aria-label="Family sections" style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          {TABS.map(([k, l]) => <button key={k} type="button" aria-current={tab === k ? 'page' : undefined} onClick={() => setTab(k)} style={pill(tab === k)}>{l}</button>)}
+        </nav>
       </div>
-      <div style={{ background: signed.Jon && signed.Laura ? B.mint : B.cream, border: `1px solid ${signed.Jon && signed.Laura ? B.teal : B.yellow}`, borderRadius: 12, padding: '10px 14px', display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
-        <b style={{ flex: '1 1 240px', color: signed.Jon && signed.Laura ? C.ok : C.warn }}>{signed.Jon && signed.Laura ? 'Master signed off' : 'Master not signed off yet'}{data.master ? ` · master ${data.master.master_sku || data.master.asin} (${data.master.status})` : ' · no master yet'}</b>
+      <div style={{ background: signed.Jon && signed.Laura ? B.mint : B.cream, border: `1px solid ${signed.Jon && signed.Laura ? B.teal : B.yellow}`, borderRadius: 14, padding: '12px 18px', display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap' }}>
+        <b style={{ fontSize: 15, color: signed.Jon && signed.Laura ? C.ok : '#8a6400' }}>{signed.Jon && signed.Laura ? 'Master signed off' : 'Draft'}{data.master ? ` · master ${data.master.master_sku || data.master.asin} (${data.master.status})` : ' · no master yet'}</b>
+        <span style={{ flex: '1 1 240px', fontSize: 14, color: C.muted }}>Every colour and country is built from the signed-off master. Sign-off needs both names.</span>
         <span style={{ fontSize: 13, fontWeight: 800 }}>Jon {signed.Jon ? `✓ ${fmtDay(signed.Jon)}` : '○'} · Laura {signed.Laura ? `✓ ${fmtDay(signed.Laura)}` : '○'}</span>
         <Btn primary onClick={() => op({ op: 'signoff' })}>Sign off the master</Btn>
       </div>
-      <div role="tablist" aria-label="Family" style={{ display: 'flex', gap: isMobile ? 12 : 22, borderBottom: `1px solid ${C.line}`, flexWrap: 'wrap' }}>
-        {TABS.map(([k, l]) => <button key={k} type="button" role="tab" aria-selected={tab === k} onClick={() => setTab(k)} style={tabBtn(tab === k)}>{l}</button>)}
-      </div>
-      {tab === 'master' ? <MasterTab data={data} isMobile={isMobile} op={op} lead={ukLead} detail={detail} reload={reload} /> : null}
+      {tab === 'master' ? <MasterTab data={data} isMobile={isMobile} op={op} lead={ukLead} reload={reload} onEdit={() => setOpen({ ...ukLead, startTab: 'master' })} /> : null}
       {tab === 'colours' ? <ColoursTab data={data} isMobile={isMobile} onOpen={(m) => setOpen({ asin: m.asin, marketplace: m.marketplace, startTab: false })} /> : null}
       {tab === 'images' ? <ImagesTab data={data} isMobile={isMobile} op={op} onEdit={() => setOpen({ ...ukLead, startTab: 'master' })} /> : null}
       {tab === 'aplus' ? <AplusTab data={data} isMobile={isMobile} lead={ukLead} detail={detail} /> : null}
-      {tab === 'countries' ? <CountriesTab data={data} isMobile={isMobile} onOpen={(m) => setOpen({ asin: m.asin, marketplace: m.marketplace, startTab: false })} /> : null}
+      {tab === 'countries' ? <CountriesTab data={data} isMobile={isMobile} onOpen={(m) => setOpen({ asin: m.asin, marketplace: m.marketplace, startTab: false })} onEdit={() => setOpen({ ...ukLead, startTab: 'master' })} /> : null}
       {tab === 'rank' ? <RankTab data={data} isMobile={isMobile} /> : null}
       {tab === 'evidence' ? <EvidenceTab data={data} /> : null}
     </div>
@@ -213,7 +227,11 @@ function ChoicePick({ x, choose }) {
   )
 }
 
-function MasterTab({ data, isMobile, op, lead, detail, reload }) {
+const COPY_ROWS = [['title', 'Title', 200], ['bullet_1', 'Bullet 1', 500], ['bullet_2', 'Bullet 2', 500], ['bullet_3', 'Bullet 3', 500], ['bullet_4', 'Bullet 4', 500], ['bullet_5', 'Bullet 5', 500], ['description', 'Description', 2000], ['search_terms', 'Search terms', 249]]
+const bytesOf = (s) => new TextEncoder().encode(String(s || '')).length
+const editLink = { background: 'none', border: 0, padding: 0, color: B.indigo, font: `800 13px ${F}`, cursor: 'pointer', textDecoration: 'underline', minHeight: 24 }
+
+function MasterTab({ data, isMobile, op, lead, reload, onEdit }) {
   const [kw, setKw] = useState('')
   const s = data.seo
   const k = data.keywords
@@ -227,19 +245,54 @@ function MasterTab({ data, isMobile, op, lead, detail, reload }) {
       : op({ op: 'keyword_choice', query: q, choice })
   }
   const P = [['Top searches in the title', s.parts.title, 30], ['In bullets or description', s.parts.bullets, 15], ['In the search terms', s.parts.terms, 10], ['Space used', s.parts.space, 10], ['Images', s.parts.images, 15], ['A+ page live', s.parts.aplus, 5], ['Family and attributes', s.parts.family, 5]]
+  const copy = data.copy || {}
+  const attrs = (data.master && data.master.attributes) || []
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'minmax(0, 1fr) minmax(0, 1.25fr)', gap: 14, alignItems: 'start' }}>
-        <Panel>
-          <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}><Lbl>SEO score (UK)</Lbl><span style={{ font: `900 30px ${F}` }}><Score v={s.score} /></span></div>
-          <div style={{ display: 'grid', gap: 4, fontSize: 13, marginTop: 6 }}>
-            {P.map(([t, v, max]) => <div key={t} style={{ display: 'flex', justifyContent: 'space-between' }}><span>{t}</span><b style={{ color: v < max / 2 ? C.bad : C.ink }}>{v} / {max}</b></div>)}
-            {s.penalties.map(([t, v]) => <div key={t} style={{ display: 'flex', justifyContent: 'space-between', color: C.bad }}><span>{t}</span><b>−{v}</b></div>)}
-          </div>
-          <Note style={{ marginTop: 8 }}>Keywords weighted by search volume over the {s.basis}; parts add to 90 and are shown out of 100. Copy from the {data.copy_source === 'master' ? 'master' : 'live UK listing (no master copy yet)'}.</Note>
-        </Panel>
-        <Panel>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}><Lbl style={{ flex: 1 }}>Keyword focus (UK)</Lbl><Btn onClick={reload}>Refresh volumes</Btn></div>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'minmax(0, 1fr) minmax(0, 1.1fr)', gap: 14, alignItems: 'start' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14, minWidth: 0 }}>
+          <Panel>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+              <h2 style={{ margin: 0, font: `900 18px ${F}`, color: B.indigo, flex: 1 }}>Copy (UK English)</h2>
+              <Btn onClick={onEdit}>Write new copy from the keywords</Btn>
+            </div>
+            <Note>{data.copy_source === 'master' ? 'From the family master.' : 'From the live UK listing: no master copy yet.'} Edit opens the master editor (copy, attributes, images, translations, send per store).</Note>
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '84px minmax(0, 1fr) 44px' : '104px minmax(0, 1fr) 64px 40px', gap: '8px 10px', fontSize: 13.5, lineHeight: 1.45, marginTop: 8, alignItems: 'start' }}>
+              {COPY_ROWS.map(([k, label, max]) => {
+                const v = copy[k] || ''
+                const n = k === 'search_terms' ? bytesOf(v) : v.length
+                return [
+                  <b key={`${k}l`}>{label}</b>,
+                  <span key={`${k}v`} style={{ color: v ? C.ink : C.faint, overflowWrap: 'anywhere' }}>{v ? (v.length > 220 ? `${v.slice(0, 220)}…` : v) : 'Empty'}</span>,
+                  <span key={`${k}n`} style={{ fontSize: 12, fontWeight: 800, color: n > max ? C.bad : n ? C.ok : C.faint }}>{n}/{max}{k === 'search_terms' ? ' B' : ''}</span>,
+                  isMobile ? null : <button key={`${k}e`} type="button" onClick={onEdit} style={editLink}>Edit</button>,
+                ]
+              })}
+            </div>
+          </Panel>
+          <Panel>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <h2 style={{ margin: 0, font: `900 18px ${F}`, color: B.indigo, flex: 1 }}>Attributes shared by every colour</h2>
+              <button type="button" onClick={onEdit} style={editLink}>+ Add attribute</button>
+            </div>
+            {attrs.length ? (
+              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(3, minmax(0, 1fr))', gap: 8, marginTop: 10, fontSize: 13 }}>
+                {attrs.map(([k, v]) => <div key={k} style={{ background: C.grey || '#f6f4fa', borderRadius: 10, padding: 10, display: 'flex', justifyContent: 'space-between', gap: 6 }}><span style={{ minWidth: 0, overflowWrap: 'anywhere' }}><b style={{ display: 'block' }}>{k}</b>{v}</span><button type="button" onClick={onEdit} style={editLink}>Edit</button></div>)}
+              </div>
+            ) : <Note style={{ marginTop: 6 }}>No attributes in the master yet: add them in the master editor.</Note>}
+          </Panel>
+          <Panel>
+            <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}><h2 style={{ margin: 0, font: `900 18px ${F}`, color: B.indigo }}>SEO score (UK)</h2><span style={{ font: `900 32px ${F}` }}><Score v={s.score} /></span></div>
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '4px 24px', fontSize: 13, marginTop: 6 }}>
+              {P.map(([t, v, max]) => <div key={t} style={{ display: 'flex', justifyContent: 'space-between' }}><span>{t}</span><b style={{ color: v < max / 2 ? C.bad : C.ink }}>{v} / {max}</b></div>)}
+              <div style={{ display: 'flex', justifyContent: 'space-between', color: s.penalties.length ? C.bad : C.ink }}><span>Penalties</span><b>{s.penalties.length ? `−${s.penalties.reduce((a, [, v]) => a + v, 0)}` : 0}</b></div>
+            </div>
+            {s.penalties.map(([t, v]) => <div key={t} style={{ fontSize: 12.5, color: C.bad }}>• {t} (−{v})</div>)}
+            <Note style={{ marginTop: 8 }}>Keywords weighted by search volume over the {s.basis}; parts add to 90 and are shown out of 100.</Note>
+          </Panel>
+        </div>
+        <Panel style={{ minWidth: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}><h2 style={{ margin: 0, font: `900 18px ${F}`, color: B.indigo, flex: 1 }}>Keyword focus (UK)</h2><Btn onClick={reload}>Refresh volumes</Btn></div>
           <Note>Brand Analytics, every colour in the family{k.period_from ? `, ${fmtDay(k.period_from)} – ${fmtDay(k.period_to)}` : ''}. Sent daily by the Hub; reopen this tab to see the latest.</Note>
           <div style={{ overflowX: 'auto', marginTop: 6 }}>
             <table style={{ borderCollapse: 'collapse', width: '100%', minWidth: 520, fontSize: 12.5 }}>
@@ -278,8 +331,10 @@ function MasterTab({ data, isMobile, op, lead, detail, reload }) {
           </form>
         </Panel>
       </div>
-      <Note>Everything below edits the family master (copy, attributes, images, translations, send per store). It is the master of {lead.asin}, shared by every colour.</Note>
-      {detail({ asin: lead.asin, marketplace: lead.marketplace }, 'master')}
+      <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+        <Btn primary onClick={onEdit}>Open the master editor</Btn>
+        <Note style={{ margin: 0 }}>Copy, attributes, images, translations and the send per store. The family master is the master of {lead.asin}, shared by every colour.</Note>
+      </div>
     </div>
   )
 }
@@ -316,9 +371,19 @@ function ImagesTab({ data, isMobile, op, onEdit }) {
   const im = data.images
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-      <Panel>
-        <Lbl>How it works on Amazon</Lbl>
-        <Note>Every colour is its own listing with its own 7 images; clicking a colour swatch swaps the whole gallery to that colour's 7. doddlHQ builds each colour's 7 from the master set (pictures that look the same in any colour) and the colour's own set (where the colour shows), slot by slot below. A missing colour picture is never borrowed from another colour.</Note>
+      <Panel style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '300px minmax(0, 1fr)', gap: 20, alignItems: 'center' }}>
+        <div aria-hidden="true" style={{ border: `1px solid ${C.border}`, borderRadius: 12, padding: 12, display: 'flex', gap: 10 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>{[B.rose, B.lilac, B.lilac, B.rose].map((c, i) => <span key={i} style={{ width: 26, height: 26, borderRadius: 4, background: c, border: i === 0 ? `2px solid ${B.pink}` : 0 }} />)}</div>
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <div style={{ height: 110, borderRadius: 8, background: B.rose, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 800, color: '#a33d62' }}>{(im.colours[0] && im.colours[0].colour) || 'Colour'} on white</div>
+            <div style={{ display: 'flex', gap: 6 }}>{im.colours.slice(0, 4).map((c, i) => <span key={c.asin} style={{ width: 30, height: 30, borderRadius: 6, background: [B.pink, B.teal, B.yellow, B.indigo][i], outline: i === 0 ? `3px solid ${B.indigo}` : 0, outlineOffset: 1 }} />)}</div>
+          </div>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 14, lineHeight: 1.5 }}>
+          <b style={{ fontSize: 16, color: B.indigo }}>Master + colour, combined per colour</b>
+          <span>On Amazon every colour is its own listing with its own 7 images. Clicking a colour swatch swaps the whole gallery to that colour's 7; the parent's images are never shown.</span>
+          <span>doddlHQ keeps one <b>master set</b> (pictures that look the same in any colour) and a <b>colour set</b> for each colour (where the colour shows), builds each colour's 7 from the slot map below, and sends them to that colour's own listing. A missing colour picture is never borrowed from another colour.</span>
+        </div>
       </Panel>
       <Panel style={{ overflowX: 'auto' }}>
         <Lbl>What each colour shows (UK)</Lbl>
@@ -333,7 +398,23 @@ function ImagesTab({ data, isMobile, op, onEdit }) {
         {!im.colours.length ? <Note>No UK colours in this family yet.</Note> : null}
         <Note style={{ marginTop: 8 }}>Pink border = the colour's own picture; grey = the master picture shared by every colour. Click a slot heading to switch it.</Note>
       </Panel>
-      <div><Btn primary onClick={onEdit}>Upload or change images in the master</Btn></div>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(260px, 1fr))', gap: 14 }}>
+        <Panel style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <b style={{ fontSize: 16, color: B.indigo }}>Master set</b>
+          <span style={{ fontSize: 13, color: C.muted }}>{SLOTS.filter(s => im.slot_map[s] !== 'colour').join(', ') || 'No slots'} · used by every colour</span>
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>{(im.master || []).filter(x => x.url).slice(0, 6).map(x => <Thumb key={x.slot} s={{ ...x, from: 'master' }} size={48} />)}</div>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}><Btn onClick={onEdit}>Upload</Btn><Btn onClick={onEdit}>Pick from library</Btn></div>
+        </Panel>
+        {im.colours.map((c, i) => (
+          <Panel key={c.asin} style={{ display: 'flex', flexDirection: 'column', gap: 8, borderTop: `6px solid ${[B.pink, B.teal, B.yellow, B.indigo][i % 4]}` }}>
+            <b style={{ fontSize: 16, color: B.indigo }}>{c.colour} set</b>
+            <span style={{ fontSize: 13, color: C.muted }}>{SLOTS.filter(s => im.slot_map[s] === 'colour').join(', ') || 'No colour slots'}{c.slots.some(s => s.missing) ? ` · ${c.slots.filter(s => s.missing).length} missing` : ''}</span>
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>{c.slots.filter(s => s.from === 'colour').map(s => <Thumb key={s.slot} s={s} size={48} />)}</div>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}><Btn onClick={onEdit}>Upload</Btn><Btn onClick={onEdit}>Pick from library</Btn></div>
+          </Panel>
+        ))}
+      </div>
+      <Note>Upload and Pick open the master's image editor (the image library picker is there). Other countries use the same sets; pictures with words get a translated copy (MAIN never has words), shown on Countries.</Note>
     </div>
   )
 }
@@ -375,10 +456,37 @@ function AplusTab({ data, isMobile, lead, detail }) {
   )
 }
 
-function CountriesTab({ data, isMobile, onOpen }) {
+function TranslationCheck({ data, isMobile, onEdit }) {
+  const list = ((data.master && data.master.translations) || []).filter(t => !ENGLISH.includes(t.locale))
+  const [loc, setLoc] = useState(list[0] ? list[0].locale : '')
+  const t = list.find(x => x.locale === loc)
+  if (!list.length) return <Panel><Lbl>Translations</Lbl><Note>No translations of this master yet. They are made from the signed-off master in the master editor (Translations), one check per family per language.</Note></Panel>
+  const rows = [['Title', 'title'], ['Bullet 1', 'bullet_1'], ['Search terms', 'search_terms']]
+  return (
+    <Panel style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+        <h2 style={{ margin: 0, font: `900 18px ${F}`, color: B.indigo, flex: 1 }}>Check the translation</h2>
+        <div role="group" aria-label="Language" style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>{list.map(x => <button key={x.locale} type="button" aria-pressed={loc === x.locale} onClick={() => setLoc(x.locale)} style={pill(loc === x.locale)}>{x.locale} · {LANGUAGE[x.locale] || x.locale}</button>)}</div>
+      </div>
+      <Note>One check per family per language, not per colour. Search terms come from that store's own Brand Analytics, not a word-for-word translation. Status: {t ? t.status : '–'}{t && t.reviewed_by ? ` · checked by ${t.reviewed_by}` : ''}.</Note>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '110px minmax(0, 1fr) minmax(0, 1fr)', gap: '8px 14px', fontSize: 13, lineHeight: 1.45 }}>
+        {!isMobile ? [<b key="h0" />, <b key="h1">Master (UK English)</b>, <b key="h2">{LANGUAGE[loc] || loc}</b>] : null}
+        {rows.map(([label, k]) => [
+          <b key={`${k}l`}>{label}</b>,
+          <span key={`${k}m`} style={{ color: C.muted, overflowWrap: 'anywhere' }}>{(data.copy || {})[k] || '–'}</span>,
+          <span key={`${k}t`} style={{ overflowWrap: 'anywhere' }}>{(t && t.copy && t.copy[k]) || <span style={{ color: C.faint }}>Not translated yet</span>}</span>,
+        ])}
+      </div>
+      <div><Btn primary onClick={onEdit}>Check and approve it in the master editor</Btn></div>
+    </Panel>
+  )
+}
+
+function CountriesTab({ data, isMobile, onOpen, onEdit }) {
   const sold = data.members.filter(m => m.role !== 'parent')
   const stores = STORE_ORDER.filter(s => sold.some(m => m.marketplace === s) || data.parents.some(p => p.marketplace === s))
   const langs = new Set((data.master && data.master.languages) || [])
+  const notSold = ['UK', 'US', 'DE', 'FR', 'ES', 'IT', 'CA'].filter(s => !stores.includes(s))
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
       <Note>The master is written once, in UK English. This is where it goes out: which countries sell the family, each store's parent (kept as it is), the language, and what needs fixing there.</Note>
@@ -399,7 +507,14 @@ function CountriesTab({ data, isMobile, onOpen }) {
             </Panel>
           )
         })}
+        {notSold.length ? (
+          <Panel style={{ borderTop: `6px solid ${C.border}`, display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <b style={{ fontSize: 18 }}>{notSold.join(' · ')}</b>
+            <span style={{ fontSize: 13, color: C.muted }}>Not sold. Adding a country starts from the signed-off master: its translation (if needed), its own keyword focus and a new family there, all reviewed before anything is sent.</span>
+          </Panel>
+        ) : null}
       </div>
+      <TranslationCheck data={data} isMobile={isMobile} onEdit={onEdit} />
     </div>
   )
 }
