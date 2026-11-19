@@ -20,7 +20,7 @@ param(
 )
 $ErrorActionPreference = 'Stop'
 
-$valid = @('tasks:read', 'tasks:write', 'inbox:write', 'inbox:triage', 'approvals:write')
+$valid = @('tasks:read', 'tasks:write', 'inbox:write', 'inbox:triage', 'approvals:write', 'content:write', 'listings:write', 'keywords:write', 'evidence:write')
 $scopeList = $Scopes.Split(',') | ForEach-Object { $_.Trim() } | Where-Object { $_ }
 foreach ($s in $scopeList) { if ($valid -notcontains $s) { throw "Unknown scope '$s'. Valid: $($valid -join ', ')" } }
 

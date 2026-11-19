@@ -421,7 +421,7 @@ function EvidenceTab({ data }) {
                 <td style={{ padding: '8px 12px' }}>{fmtWhen(e.taken_at)}</td><td style={{ padding: '8px 12px' }}>{e.asin}</td><td style={{ padding: '8px 12px' }}>{e.marketplace}</td>
                 <td style={{ padding: '8px 12px', fontWeight: 800 }}>{e.reason}{e.change_ref ? ` · ${e.change_ref}` : ''}</td>
                 <td style={{ padding: '8px 12px' }}>{Object.entries(e.values || {}).map(([k, v]) => `${k} ${typeof v === 'object' ? JSON.stringify(v) : v}`).join(' · ')}</td>
-                <td style={{ padding: '8px 12px', color: C.muted }}>{e.screenshot_key ? e.screenshot_key.split('/').pop() : '–'}</td>
+                <td style={{ padding: '8px 12px', color: C.muted }}>{e.screenshot_url ? <a href={e.screenshot_url} target="_blank" rel="noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontWeight: 800, color: B.indigo }}><img src={e.screenshot_url} alt={`Screenshot of ${e.asin} in ${e.marketplace}`} style={{ width: 64, height: 40, objectFit: 'cover', objectPosition: 'top', borderRadius: 6, border: `1px solid ${C.line2}` }} />Open</a> : e.screenshot_key ? e.screenshot_key.split('/').pop() : '–'}</td>
               </tr>
             ))}</tbody>
           </table>
