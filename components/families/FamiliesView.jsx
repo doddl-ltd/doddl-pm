@@ -199,11 +199,33 @@ function FamilyPage({ code, isMobile, onBack, onOpenApproval }) {
   )
 }
 
+/** Focus / Watch / Not relevant for one search; clicking the chosen one again puts it back to automatic. */
+function ChoicePick({ x, choose }) {
+  const opts = [['focus', 'Focus', C.ok], ['watch', 'Watch', C.warn], ['out', 'Not relevant', C.bad]]
+  return (
+    <span role="group" aria-label={`Focus for ${x.search_query}`} style={{ display: 'inline-flex', gap: 4 }}>
+      {opts.map(([v, label, col]) => {
+        const on = x.choice === v
+        return <button key={v} type="button" aria-pressed={on} onClick={() => choose(x.search_query, on ? 'auto' : v)}
+          style={{ minHeight: 28, padding: '0 8px', borderRadius: 8, border: `1px solid ${on ? col : C.line2}`, background: on ? col : '#fff', color: on ? '#fff' : C.ink, font: `800 11.5px ${F}`, cursor: 'pointer' }}>{label}</button>
+      })}
+    </span>
+  )
+}
+
 function MasterTab({ data, isMobile, op, lead, detail, reload }) {
   const [kw, setKw] = useState('')
   const s = data.seo
   const k = data.keywords
+  const [all, setAll] = useState(false)
   const add = async (q) => { if (!q.trim()) return; await op({ op: 'keyword_add', query: q.trim() }); setKw('') }
+  // Un-focusing one of your own keywords removes it; everything else just records the choice.
+  const choose = (q, choice) => {
+    const x = k.focus.find(y => y.search_query === q) || {}
+    return x.own && x.choice === 'focus' && choice === 'auto'
+      ? op({ op: 'keyword_remove', query: q })
+      : op({ op: 'keyword_choice', query: q, choice })
+  }
   const P = [['Top searches in the title', s.parts.title, 30], ['In bullets or description', s.parts.bullets, 15], ['In the search terms', s.parts.terms, 10], ['Space used', s.parts.space, 10], ['Images', s.parts.images, 15], ['A+ page live', s.parts.aplus, 5], ['Family and attributes', s.parts.family, 5]]
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -221,25 +243,33 @@ function MasterTab({ data, isMobile, op, lead, detail, reload }) {
           <Note>Brand Analytics, every colour in the family{k.period_from ? `, ${fmtDay(k.period_from)} – ${fmtDay(k.period_to)}` : ''}. Sent daily by the Hub; reopen this tab to see the latest.</Note>
           <div style={{ overflowX: 'auto', marginTop: 6 }}>
             <table style={{ borderCollapse: 'collapse', width: '100%', minWidth: 520, fontSize: 12.5 }}>
-              <thead><tr>{['Search', 'Volume', 'Shown', 'Clicks', 'Buys', 'Conv.', 'Where', ''].map(h => <th key={h} scope="col" style={{ textAlign: 'left', padding: '4px 6px', color: C.muted, fontWeight: 800 }}>{h}</th>)}</tr></thead>
-              <tbody>{k.focus.slice(0, 20).map(x => (
-                <tr key={x.search_query} style={{ borderTop: `1px solid ${C.line2}` }}>
+              <thead><tr>{['Search', 'Volume', 'Shown', 'Clicks', 'Buys', 'Conv.', 'Where', 'Focus'].map(h => <th key={h} scope="col" style={{ textAlign: 'left', padding: '4px 6px', color: C.muted, fontWeight: 800 }}>{h}</th>)}</tr></thead>
+              <tbody>{(all ? k.focus : k.focus.slice(0, 20)).map(x => (
+                <tr key={x.search_query} style={{ borderTop: `1px solid ${C.line2}`, opacity: x.choice === 'watch' ? 0.6 : 1, background: x.choice === 'focus' ? B.mint : 'transparent' }}>
                   <td style={{ padding: '4px 6px' }}>{x.search_query}{x.own ? <span style={{ color: B.indigo, fontWeight: 800 }}> · yours</span> : null}</td>
                   <td style={{ padding: '4px 6px' }}>{x.query_volume == null ? '–' : x.query_volume.toLocaleString()}</td>
                   <td style={{ padding: '4px 6px' }}>{x.impressions.toLocaleString()}</td><td style={{ padding: '4px 6px' }}>{x.clicks}</td><td style={{ padding: '4px 6px' }}>{x.purchases}</td>
                   <td style={{ padding: '4px 6px' }}>{x.conversion == null ? '–' : `${Math.round(x.conversion * 100)}%`}</td>
                   <td style={{ padding: '4px 6px', fontWeight: 800, color: x.where === 'Missing' ? C.bad : x.where === 'Title' ? C.ok : C.warn }}>{x.where}</td>
-                  <td style={{ padding: '4px 6px' }}>{x.own ? <button type="button" onClick={() => op({ op: 'keyword_remove', query: x.search_query })} style={{ background: 'none', border: 0, color: C.bad, font: `800 12px ${F}`, cursor: 'pointer' }}>Remove</button> : null}</td>
+                  <td style={{ padding: '4px 6px', whiteSpace: 'nowrap' }}><ChoicePick x={x} choose={choose} /></td>
                 </tr>
               ))}</tbody>
             </table>
             {!k.focus.length ? <Note>No Brand Analytics searches for this family yet.</Note> : null}
+            {k.focus.length > 20 ? <button type="button" onClick={() => setAll(!all)} style={{ background: 'none', border: 0, color: B.indigo, font: `800 12.5px ${F}`, cursor: 'pointer', padding: '6px 0' }}>{all ? 'Show top 20' : `Show all ${k.focus.length}`}</button> : null}
           </div>
+          <Note style={{ marginTop: 6 }}>Focus: scored and written for (once any search is in focus, only focus searches count in the SEO score). Watch: shown, not scored. Not relevant: hidden, never scored, never given to the copy writer. Nothing chosen: the top 20 by volume count.</Note>
+          {(k.removed || []).length ? (
+            <details style={{ marginTop: 8, fontSize: 12.5 }}>
+              <summary style={{ cursor: 'pointer', fontWeight: 800, color: B.indigo }}>Not relevant ({k.removed.length})</summary>
+              {k.removed.map(x => <div key={x.search_query} style={{ display: 'flex', gap: 8, alignItems: 'center', padding: '3px 0' }}><span style={{ flex: 1, color: C.muted }}>{x.search_query}</span><span>{x.query_volume == null ? '–' : x.query_volume.toLocaleString()}</span><button type="button" onClick={() => choose(x.search_query, 'auto')} style={{ background: 'none', border: 0, color: B.indigo, font: `800 12px ${F}`, cursor: 'pointer' }}>Restore</button></div>)}
+            </details>
+          ) : null}
           <Note style={{ marginTop: 6 }}>Shown, clicks and buys are doddl's own on each search; Amazon's share of all impressions and clicks needs the Hub to send the search totals too.</Note>
           {k.suggested.length ? (
             <div style={{ marginTop: 10 }}>
               <Lbl>Suggested searches not on the listing</Lbl>
-              {k.suggested.map(x => <div key={x.search_query} style={{ display: 'flex', gap: 8, alignItems: 'center', fontSize: 12.5, padding: '3px 0' }}><span style={{ flex: 1 }}>{x.search_query}{x.store_wide ? <span style={{ color: C.muted }}> · store-wide</span> : null}</span><span>{(x.query_volume || 0).toLocaleString()}</span><button type="button" onClick={() => add(x.search_query)} style={{ background: 'none', border: 0, color: B.indigo, font: `800 12.5px ${F}`, cursor: 'pointer' }}>+ Add to focus</button></div>)}
+              {k.suggested.map(x => <div key={x.search_query} style={{ display: 'flex', gap: 8, alignItems: 'center', fontSize: 12.5, padding: '3px 0' }}><span style={{ flex: 1 }}>{x.search_query}{x.store_wide ? <span style={{ color: C.muted }}> · store-wide</span> : null}</span><span>{(x.query_volume || 0).toLocaleString()}</span><button type="button" onClick={() => add(x.search_query)} style={{ background: 'none', border: 0, color: B.indigo, font: `800 12.5px ${F}`, cursor: 'pointer' }}>+ Add to focus</button><button type="button" onClick={() => choose(x.search_query, 'out')} style={{ background: 'none', border: 0, color: C.muted, font: `800 12.5px ${F}`, cursor: 'pointer' }}>Not relevant</button></div>)}
             </div>
           ) : null}
           <form onSubmit={e => { e.preventDefault(); add(kw) }} style={{ display: 'flex', gap: 8, marginTop: 10 }}>

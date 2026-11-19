@@ -1,6 +1,32 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { deriveFamilies, seoScore, composeImages, keywordFocus, slotsOf, isPack, covers } from '../lib/pm/families.js'
+import { deriveFamilies, seoScore, composeImages, keywordFocus, slotsOf, isPack, covers, keywordKey } from '../lib/pm/families.js'
+import { applyChoices } from '../lib/pm/keywords.js'
+
+test('keyword choices: out is hidden from scoring, focus becomes the scored set, watch never counts', () => {
+  const rows = [
+    { search_query: 'suction plate', query_volume: 1000, asin_impressions: 10 },
+    { search_query: 'dinosaur plate', query_volume: 5000, asin_impressions: 1 },
+    { search_query: 'toddler plate', query_volume: 800, asin_impressions: 5 },
+    { search_query: 'plate with lid', query_volume: 300 },
+  ]
+  const copy = { title: 'doddl suction plate for toddler' }
+  const auto = seoScore({ copy, keywords: keywordFocus(rows, copy) })
+  const choices = { [keywordKey('dinosaur plate')]: 'out', [keywordKey('plate with lid')]: 'watch' }
+  const chosen = keywordFocus(rows, copy, [], choices)
+  assert.equal(chosen.find(k => k.search_query === 'dinosaur plate').choice, 'out')
+  const cleaned = seoScore({ copy, keywords: chosen })
+  assert.ok(cleaned.parts.title > auto.parts.title, 'dropping an irrelevant big search raises the title score')
+  const focusOnly = keywordFocus(rows, copy, [], { ...choices, [keywordKey('suction plate')]: 'focus' })
+  assert.equal(focusOnly[0].search_query, 'suction plate')
+  assert.equal(seoScore({ copy, keywords: focusOnly }).parts.title, 30)
+})
+
+test('copy writer list drops out and watch, leads with focus and own keywords', () => {
+  const list = [{ search_query: 'dinosaur plate', query_volume: 5000 }, { search_query: 'suction plate', query_volume: 1000 }, { search_query: 'toddler plate', query_volume: 800 }]
+  const out = applyChoices(list, { [keywordKey('dinosaur plate')]: 'out', [keywordKey('toddler plate')]: 'focus' }, ['weaning plate with suction'])
+  assert.deepEqual(out.map(r => r.search_query), ['toddler plate', 'weaning plate with suction', 'suction plate'])
+})
 
 const parent = (asin, marketplace, sku, kids, title = 'Parent · 2-in-1 Suction Plate') => ({ asin, marketplace, sku, product: title, parent_asin: null, listing_status: 'Variation parent (not sold itself)', variations: { theme: 'COLOR', child_asins: kids, parent_asins: [] } })
 const child = (asin, marketplace, sku, parent_asin, colour) => ({ asin, marketplace, sku, product: `${sku} · Thing`, parent_asin, colour, listing_status: 'Buyable', variations: null })
@@ -76,8 +102,10 @@ test('keyword focus merges the family, adds own keywords and says where each sea
     { asin: 'A', search_query: 'plate with lip', query_volume: 90 },
   ], { title: 'doddl Suction Plate', search_terms: '' }, ['plate for 1 year old'])
   assert.equal(f.length, 3)
-  assert.deepEqual([f[0].search_query, f[0].impressions, f[0].clicks, f[0].purchases, f[0].where], ['Suction plate', 15, 5, 2, 'Title'])
-  assert.equal(f[0].conversion, 0.4)
+  assert.equal(f[0].search_query, 'plate for 1 year old', 'own keywords are in focus, so they lead')
+  const s = f.find(k => k.search_query === 'Suction plate')
+  assert.deepEqual([s.impressions, s.clicks, s.purchases, s.where, s.choice], [15, 5, 2, 'Title', 'auto'])
+  assert.equal(s.conversion, 0.4)
   assert.equal(f.find(k => k.search_query === 'plate with lip').where, 'Missing')
   assert.ok(f.find(k => k.own))
 })
