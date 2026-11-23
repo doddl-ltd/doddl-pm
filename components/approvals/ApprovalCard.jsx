@@ -177,6 +177,12 @@ export default function ApprovalCard({ taskId, initialTask, userName, isMobile, 
         <p style={{ margin: 0, fontSize: 14, lineHeight: 1.5, color: C.muted }}>
           {iVoted ? `You answered: ${outcomeChip(iVoted.vote)?.label.toLowerCase()}. Nothing runs until every approver has said yes.` : `Only ${whoText(slots.length ? [...slots, task.escalated_to].filter(Boolean) : [task.assigned_to], me)} can decide this one. You can still comment.`}
         </p>
+        {iVoted && ['approved', 'approved_with_edits', 'partially_approved'].includes(iVoted.vote) && slots.length > 1 && same(slots[0], me) ? (
+          <div style={{ display: 'flex', gap: 8, marginTop: 12, flexWrap: 'wrap', alignItems: 'center' }}>
+            <Btn disabled={busy} onClick={() => { if (confirm(`Decide this now without ${slots.slice(1).join(', ')}? Your approval becomes the decision and what follows it runs.`)) submit(iVoted.vote, { waive_second: true }) }}>Decide without {slots.slice(1).join(', ')}</Btn>
+            <span style={{ fontSize: 13, color: C.muted }}>This card only; the rule stays two people.</span>
+          </div>
+        ) : null}
       </>
     )
   } else if (mode === 'edit') {

@@ -45,7 +45,7 @@ export default function FamiliesView({ mode = 'list', isMobile, onOpenApproval, 
   if (view.page === 'cleanup') return <CleanupPage isMobile={isMobile} onBack={mode === 'cleanup' ? null : () => setView({ page: 'list' })} onOpen={(code) => setView({ page: 'family', code })} />
   return <FamilyList isMobile={isMobile} onOpen={(code) => setView({ page: 'family', code })} onCleanup={onCleanup || (() => setView({ page: 'cleanup' }))} />
 }
-const signedOff = (f) => !!(f.signoff && f.signoff.Jon && f.signoff.Laura)
+const signedOff = (f) => !!(f.signoff && f.signoff.Jon && (f.signoff.Laura || f.signoff.solo))
 const liveEverywhere = (f) => !f.problems && Object.values(f.stores || {}).every(s => s.state === 'none' || s.state === 'live') && Object.values(f.stores || {}).some(s => s.state === 'live')
 
 // ─── every family ─────────────────────────────────────────────────────────────────────────────────────────────────
@@ -95,7 +95,7 @@ function FamilyList({ isMobile, onOpen, onCleanup }) {
               <tr key={f.family_code} onClick={() => onOpen(f.family_code)} style={{ borderTop: `1px solid ${C.line2}`, cursor: 'pointer' }}>
                 <td style={{ padding: '10px 12px' }}><button type="button" onClick={(e) => { e.stopPropagation(); onOpen(f.family_code) }} style={{ background: 'none', border: 0, padding: 0, font: `800 14px ${F}`, color: C.ink, cursor: 'pointer', textAlign: 'left' }}>{f.name}</button><div style={{ color: C.muted, fontSize: 12 }}>{f.family_code}</div></td>
                 <td style={{ padding: '10px 12px' }}>{f.colours ? f.colour_names.join(' · ') + (f.colours > 4 ? ` +${f.colours - 4}` : '') : `${f.products} product${f.products === 1 ? '' : 's'}`}</td>
-                <td style={{ padding: '10px 12px', fontWeight: 800, color: f.signoff && f.signoff.Jon && f.signoff.Laura ? C.ok : C.warn }}>{f.signoff && f.signoff.Jon && f.signoff.Laura ? 'Signed off' : f.master === 'approved' ? 'Approved' : f.master ? 'Draft' : 'None yet'}</td>
+                <td style={{ padding: '10px 12px', fontWeight: 800, color: signedOff(f) ? C.ok : C.warn }}>{signedOff(f) ? 'Signed off' : f.master === 'approved' ? 'Approved' : f.master ? 'Draft' : 'None yet'}</td>
                 {stores.map(s => { const c = f.stores[s] || { state: 'none' }; return <td key={s} style={{ padding: '10px 12px', fontWeight: 800, fontSize: 12.5, color: c.state === 'problem' ? (c.wave >= 4 ? C.warn : C.bad) : c.state === 'live' ? C.ok : c.state === 'listed' ? B.indigo : C.faint, whiteSpace: 'nowrap' }} title={c.title || ''}>{c.state === 'problem' ? (isMobile ? '!' : c.label) : c.state === 'live' ? 'Live' : c.state === 'listed' ? 'Listed' : '–'}</td> })}
                 <td style={{ padding: '10px 12px', fontSize: 15 }}><Score v={f.seo} /></td>
                 <td style={{ padding: '10px 12px' }}>{f.decisions.length ? f.decisions.join(' · ') : f.problems ? `${f.problems} to fix` : <span style={{ color: C.muted }}>Nothing</span>}</td>
@@ -197,11 +197,12 @@ function FamilyPage({ code, isMobile, onBack, onOpenApproval, backLabel = 'Amazo
           {TABS.map(([k, l]) => <button key={k} type="button" aria-current={tab === k ? 'page' : undefined} onClick={() => setTab(k)} style={pill(tab === k)}>{l}</button>)}
         </nav>
       </div>
-      <div style={{ background: signed.Jon && signed.Laura ? B.mint : B.cream, border: `1px solid ${signed.Jon && signed.Laura ? B.teal : B.yellow}`, borderRadius: 14, padding: '12px 18px', display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap' }}>
-        <b style={{ fontSize: 15, color: signed.Jon && signed.Laura ? C.ok : '#8a6400' }}>{signed.Jon && signed.Laura ? 'English master approved' : 'Draft'}{data.family_master ? ` · family master (${data.family_master.status})` : data.master ? ` · master ${data.master.master_sku || data.master.asin} (${data.master.status})` : ' · no master yet'}</b>
+      <div style={{ background: signed.Jon && (signed.Laura || signed.solo) ? B.mint : B.cream, border: `1px solid ${signed.Jon && (signed.Laura || signed.solo) ? B.teal : B.yellow}`, borderRadius: 14, padding: '12px 18px', display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap' }}>
+        <b style={{ fontSize: 15, color: signed.Jon && (signed.Laura || signed.solo) ? C.ok : '#8a6400' }}>{signed.Jon && (signed.Laura || signed.solo) ? 'English master approved' : 'Draft'}{data.family_master ? ` · family master (${data.family_master.status})` : data.master ? ` · master ${data.master.master_sku || data.master.asin} (${data.master.status})` : ' · no master yet'}</b>
         <span style={{ flex: '1 1 240px', fontSize: 14, color: C.muted }}>Stage 1: copy, colours, attributes, images and A+ in English. Translations start only once the structure is right in every store (Markets). Approval needs both names; any edit returns it to draft.</span>
-        <span style={{ fontSize: 13, fontWeight: 800 }}>Jon {signed.Jon ? `✓ ${fmtDay(signed.Jon)}` : '○'} · Laura {signed.Laura ? `✓ ${fmtDay(signed.Laura)}` : '○'}</span>
-        <Btn primary onClick={() => op({ op: 'signoff' })}>Approve the master</Btn>
+        <span style={{ fontSize: 13, fontWeight: 800 }}>Jon {signed.Jon ? `✓ ${fmtDay(signed.Jon)}` : '○'} · Laura {signed.Laura ? `✓ ${fmtDay(signed.Laura)}` : signed.solo ? 'not needed' : '○'}</span>
+        {!(signed.Jon && (signed.Laura || signed.solo)) ? <Btn primary onClick={() => op({ op: 'signoff' })}>Approve the master</Btn> : null}
+        {signed.Jon && !signed.Laura && !signed.solo ? <Btn onClick={() => { if (confirm('Approve this master without Laura? Your approval alone makes it approved.')) op({ op: 'signoff', solo: true }) }}>Approve without Laura</Btn> : null}
       </div>
       {tab === 'master' ? <MasterTab data={data} isMobile={isMobile} op={op} lead={ukLead} reload={reload} onEdit={() => setOpen({ ...ukLead, startTab: 'master' })} /> : null}
       {tab === 'colours' ? <ColoursTab data={data} isMobile={isMobile} op={op} onOpen={(m) => setOpen({ asin: m.asin, marketplace: m.marketplace, startTab: false })} /> : null}
