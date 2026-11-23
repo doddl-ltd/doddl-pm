@@ -244,6 +244,25 @@ function MasterTab({ data, isMobile, op, lead, reload, onEdit }) {
       ? op({ op: 'keyword_remove', query: q })
       : op({ op: 'keyword_choice', query: q, choice })
   }
+  // Multi-select: tick searches (table, not-relevant list, suggestions) and apply one choice to all of them.
+  const [sel, setSel] = useState(() => new Set())
+  const [busy, setBusy] = useState(false)
+  const toggle = (q) => setSel(prev => { const n = new Set(prev); if (n.has(q)) n.delete(q); else n.add(q); return n })
+  const setMany = (qs, on) => setSel(prev => { const n = new Set(prev); for (const q of qs) { if (on) n.add(q); else n.delete(q) } return n })
+  const shown = all ? k.focus : k.focus.slice(0, 20)
+  const allShown = shown.length > 0 && shown.every(x => sel.has(x.search_query))
+  const bulk = async (choice) => {
+    const inTable = new Map(k.focus.map(x => [x.search_query, x]))
+    const items = [...sel].map(q => {
+      const x = inTable.get(q)
+      if (!x && choice === 'focus') return { query: q, choice: 'add' }          // a suggestion: becomes one of yours
+      if (x && x.own && x.choice === 'focus' && choice === 'auto') return { query: q, choice: 'remove' }
+      return { query: q, choice }
+    })
+    setBusy(true)
+    try { await op({ op: 'keyword_bulk', items }); setSel(new Set()) } finally { setBusy(false) }
+  }
+  const box = (q, label) => <input type="checkbox" checked={sel.has(q)} onChange={() => toggle(q)} aria-label={label || `Select ${q}`} style={{ width: 16, height: 16, accentColor: B.indigo, cursor: 'pointer' }} />
   const P = [['Top searches in the title', s.parts.title, 30], ['In bullets or description', s.parts.bullets, 15], ['In the search terms', s.parts.terms, 10], ['Space used', s.parts.space, 10], ['Images', s.parts.images, 15], ['A+ page live', s.parts.aplus, 5], ['Family and attributes', s.parts.family, 5]]
   const copy = data.copy || {}
   const attrs = (data.master && data.master.attributes) || []
@@ -294,11 +313,25 @@ function MasterTab({ data, isMobile, op, lead, reload, onEdit }) {
         <Panel style={{ minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}><h2 style={{ margin: 0, font: `900 18px ${F}`, color: B.indigo, flex: 1 }}>Keyword focus (UK)</h2><Btn onClick={reload}>Refresh volumes</Btn></div>
           <Note>Brand Analytics, every colour in the family{k.period_from ? `, ${fmtDay(k.period_from)} – ${fmtDay(k.period_to)}` : ''}. Sent daily by the Hub; reopen this tab to see the latest.</Note>
+          {sel.size ? (
+            <div role="region" aria-label="Selected keywords" style={{ position: 'sticky', top: 0, zIndex: 2, marginTop: 8, background: B.indigo, color: '#fff', borderRadius: 10, padding: '8px 10px', display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+              <b style={{ font: `800 13px ${F}`, marginRight: 4 }}>{sel.size} selected</b>
+              {[['focus', 'Focus'], ['watch', 'Watch'], ['out', 'Not relevant'], ['auto', 'Reset']].map(([c, label]) => (
+                <button key={c} type="button" disabled={busy} onClick={() => bulk(c)} style={{ minHeight: 32, padding: '0 10px', borderRadius: 8, border: 0, background: c === 'out' ? '#dd6c92' : '#fff', color: c === 'out' ? '#fff' : B.indigo, font: `800 12.5px ${F}`, cursor: busy ? 'wait' : 'pointer' }}>{label}</button>
+              ))}
+              <span style={{ flex: 1 }} />
+              <button type="button" onClick={() => setSel(new Set())} style={{ background: 'none', border: 0, color: '#fff', font: `800 12.5px ${F}`, cursor: 'pointer', textDecoration: 'underline' }}>Clear</button>
+            </div>
+          ) : <Note style={{ marginTop: 6 }}>Tick several searches to change them all at once.</Note>}
           <div style={{ overflowX: 'auto', marginTop: 6 }}>
-            <table style={{ borderCollapse: 'collapse', width: '100%', minWidth: 520, fontSize: 12.5 }}>
-              <thead><tr>{['Search', 'Volume', 'Shown', 'Clicks', 'Buys', 'Conv.', 'Where', 'Focus'].map(h => <th key={h} scope="col" style={{ textAlign: 'left', padding: '4px 6px', color: C.muted, fontWeight: 800 }}>{h}</th>)}</tr></thead>
-              <tbody>{(all ? k.focus : k.focus.slice(0, 20)).map(x => (
-                <tr key={x.search_query} style={{ borderTop: `1px solid ${C.line2}`, opacity: x.choice === 'watch' ? 0.6 : 1, background: x.choice === 'focus' ? B.mint : 'transparent' }}>
+            <table style={{ borderCollapse: 'collapse', width: '100%', minWidth: 540, fontSize: 12.5 }}>
+              <thead><tr>
+                <th scope="col" style={{ padding: '4px 6px', width: 24 }}><input type="checkbox" checked={allShown} onChange={() => setMany(shown.map(x => x.search_query), !allShown)} aria-label="Select every search shown" style={{ width: 16, height: 16, accentColor: B.indigo, cursor: 'pointer' }} /></th>
+                {['Search', 'Volume', 'Shown', 'Clicks', 'Buys', 'Conv.', 'Where', 'Focus'].map(h => <th key={h} scope="col" style={{ textAlign: 'left', padding: '4px 6px', color: C.muted, fontWeight: 800 }}>{h}</th>)}
+              </tr></thead>
+              <tbody>{shown.map(x => (
+                <tr key={x.search_query} style={{ borderTop: `1px solid ${C.line2}`, opacity: x.choice === 'watch' ? 0.6 : 1, background: sel.has(x.search_query) ? B.lilac : x.choice === 'focus' ? B.mint : 'transparent' }}>
+                  <td style={{ padding: '4px 6px' }}>{box(x.search_query)}</td>
                   <td style={{ padding: '4px 6px' }}>{x.search_query}{x.own ? <span style={{ color: B.indigo, fontWeight: 800 }}> · yours</span> : null}</td>
                   <td style={{ padding: '4px 6px' }}>{x.query_volume == null ? '–' : x.query_volume.toLocaleString()}</td>
                   <td style={{ padding: '4px 6px' }}>{x.impressions.toLocaleString()}</td><td style={{ padding: '4px 6px' }}>{x.clicks}</td><td style={{ padding: '4px 6px' }}>{x.purchases}</td>
@@ -315,14 +348,15 @@ function MasterTab({ data, isMobile, op, lead, reload, onEdit }) {
           {(k.removed || []).length ? (
             <details style={{ marginTop: 8, fontSize: 12.5 }}>
               <summary style={{ cursor: 'pointer', fontWeight: 800, color: B.indigo }}>Not relevant ({k.removed.length})</summary>
-              {k.removed.map(x => <div key={x.search_query} style={{ display: 'flex', gap: 8, alignItems: 'center', padding: '3px 0' }}><span style={{ flex: 1, color: C.muted }}>{x.search_query}</span><span>{x.query_volume == null ? '–' : x.query_volume.toLocaleString()}</span><button type="button" onClick={() => choose(x.search_query, 'auto')} style={{ background: 'none', border: 0, color: B.indigo, font: `800 12px ${F}`, cursor: 'pointer' }}>Restore</button></div>)}
+              <button type="button" onClick={() => setMany(k.removed.map(x => x.search_query), !k.removed.every(x => sel.has(x.search_query)))} style={{ background: 'none', border: 0, color: B.indigo, font: `800 12px ${F}`, cursor: 'pointer', padding: '4px 0' }}>{k.removed.every(x => sel.has(x.search_query)) ? 'Untick all' : 'Tick all'} (then Reset to restore)</button>
+              {k.removed.map(x => <div key={x.search_query} style={{ display: 'flex', gap: 8, alignItems: 'center', padding: '3px 0' }}>{box(x.search_query)}<span style={{ flex: 1, color: C.muted }}>{x.search_query}</span><span>{x.query_volume == null ? '–' : x.query_volume.toLocaleString()}</span><button type="button" onClick={() => choose(x.search_query, 'auto')} style={{ background: 'none', border: 0, color: B.indigo, font: `800 12px ${F}`, cursor: 'pointer' }}>Restore</button></div>)}
             </details>
           ) : null}
           <Note style={{ marginTop: 6 }}>Shown, clicks and buys are doddl's own on each search; Amazon's share of all impressions and clicks needs the Hub to send the search totals too.</Note>
           {k.suggested.length ? (
             <div style={{ marginTop: 10 }}>
               <Lbl>Suggested searches not on the listing</Lbl>
-              {k.suggested.map(x => <div key={x.search_query} style={{ display: 'flex', gap: 8, alignItems: 'center', fontSize: 12.5, padding: '3px 0' }}><span style={{ flex: 1 }}>{x.search_query}{x.store_wide ? <span style={{ color: C.muted }}> · store-wide</span> : null}</span><span>{(x.query_volume || 0).toLocaleString()}</span><button type="button" onClick={() => add(x.search_query)} style={{ background: 'none', border: 0, color: B.indigo, font: `800 12.5px ${F}`, cursor: 'pointer' }}>+ Add to focus</button><button type="button" onClick={() => choose(x.search_query, 'out')} style={{ background: 'none', border: 0, color: C.muted, font: `800 12.5px ${F}`, cursor: 'pointer' }}>Not relevant</button></div>)}
+              {k.suggested.map(x => <div key={x.search_query} style={{ display: 'flex', gap: 8, alignItems: 'center', fontSize: 12.5, padding: '3px 0' }}>{box(x.search_query)}<span style={{ flex: 1 }}>{x.search_query}{x.store_wide ? <span style={{ color: C.muted }}> · store-wide</span> : null}</span><span>{(x.query_volume || 0).toLocaleString()}</span><button type="button" onClick={() => add(x.search_query)} style={{ background: 'none', border: 0, color: B.indigo, font: `800 12.5px ${F}`, cursor: 'pointer' }}>+ Add to focus</button><button type="button" onClick={() => choose(x.search_query, 'out')} style={{ background: 'none', border: 0, color: C.muted, font: `800 12.5px ${F}`, cursor: 'pointer' }}>Not relevant</button></div>)}
             </div>
           ) : null}
           <form onSubmit={e => { e.preventDefault(); add(kw) }} style={{ display: 'flex', gap: 8, marginTop: 10 }}>

@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { deriveFamilies, seoScore, composeImages, keywordFocus, slotsOf, isPack, covers, keywordKey } from '../lib/pm/families.js'
+import { deriveFamilies, seoScore, composeImages, keywordFocus, slotsOf, isPack, covers, keywordKey, keywordBulk } from '../lib/pm/families.js'
 import { applyChoices } from '../lib/pm/keywords.js'
 
 test('keyword choices: out is hidden from scoring, focus becomes the scored set, watch never counts', () => {
@@ -20,6 +20,20 @@ test('keyword choices: out is hidden from scoring, focus becomes the scored set,
   const focusOnly = keywordFocus(rows, copy, [], { ...choices, [keywordKey('suction plate')]: 'focus' })
   assert.equal(focusOnly[0].search_query, 'suction plate')
   assert.equal(seoScore({ copy, keywords: focusOnly }).parts.title, 30)
+})
+
+test('bulk keyword choices: many at once, suggestions become own keywords, reset restores', () => {
+  const start = { [keywordKey('moonkie plate')]: 'out' }
+  const { choices, own } = keywordBulk(start, ['weaning plate'], [
+    { query: 'munchkin plate', choice: 'out' }, { query: 'bamboo bamboo suction plate', choice: 'out' },
+    { query: 'baby plate', choice: 'focus' }, { query: 'toddler plates', choice: 'add' },
+    { query: 'moonkie plate', choice: 'auto' }, { query: 'weaning plate', choice: 'remove' },
+  ])
+  assert.equal(choices[keywordKey('munchkin plate')], 'out')
+  assert.equal(choices[keywordKey('bamboo bamboo suction plate')], 'out')
+  assert.equal(choices[keywordKey('baby plate')], 'focus')
+  assert.equal(choices[keywordKey('moonkie plate')], undefined)
+  assert.deepEqual(own, ['toddler plates'])
 })
 
 test('copy writer list drops out and watch, leads with focus and own keywords', () => {
