@@ -542,6 +542,14 @@ function StructurePanel({ data, reload }) {
     } catch (e) { setMsg(`${market}: ${e.message}`) } finally { setBusy('') }
   }
   const stores = STORE_ORDER.filter(s => st[s])
+  const content = async (market) => {
+    setBusy(`c${market}`); setMsg('')
+    try {
+      const r = await call('/api/listings/families', { family_code: data.family.family_code, op: 'content_send', market })
+      setMsg(`${market} content: ` + r.results.map(x => x.error ? `${x.asin}: ${x.error}` : `${x.asin} ${x.sent} change${x.sent === 1 ? '' : 's'} sent${x.markets && x.markets[0] && x.markets[0].skipped ? ` (${x.markets[0].skipped} waiting)` : ''}`).join(' · '))
+      reload()
+    } catch (e) { setMsg(`${market}: ${e.message}`) } finally { setBusy('') }
+  }
   return (
     <Panel style={{ overflowX: 'auto' }}>
       <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, flexWrap: 'wrap' }}>
@@ -562,7 +570,7 @@ function StructurePanel({ data, reload }) {
                 {c.note && c.state === 'refused' ? <span style={{ color: C.bad, fontSize: 11.5, maxWidth: 360 }}>{c.note}</span> : null}
               </div>
             ))}</td>
-            <td style={{ padding: '8px 10px', textAlign: 'right' }}>{gi === 0 ? (st[s].done ? <Chip bg={B.mint} fg={C.ok}>Done</Chip> : st[s].next ? <Btn primary disabled={!approved || !!busy} onClick={() => send(s)}>{busy === s ? 'Sending…' : 'Send next step'}</Btn> : <span style={{ color: C.muted }}>Waiting</span>) : null}</td>
+            <td style={{ padding: '8px 10px', textAlign: 'right' }}>{gi === 0 ? (st[s].done ? <Chip bg={B.mint} fg={C.ok}>Done</Chip> : st[s].next ? <Btn primary disabled={!approved || !!busy} onClick={() => send(s)}>{busy === s ? 'Sending…' : 'Send next step'}</Btn> : <span style={{ color: C.muted }}>Waiting</span>) : null}{gi === 0 ? <div style={{ marginTop: 6 }}><Btn disabled={!approved || !!busy} onClick={() => content(s)}>{busy === `c${s}` ? 'Sending…' : 'Send content'}</Btn></div> : null}</td>
           </tr>
         )))}</tbody>
       </table>
