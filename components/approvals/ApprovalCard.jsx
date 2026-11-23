@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { apiFetch } from '../../lib/supabase'
 import { C, REJECT_REASONS, REJECT_LABEL, canVote, dueChip, fmtWhen, lineTally, outcomeChip, same, typeLabel, whoText } from '../../lib/approvalsUi'
+import ConfirmBtn from '../ConfirmBtn'
 import { getRenderer } from './renderers'
 import GenericBody, { GenericPreview, HistorySection, buildEdits, editableFields } from './GenericBody'
 import Comments from './Comments'
@@ -179,7 +180,7 @@ export default function ApprovalCard({ taskId, initialTask, userName, isMobile, 
         </p>
         {iVoted && ['approved', 'approved_with_edits', 'partially_approved'].includes(iVoted.vote) && slots.length > 1 && same(slots[0], me) ? (
           <div style={{ display: 'flex', gap: 8, marginTop: 12, flexWrap: 'wrap', alignItems: 'center' }}>
-            <Btn disabled={busy} onClick={() => { if (confirm(`Decide this now without ${slots.slice(1).join(', ')}? Your approval becomes the decision and what follows it runs.`)) submit(iVoted.vote, { waive_second: true }) }}>Decide without {slots.slice(1).join(', ')}</Btn>
+            <ConfirmBtn as={Btn} disabled={busy} onConfirm={() => submit(iVoted.vote, { waive_second: true })} label={`Decide without ${slots.slice(1).join(', ')}`} confirmLabel={`Click again: decide without ${slots.slice(1).join(', ')}`} />
             <span style={{ fontSize: 13, color: C.muted }}>This card only; the rule stays two people.</span>
           </div>
         ) : null}

@@ -5,6 +5,7 @@ import { Detail } from '../ListingsView'
 import { SLOTS, seoScore, matchImageFile } from '../../lib/pm/families'
 import { ENGLISH, LANGUAGE } from '../../lib/pm/marketImages'
 import MediaView from '../hq/MediaView'
+import ConfirmBtn from '../ConfirmBtn'
 
 // Studio › Amazon listings, by family (Jon 2026-11-19, from the agreed canvas): every family on one page, a family's
 // page (master, colours, images, A+, countries, rank + reviews, evidence) and the clean-up list across stores.
@@ -202,7 +203,7 @@ function FamilyPage({ code, isMobile, onBack, onOpenApproval, backLabel = 'Amazo
         <span style={{ flex: '1 1 240px', fontSize: 14, color: C.muted }}>Stage 1: copy, colours, attributes, images and A+ in English. Translations start only once the structure is right in every store (Markets). Approval needs both names; any edit returns it to draft.</span>
         <span style={{ fontSize: 13, fontWeight: 800 }}>Jon {signed.Jon ? `✓ ${fmtDay(signed.Jon)}` : '○'} · Laura {signed.Laura ? `✓ ${fmtDay(signed.Laura)}` : signed.solo ? 'not needed' : '○'}</span>
         {!(signed.Jon && (signed.Laura || signed.solo)) ? <Btn primary onClick={() => op({ op: 'signoff' })}>Approve the master</Btn> : null}
-        {signed.Jon && !signed.Laura && !signed.solo ? <Btn onClick={() => { if (confirm('Approve this master without Laura? Your approval alone makes it approved.')) op({ op: 'signoff', solo: true }) }}>Approve without Laura</Btn> : null}
+        {signed.Jon && !signed.Laura && !signed.solo ? <ConfirmBtn as={Btn} onConfirm={() => op({ op: 'signoff', solo: true })} label="Approve without Laura" confirmLabel="Click again: approve without Laura" /> : null}
       </div>
       {tab === 'master' ? <MasterTab data={data} isMobile={isMobile} op={op} lead={ukLead} reload={reload} onEdit={() => setOpen({ ...ukLead, startTab: 'master' })} /> : null}
       {tab === 'colours' ? <ColoursTab data={data} isMobile={isMobile} op={op} onOpen={(m) => setOpen({ asin: m.asin, marketplace: m.marketplace, startTab: false })} /> : null}
