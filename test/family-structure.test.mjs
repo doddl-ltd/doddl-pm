@@ -48,6 +48,6 @@ test('colour master: colour in the title, identity + colour kept per ASIN, Germa
   const m = colourMaster({ fm, colour: { asin: 'R', name: 'Dusky Rose' }, own, imagesFor: () => [{ slot: 'MAIN', url: 'u' }] })
   assert.equal(m.copy.title, 'doddl Baby Bowl, Dusky Rose')
   const a = Object.fromEntries(m.attributes.map(x => [x.name, x.value]))
-  assert.deepEqual(a, { brand: 'doddl', special_feature: 'Dishwasher Safe', color: 'Dusky Rose', externally_assigned_product_identifier: 'EAN-R' })
+  assert.deepEqual(a, { special_feature: 'Dishwasher Safe', color: 'Dusky Rose', externally_assigned_product_identifier: 'EAN-R' })
   assert.deepEqual(m.images.MASTER, [{ slot: 'MAIN', url: 'u' }])
 })
