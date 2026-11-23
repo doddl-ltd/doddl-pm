@@ -208,7 +208,7 @@ function FamilyPage({ code, isMobile, onBack, onOpenApproval, backLabel = 'Amazo
       {tab === 'master' ? <MasterTab data={data} isMobile={isMobile} op={op} lead={ukLead} reload={reload} onEdit={() => setOpen({ ...ukLead, startTab: 'master' })} /> : null}
       {tab === 'colours' ? <ColoursTab data={data} isMobile={isMobile} op={op} onOpen={(m) => setOpen({ asin: m.asin, marketplace: m.marketplace, startTab: false })} /> : null}
       {tab === 'images' ? <ImagesTab data={data} isMobile={isMobile} reload={reload} /> : null}
-      {tab === 'markets' ? <MarketsTab data={data} isMobile={isMobile} /> : null}
+      {tab === 'markets' ? <MarketsTab data={data} isMobile={isMobile} reload={reload} /> : null}
       {tab === 'aplus' ? <AplusTab data={data} isMobile={isMobile} lead={ukLead} detail={detail} /> : null}
       {tab === 'countries' ? <CountriesTab data={data} isMobile={isMobile} onOpen={(m) => setOpen({ asin: m.asin, marketplace: m.marketplace, startTab: false })} onEdit={() => setOpen({ ...ukLead, startTab: 'master' })} /> : null}
       {tab === 'rank' ? <RankTab data={data} isMobile={isMobile} /> : null}
@@ -523,12 +523,59 @@ function ColoursTab({ data, isMobile, onOpen, op }) {
 
 // ─── Stage 2: the gap map (read-only) ─────────────────────────────────────────────────────────────────────────────
 const GAP_STYLE = { ok: [C.ok, B.mint, '✓'], bad: [C.bad, B.rose, '✗'], none: [C.faint, '#fff', ''], later: [C.muted, B.lilac, '…'], blocked: [C.warn, B.cream, '⏸'] }
-function MarketsTab({ data, isMobile }) {
+const STEP = { live: ['On Amazon', C.ok, B.mint], sent: ['Sent, waiting for Amazon', C.ok, B.mint], in_approval: ['Waiting for approval', C.warn, B.cream], submitted: ['With HQ for checks', C.warn, B.cream], refused: ['Refused', C.bad, B.rose], todo: ['To do', C.muted, '#fff'] }
+function StepChip({ state }) { const [t, fg, bg] = STEP[state] || STEP.todo; return <Chip bg={bg} fg={fg}>{t}</Chip> }
+
+/** Stage 3, one store at a time: create the parent, then move the colours (and UK packs) under it. */
+function StructurePanel({ data, reload }) {
+  const st = data.structure || {}
+  const [busy, setBusy] = useState('')
+  const [msg, setMsg] = useState('')
+  const approved = data.family_master && data.family_master.status === 'approved'
+  const send = async (market) => {
+    setBusy(market); setMsg('')
+    try {
+      const r = await call('/api/listings/families', { family_code: data.family.family_code, op: 'structure_send', market })
+      setMsg(`${market}: sent ${r.sent.length} change${r.sent.length === 1 ? '' : 's'} to Doddl HQ for checks and approval.`)
+      reload()
+    } catch (e) { setMsg(`${market}: ${e.message}`) } finally { setBusy('') }
+  }
+  const stores = STORE_ORDER.filter(s => st[s])
+  return (
+    <Panel style={{ overflowX: 'auto' }}>
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, flexWrap: 'wrap' }}>
+        <h2 style={{ margin: 0, font: `900 18px ${F}`, color: B.indigo, flex: 1 }}>Structure, store by store</h2>
+        <Chip bg={stores.every(s => st[s].done) ? B.mint : B.cream} fg={stores.every(s => st[s].done) ? C.ok : C.warn}>{stores.filter(s => st[s].done).length} of {stores.length} stores done</Chip>
+      </div>
+      <Note>Each click raises the next step for that store: first the new parent SKU, then (once Amazon has it) each colour moved under it. Every step goes to Doddl HQ, is checked by Amazon's validation preview and becomes an approval card before anything changes.{approved ? '' : ' Approve the family master first.'}</Note>
+      {msg ? <div role="status" style={{ marginTop: 8, fontSize: 13, fontWeight: 800, color: B.indigo }}>{msg}</div> : null}
+      <table style={{ borderCollapse: 'collapse', width: '100%', minWidth: 720, fontSize: 12.5, marginTop: 8 }}>
+        <thead><tr style={{ background: B.lilac }}>{['Store', 'Parent', 'Children', ''].map((h, i) => <th key={i} scope="col" style={{ textAlign: 'left', padding: '8px 10px', font: `800 12.5px ${F}`, color: B.indigo }}>{h}</th>)}</tr></thead>
+        <tbody>{stores.map(s => st[s].groups.map((g, gi) => (
+          <tr key={`${s}|${g.parent_sku}`} style={{ borderTop: `${gi ? 1 : 2}px solid ${C.line2}`, verticalAlign: 'top' }}>
+            <th scope="row" style={{ textAlign: 'left', padding: '8px 10px' }}>{gi ? '' : s}</th>
+            <td style={{ padding: '8px 10px' }}><b>{g.parent_sku}</b><div style={{ marginTop: 4 }}><StepChip state={g.parent.state} /></div>{g.parent.asin ? <div style={{ color: C.muted, fontSize: 11 }}>{g.parent.asin}</div> : null}{g.parent.note && g.parent.state === 'refused' ? <div style={{ color: C.bad, fontSize: 11.5, marginTop: 4, maxWidth: 320 }}>{g.parent.note}</div> : null}</td>
+            <td style={{ padding: '8px 10px' }}>{g.children.map(c => (
+              <div key={c.asin} style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', padding: '2px 0' }}>
+                <span style={{ minWidth: 150 }}><b>{c.colour || c.sku}</b> <span style={{ color: C.muted }}>{c.asin}</span></span><StepChip state={c.state} />
+                {c.note && c.state === 'refused' ? <span style={{ color: C.bad, fontSize: 11.5, maxWidth: 360 }}>{c.note}</span> : null}
+              </div>
+            ))}</td>
+            <td style={{ padding: '8px 10px', textAlign: 'right' }}>{gi === 0 ? (st[s].done ? <Chip bg={B.mint} fg={C.ok}>Done</Chip> : st[s].next ? <Btn primary disabled={!approved || !!busy} onClick={() => send(s)}>{busy === s ? 'Sending…' : 'Send next step'}</Btn> : <span style={{ color: C.muted }}>Waiting</span>) : null}</td>
+          </tr>
+        )))}</tbody>
+      </table>
+    </Panel>
+  )
+}
+
+function MarketsTab({ data, isMobile, reload }) {
   const g = data.gaps
   if (!g) return <Panel><Note>No target structure for this family yet: it is set up family by family (the 2-in-1 Bowl first).</Note></Panel>
   const bad = g.rows.reduce((s, r) => s + Object.values(r.cells).filter(c => c.state === 'bad').length, 0)
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+      {data.structure ? <StructurePanel data={data} reload={reload} /> : null}
       <Panel>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, flexWrap: 'wrap' }}>
           <h2 style={{ margin: 0, font: `900 18px ${F}`, color: B.indigo, flex: 1 }}>Every market against the target and the English master</h2>
