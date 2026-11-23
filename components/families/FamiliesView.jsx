@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { apiFetch } from '../../lib/supabase'
 import { C, Panel, H2, Lbl, Note, Chip, Btn, StateLine, PhoneFrame, inputStyle, fmtDay, fmtWhen } from '../approvals/renderers/reviewKit'
 import { Detail } from '../ListingsView'
-import { SLOTS, seoScore } from '../../lib/pm/families'
+import { SLOTS, seoScore, matchImageFile } from '../../lib/pm/families'
 import { ENGLISH, LANGUAGE } from '../../lib/pm/marketImages'
 import MediaView from '../hq/MediaView'
 
@@ -205,7 +205,7 @@ function FamilyPage({ code, isMobile, onBack, onOpenApproval, backLabel = 'Amazo
       </div>
       {tab === 'master' ? <MasterTab data={data} isMobile={isMobile} op={op} lead={ukLead} reload={reload} onEdit={() => setOpen({ ...ukLead, startTab: 'master' })} /> : null}
       {tab === 'colours' ? <ColoursTab data={data} isMobile={isMobile} op={op} onOpen={(m) => setOpen({ asin: m.asin, marketplace: m.marketplace, startTab: false })} /> : null}
-      {tab === 'images' ? <ImagesTab data={data} isMobile={isMobile} op={op} onEdit={() => setOpen({ ...ukLead, startTab: 'master' })} /> : null}
+      {tab === 'images' ? <ImagesTab data={data} isMobile={isMobile} reload={reload} /> : null}
       {tab === 'markets' ? <MarketsTab data={data} isMobile={isMobile} /> : null}
       {tab === 'aplus' ? <AplusTab data={data} isMobile={isMobile} lead={ukLead} detail={detail} /> : null}
       {tab === 'countries' ? <CountriesTab data={data} isMobile={isMobile} onOpen={(m) => setOpen({ asin: m.asin, marketplace: m.marketplace, startTab: false })} onEdit={() => setOpen({ ...ukLead, startTab: 'master' })} /> : null}
@@ -551,90 +551,202 @@ function MarketsTab({ data, isMobile }) {
   )
 }
 
-/** Fill one slot of the master set (asin null) or of a colour's set: pick from the image library or upload. */
-function SlotFiller({ data, op, asin, slots }) {
-  const [slot, setSlot] = useState(slots[0] || 'MAIN')
-  const [picking, setPicking] = useState(false)
-  const [busy, setBusy] = useState('')
-  const im = data.images
-  const current = { master: im.master || {}, colours: Object.fromEntries((im.sets || []).map(s => [s.asin, s.images || {}])) }
-  const put = (url) => op({ op: 'image_set', slot, asin: asin || null, url, current })
-  const upload = async (file) => {
-    if (!file) return
-    setBusy('Uploading…')
-    try {
-      const r = await call('/api/listings/image-upload', { asin: asin || data.family.lead_asin, locale: 'MASTER', name: file.name, type: file.type, size: file.size })
-      const up = await fetch(r.upload_url, { method: 'PUT', headers: { 'Content-Type': file.type }, body: file })
-      if (!up.ok) throw new Error(`Upload failed (${up.status})`)
-      await put(r.public_url)
-    } catch (e) { alert(e.message) } finally { setBusy('') }
-  }
-  if (!slots.length) return <Note>No slots here: switch a slot heading above.</Note>
+const COLOUR_EDGE = [B.pink, B.teal, B.yellow, B.indigo]
+const IMG_TYPES = ['image/jpeg', 'image/png', 'image/tiff', 'image/gif']
+
+function Thumb({ s, size = 88, onClear }) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-        <label style={{ fontSize: 13, fontWeight: 800, display: 'flex', gap: 6, alignItems: 'center' }}>Slot
-          <select value={slot} onChange={e => setSlot(e.target.value)} style={{ ...inputStyle, minHeight: 36 }}>{slots.map(s => <option key={s} value={s}>{s}</option>)}</select>
-        </label>
-        <label style={{ ...pill(false), display: 'inline-flex', alignItems: 'center', cursor: 'pointer' }}>{busy || 'Upload'}<input type="file" accept="image/jpeg,image/png,image/tiff,image/gif" onChange={e => upload(e.target.files && e.target.files[0])} style={{ position: 'absolute', left: -9999 }} /></label>
-        <button type="button" onClick={() => setPicking(!picking)} style={pill(picking)}>{picking ? 'Close the library' : 'Pick from library'}</button>
-      </div>
-      {picking ? <div style={{ border: `1px solid ${C.line2}`, borderRadius: 10, padding: 8, maxHeight: 520, overflow: 'auto' }}><MediaView compact defaultType="02 Product images" pickLabel={`Use for ${slot}`} onPick={async (x) => { await put(x.url); setPicking(false) }} /></div> : null}
+    <div title={`${s.slot}${s.missing ? ' · missing' : s.from === 'colour' ? ' · this colour' : ' · old shared picture'}`} style={{ position: 'relative', width: size, height: size, borderRadius: 8, overflow: 'hidden', border: `2px ${s.missing ? 'dashed' : 'solid'} ${s.missing ? B.yellow : s.from === 'colour' ? B.pink : C.line}`, background: s.missing ? B.cream : '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 800, color: C.warn, flex: '0 0 auto' }}>
+      {s.url ? <img src={s.url} alt={s.slot} style={{ width: '100%', height: '100%', objectFit: 'contain' }} /> : 'Missing'}
+      {onClear && s.url && s.from === 'colour' ? <button type="button" onClick={onClear} aria-label={`Remove ${s.slot}`} title="Remove this picture" style={{ position: 'absolute', top: 2, right: 2, width: 22, height: 22, borderRadius: 999, border: 0, background: 'rgba(61,21,125,.85)', color: '#fff', font: `800 12px ${F}`, cursor: 'pointer', lineHeight: '22px', padding: 0 }}>×</button> : null}
     </div>
   )
 }
 
-function Thumb({ s, size = 88 }) {
-  return <div title={`${s.slot} · ${s.from}`} style={{ width: size, height: size, borderRadius: 8, overflow: 'hidden', border: `2px ${s.missing ? 'dashed' : 'solid'} ${s.missing ? B.yellow : s.from === 'colour' ? B.pink : C.line}`, background: s.missing ? B.cream : '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 800, color: C.warn, flex: '0 0 auto' }}>{s.url ? <img src={s.url} alt={`${s.slot}`} style={{ width: '100%', height: '100%', objectFit: 'contain' }} /> : 'Missing'}</div>
-}
-function ImagesTab({ data, isMobile, op, onEdit }) {
+/** Next free slot for a colour, given what it already has and what is waiting in the tray. */
+function nextSlot(taken) { return SLOTS.find(s => !taken.has(s)) || null }
+
+/**
+ * Bulk upload (Jon 2026-11-23: "upload all the images we want in one go … images for the colour variants only").
+ * Drop every picture at once; each is matched to a colour and slot from its file name (green / rose, MAIN / PT03 / _2),
+ * anything unmatched takes the next free slot of the chosen colour. Check the tray, fix any row, Save all = one write.
+ */
+function BulkImages({ data, colours, reload }) {
+  const [rows, setRows] = useState([])
+  const [busy, setBusy] = useState('')
+  const [over, setOver] = useState(false)
+  const [picking, setPicking] = useState(false)
+  const [defColour, setDefColour] = useState(colours.length === 1 ? colours[0].asin : '')
   const im = data.images
+
+  const placed = (asin, list) => new Set(list.filter(r => r.asin === asin).map(r => r.slot).filter(Boolean))
+  const addRows = (incoming) => {
+    setRows(prev => {
+      const out = [...prev]
+      for (const x of incoming) {
+        const g = matchImageFile(x.name, colours)
+        const asin = g.asin || defColour || null
+        let slot = g.slot
+        if (!slot && asin && asin !== 'all') slot = nextSlot(placed(asin, out))
+        out.push({ id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, asin, slot, ...x })
+      }
+      return out
+    })
+  }
+  const addFiles = (list) => {
+    const files = [...(list || [])]
+    const bad = files.filter(f => !IMG_TYPES.includes(f.type) || f.size > 20 * 1024 * 1024)
+    if (bad.length) alert(`Skipped ${bad.length}: Amazon takes JPEG, PNG, TIFF or GIF under 20 MB (${bad.map(f => f.name).join(', ')})`)
+    addRows(files.filter(f => !bad.includes(f)).map(f => ({ file: f, name: f.name, preview: URL.createObjectURL(f) })))
+  }
+  const set = (id, patch) => setRows(prev => prev.map(r => r.id === id ? { ...r, ...patch } : r))
+  const drop = (id) => setRows(prev => prev.filter(r => r.id !== id))
+
+  // rows that land on the same colour + slot (All colours counts against every colour)
+  const keyOf = (r) => (r.asin === 'all' ? colours.map(c => c.asin) : [r.asin]).map(a => `${a}|${r.slot}`)
+  const seen = new Map()
+  for (const r of rows) if (r.asin && r.slot) for (const k of keyOf(r)) seen.set(k, (seen.get(k) || 0) + 1)
+  const clash = (r) => r.asin && r.slot && keyOf(r).some(k => seen.get(k) > 1)
+  const incomplete = rows.filter(r => !r.asin || !r.slot).length
+  const clashes = rows.filter(clash).length
+  const replaces = (r) => r.asin && r.slot && (r.asin === 'all' ? colours : colours.filter(c => c.asin === r.asin)).some(c => ((im.sets.find(s => s.asin === c.asin) || {}).images || {})[r.slot])
+
+  const saveAll = async () => {
+    setBusy('Uploading…')
+    try {
+      const done = []
+      const queue = [...rows]
+      let n = 0
+      const worker = async () => {
+        while (queue.length) {
+          const r = queue.shift()
+          let url = r.url
+          if (!url) {
+            const target = r.asin === 'all' ? colours[0].asin : r.asin
+            const u = await call('/api/listings/image-upload', { asin: target, locale: 'MASTER', name: r.name, type: r.file.type, size: r.file.size })
+            const put = await fetch(u.upload_url, { method: 'PUT', headers: { 'Content-Type': r.file.type }, body: r.file })
+            if (!put.ok) throw new Error(`${r.name}: upload failed (${put.status})`)
+            url = u.public_url
+          }
+          done.push({ ...r, url })
+          n += 1
+          setBusy(`Uploading ${n} of ${rows.length}…`)
+        }
+      }
+      await Promise.all([worker(), worker(), worker()])
+      const items = done.flatMap(r => (r.asin === 'all' ? colours.map(c => c.asin) : [r.asin]).map(a => ({ asin: a, slot: r.slot, url: r.url })))
+      setBusy('Saving…')
+      const current = { master: im.master || {}, colours: Object.fromEntries((im.sets || []).map(s => [s.asin, s.images || {}])) }
+      await call('/api/listings/families', { family_code: data.family.family_code, op: 'image_set', items, current })
+      rows.forEach(r => r.preview && URL.revokeObjectURL(r.preview))
+      setRows([])
+      reload()
+    } catch (e) { alert(e.message) } finally { setBusy('') }
+  }
+
+  const sel = { ...inputStyle, minHeight: 36, padding: '0 8px' }
+  return (
+    <Panel style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'baseline', justifyContent: 'space-between' }}>
+        <b style={{ fontSize: 16, color: B.indigo }}>Add pictures, all at once</b>
+        <label style={{ fontSize: 13, fontWeight: 800, display: 'flex', gap: 6, alignItems: 'center' }}>Unnamed files go to
+          <select value={defColour} onChange={e => setDefColour(e.target.value)} style={sel}>
+            <option value="">I'll choose per file</option>
+            {colours.map(c => <option key={c.asin} value={c.asin}>{c.colour}</option>)}
+            {colours.length > 1 ? <option value="all">Every colour</option> : null}
+          </select>
+        </label>
+      </div>
+      <label
+        onDragOver={e => { e.preventDefault(); setOver(true) }} onDragLeave={() => setOver(false)}
+        onDrop={e => { e.preventDefault(); setOver(false); addFiles(e.dataTransfer.files) }}
+        style={{ border: `2px dashed ${over ? B.indigo : C.border}`, background: over ? B.lilac : '#fff', borderRadius: 12, padding: '22px 16px', textAlign: 'center', cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: 4 }}>
+        <b style={{ color: B.indigo, fontSize: 15 }}>Drop all the pictures here, or click to choose several</b>
+        <span style={{ fontSize: 13, color: C.muted }}>Name files with the colour and slot and they place themselves, e.g. <code>green_MAIN.jpg</code>, <code>rose_PT03.png</code>, <code>green-2.jpg</code> (1 = MAIN, 2 = PT01 …). Use <code>both</code> for a picture every colour shares.</span>
+        <input type="file" multiple accept={IMG_TYPES.join(',')} onChange={e => { addFiles(e.target.files); e.target.value = '' }} style={{ position: 'absolute', left: -9999 }} />
+      </label>
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+        <button type="button" onClick={() => setPicking(!picking)} style={pill(picking)}>{picking ? 'Close the library' : 'Add from the image library'}</button>
+      </div>
+      {picking ? <div style={{ border: `1px solid ${C.line2}`, borderRadius: 10, padding: 8, maxHeight: 520, overflow: 'auto' }}><MediaView compact defaultType="02 Product images" pickLabel="Add to the tray" onPick={(x) => addRows([{ url: x.url, preview: x.url, name: x.name || x.title || x.url.split('/').pop() }])} /></div> : null}
+
+      {rows.length ? (
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ borderCollapse: 'collapse', width: '100%', minWidth: 560, fontSize: 13 }}>
+            <thead><tr style={{ background: B.lilac }}>{['', 'File', 'Colour', 'Slot', ''].map((h, i) => <th key={i} scope="col" style={{ textAlign: 'left', padding: '8px 10px', font: `800 12.5px ${F}`, color: B.indigo }}>{h}</th>)}</tr></thead>
+            <tbody>{rows.map(r => (
+              <tr key={r.id} style={{ borderTop: `1px solid ${C.line2}`, background: clash(r) ? B.rose : (!r.asin || !r.slot) ? B.cream : '#fff' }}>
+                <td style={{ padding: 6, width: 64 }}><div style={{ width: 56, height: 56, borderRadius: 6, border: `1px solid ${C.line}`, overflow: 'hidden', background: '#fff' }}><img src={r.preview} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain' }} /></div></td>
+                <td style={{ padding: '6px 10px', overflowWrap: 'anywhere', maxWidth: 260 }}>{r.name}
+                  <div style={{ fontSize: 11.5, fontWeight: 700, color: clash(r) ? C.bad : (!r.asin || !r.slot) ? C.warn : replaces(r) ? C.muted : C.ok }}>
+                    {clash(r) ? 'Two pictures for the same slot' : !r.asin ? 'Choose a colour' : !r.slot ? 'Choose a slot' : replaces(r) ? 'Replaces the picture there now' : 'Fills an empty slot'}
+                  </div>
+                </td>
+                <td style={{ padding: 6 }}><select value={r.asin || ''} onChange={e => set(r.id, { asin: e.target.value || null })} style={sel} aria-label={`Colour for ${r.name}`}>
+                  <option value="">Choose…</option>
+                  {colours.map(c => <option key={c.asin} value={c.asin}>{c.colour}</option>)}
+                  {colours.length > 1 ? <option value="all">Every colour</option> : null}
+                </select></td>
+                <td style={{ padding: 6 }}><select value={r.slot || ''} onChange={e => set(r.id, { slot: e.target.value || null })} style={sel} aria-label={`Slot for ${r.name}`}>
+                  <option value="">Choose…</option>
+                  {SLOTS.map(s => <option key={s} value={s}>{s}</option>)}
+                </select></td>
+                <td style={{ padding: 6, textAlign: 'right' }}><button type="button" onClick={() => drop(r.id)} style={{ ...pill(false), minHeight: 32, padding: '0 10px' }}>Remove</button></td>
+              </tr>
+            ))}</tbody>
+          </table>
+        </div>
+      ) : null}
+      {rows.length ? (
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+          <Btn primary onClick={saveAll} disabled={!!busy || incomplete > 0 || clashes > 0}>{busy || `Save all ${rows.length}`}</Btn>
+          <button type="button" onClick={() => { rows.forEach(r => r.file && r.preview && URL.revokeObjectURL(r.preview)); setRows([]) }} disabled={!!busy} style={pill(false)}>Clear the tray</button>
+          <span style={{ fontSize: 13, color: incomplete || clashes ? C.warn : C.muted, fontWeight: 700 }}>
+            {incomplete ? `${incomplete} still need a colour or slot. ` : ''}{clashes ? `${clashes} share a slot. ` : ''}{!incomplete && !clashes ? 'Ready. One save, nothing goes to Amazon.' : ''}
+          </span>
+        </div>
+      ) : null}
+    </Panel>
+  )
+}
+
+function ImagesTab({ data, isMobile, reload }) {
+  const im = data.images
+  const colours = im.colours.map(c => ({ asin: c.asin, colour: c.colour }))
+  const [clearing, setClearing] = useState('')
+  const clear = async (asin, slot) => {
+    if (!confirm(`Remove ${slot} from this colour?`)) return
+    setClearing(`${asin}|${slot}`)
+    try {
+      const current = { master: im.master || {}, colours: Object.fromEntries((im.sets || []).map(s => [s.asin, s.images || {}])) }
+      await call('/api/listings/families', { family_code: data.family.family_code, op: 'image_set', items: [{ asin, slot, url: null }], current })
+      reload()
+    } catch (e) { alert(e.message) } finally { setClearing('') }
+  }
+  const missing = im.colours.reduce((n, c) => n + c.slots.filter(s => s.missing).length, 0)
+  const shared = im.colours.reduce((n, c) => n + c.slots.filter(s => !s.missing && s.from === 'master').length, 0)
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-      <Panel style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '300px minmax(0, 1fr)', gap: 20, alignItems: 'center' }}>
-        <div aria-hidden="true" style={{ border: `1px solid ${C.border}`, borderRadius: 12, padding: 12, display: 'flex', gap: 10 }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>{[B.rose, B.lilac, B.lilac, B.rose].map((c, i) => <span key={i} style={{ width: 26, height: 26, borderRadius: 4, background: c, border: i === 0 ? `2px solid ${B.pink}` : 0 }} />)}</div>
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <div style={{ height: 110, borderRadius: 8, background: B.rose, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 800, color: '#a33d62' }}>{(im.colours[0] && im.colours[0].colour) || 'Colour'} on white</div>
-            <div style={{ display: 'flex', gap: 6 }}>{im.colours.slice(0, 4).map((c, i) => <span key={c.asin} style={{ width: 30, height: 30, borderRadius: 6, background: [B.pink, B.teal, B.yellow, B.indigo][i], outline: i === 0 ? `3px solid ${B.indigo}` : 0, outlineOffset: 1 }} />)}</div>
-          </div>
-        </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 14, lineHeight: 1.5 }}>
-          <b style={{ fontSize: 16, color: B.indigo }}>Master + colour, combined per colour</b>
-          <span>On Amazon every colour is its own listing with its own 7 images. Clicking a colour swatch swaps the whole gallery to that colour's 7; the parent's images are never shown.</span>
-          <span>doddlHQ keeps one <b>master set</b> (pictures that look the same in any colour) and a <b>colour set</b> for each colour (where the colour shows), builds each colour's 7 from the slot map below, and sends them to that colour's own listing. A missing colour picture is never borrowed from another colour.</span>
-        </div>
+      <Panel style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 14, lineHeight: 1.5 }}>
+        <b style={{ fontSize: 16, color: B.indigo }}>Seven pictures per colour</b>
+        <span>On Amazon every colour is its own listing with its own 7 pictures (MAIN, PT01–PT06); clicking a swatch swaps the whole gallery. So pictures belong to the colour variants only: packs and the parent get none here. Drop everything below in one go.</span>
+        <span style={{ color: missing ? C.warn : C.ok, fontWeight: 800 }}>{missing ? `${missing} slot${missing === 1 ? '' : 's'} still empty` : 'Every colour has all 7'}{shared ? ` · ${shared} still use an older shared picture (grey): replace them with the colour's own` : ''}</span>
       </Panel>
+      {colours.length ? <BulkImages data={data} colours={colours} reload={reload} /> : <Note>No colours in this family yet: set them on the Colours tab.</Note>}
       <Panel style={{ overflowX: 'auto' }}>
         <Lbl>What each colour shows (UK)</Lbl>
         <table style={{ borderCollapse: 'collapse', marginTop: 8, fontSize: 12.5 }}>
-          <thead><tr><th />{SLOTS.map(s => <th key={s} scope="col" style={{ padding: 4 }}>
-            <button type="button" onClick={() => op({ op: 'slot', slot: s, from: im.slot_map[s] === 'colour' ? 'master' : 'colour' })} title="Switch between master and by colour" style={{ ...pill(im.slot_map[s] === 'colour'), minHeight: 30, padding: '0 10px', fontSize: 12 }}>{s} · {im.slot_map[s] === 'colour' ? 'colour' : 'master'}</button>
-          </th>)}</tr></thead>
-          <tbody>{im.colours.map(c => (
-            <tr key={c.asin}><th scope="row" style={{ textAlign: 'left', padding: '6px 10px 6px 0', minWidth: 120 }}>{c.colour}<div style={{ color: C.muted, fontWeight: 700, fontSize: 11 }}>{c.asin}</div></th>{c.slots.map(s => <td key={s.slot} style={{ padding: 4 }}><Thumb s={s} size={isMobile ? 64 : 88} /></td>)}</tr>
+          <thead><tr><th />{SLOTS.map(s => <th key={s} scope="col" style={{ padding: 4, font: `800 12px ${F}`, color: B.indigo }}>{s}</th>)}</tr></thead>
+          <tbody>{im.colours.map((c, i) => (
+            <tr key={c.asin}>
+              <th scope="row" style={{ textAlign: 'left', padding: '6px 10px 6px 8px', minWidth: 120, borderLeft: `6px solid ${COLOUR_EDGE[i % 4]}` }}>{c.colour}<div style={{ color: C.muted, fontWeight: 700, fontSize: 11 }}>{c.asin}</div></th>
+              {c.slots.map(s => <td key={s.slot} style={{ padding: 4, opacity: clearing === `${c.asin}|${s.slot}` ? 0.4 : 1 }}><Thumb s={s} size={isMobile ? 64 : 88} onClear={() => clear(c.asin, s.slot)} /></td>)}
+            </tr>
           ))}</tbody>
         </table>
-        {!im.colours.length ? <Note>No UK colours in this family yet.</Note> : null}
-        <Note style={{ marginTop: 8 }}>Pink border = the colour's own picture; grey = the master picture shared by every colour. Click a slot heading to switch it.</Note>
+        <Note style={{ marginTop: 8 }}>Pink border = this colour's own picture · grey = an older shared picture, kept until you replace it · yellow dashed = empty. × removes a colour's picture.</Note>
       </Panel>
-      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(260px, 1fr))', gap: 14 }}>
-        <Panel style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          <b style={{ fontSize: 16, color: B.indigo }}>Master set</b>
-          <span style={{ fontSize: 13, color: C.muted }}>{SLOTS.filter(s => im.slot_map[s] !== 'colour').join(', ') || 'No slots'} · used by every colour</span>
-          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>{SLOTS.filter(s => im.slot_map[s] !== 'colour').map(s => <Thumb key={s} s={{ slot: s, url: (im.master || {})[s], from: 'master', missing: !(im.master || {})[s] }} size={48} />)}</div>
-          <SlotFiller data={data} op={op} asin={null} slots={SLOTS.filter(s => im.slot_map[s] !== 'colour')} />
-        </Panel>
-        {im.colours.map((c, i) => (
-          <Panel key={c.asin} style={{ display: 'flex', flexDirection: 'column', gap: 8, borderTop: `6px solid ${[B.pink, B.teal, B.yellow, B.indigo][i % 4]}` }}>
-            <b style={{ fontSize: 16, color: B.indigo }}>{c.colour} set</b>
-            <span style={{ fontSize: 13, color: C.muted }}>{SLOTS.filter(s => im.slot_map[s] === 'colour').join(', ') || 'No colour slots'}{c.slots.some(s => s.missing) ? ` · ${c.slots.filter(s => s.missing).length} missing` : ''}</span>
-            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>{c.slots.filter(s => s.from === 'colour').map(s => <Thumb key={s.slot} s={s} size={48} />)}</div>
-            <SlotFiller data={data} op={op} asin={c.asin} slots={SLOTS.filter(s => im.slot_map[s] === 'colour')} />
-          </Panel>
-        ))}
-      </div>
-      <Note>Upload or pick fills the chosen slot in the family master (the first change copies today's pictures in, so nothing is lost). Other countries use the same sets; pictures with words get a translated copy at stage 4 (MAIN never has words).</Note>
+      <Note>Saving changes the family master only (the first save copies today's pictures in, so nothing is lost). Other countries use the same sets; pictures with words get a translated copy at stage 4 (MAIN never has words).</Note>
     </div>
   )
 }

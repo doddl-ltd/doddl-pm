@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { deriveFamilies, seoScore, composeImages, keywordFocus, slotsOf, isPack, covers, keywordKey, keywordBulk, wordsOf, stemWord, wordWeights, gapMap } from '../lib/pm/families.js'
+import { deriveFamilies, seoScore, composeImages, keywordFocus, slotsOf, isPack, covers, keywordKey, keywordBulk, wordsOf, stemWord, wordWeights, gapMap, matchImageFile } from '../lib/pm/families.js'
 import { buildSeoRequest, seoDraftProblems, cleanCopy } from '../lib/pm/familyMaster.js'
 
 test('Write SEO copy request: weighted words + lead phrase + rules; draft checks', () => {
@@ -153,13 +153,25 @@ test('gap map: structure against the target per store, content against the maste
   assert.equal(g.structure_complete, false)
 })
 
-test('images: each colour = master slots + its own colour slots; a missing colour picture is never borrowed', () => {
+test('images: each colour owns its slots, old master only fills gaps; another colour is never borrowed', () => {
   const master = slotsOf([{ slot: 'MAIN', url: 'm0' }, { slot: 'PT01', url: 'm1' }, { slot: 'PT02', url: 'm2' }, { slot: 'PT04', url: 'm4' }])
-  const out = composeImages({ PT04: 'colour' }, master, [{ asin: 'A', colour: 'Rose', images: { MAIN: 'r0', PT03: 'r3', PT04: 'r4' } }, { asin: 'B', colour: 'Green', images: { MAIN: 'g0' } }])
+  const out = composeImages({}, master, [{ asin: 'A', colour: 'Rose', images: { MAIN: 'r0', PT03: 'r3', PT04: 'r4' } }, { asin: 'B', colour: 'Green', images: { MAIN: 'g0' } }])
   const a = Object.fromEntries(out[0].slots.map(s => [s.slot, s.url])), b = Object.fromEntries(out[1].slots.map(s => [s.slot, s.url]))
   assert.deepEqual([a.MAIN, a.PT01, a.PT03, a.PT04], ['r0', 'm1', 'r3', 'r4'])
-  assert.deepEqual([b.MAIN, b.PT01, b.PT03, b.PT04], ['g0', 'm1', null, null])
+  assert.deepEqual([b.MAIN, b.PT01, b.PT03, b.PT04], ['g0', 'm1', null, 'm4'])
   assert.ok(out[1].slots.find(s => s.slot === 'PT03').missing)
+  assert.equal(out[0].slots.find(s => s.slot === 'PT04').from, 'colour')
+})
+
+test('dropped file names map to colour and slot', () => {
+  const cols = [{ asin: 'G', colour: 'Fresh Green' }, { asin: 'R', colour: 'Dusky Rose' }]
+  assert.deepEqual(matchImageFile('2in1-bowl_green_MAIN.jpg', cols), { asin: 'G', slot: 'MAIN' })
+  assert.deepEqual(matchImageFile('Dusky Rose PT03.png', cols), { asin: 'R', slot: 'PT03' })
+  assert.deepEqual(matchImageFile('rose-pt4.jpg', cols), { asin: 'R', slot: 'PT04' })
+  assert.deepEqual(matchImageFile('bowl green 2.jpg', cols), { asin: 'G', slot: 'PT01' })
+  assert.deepEqual(matchImageFile('both_PT06.jpg', cols), { asin: 'all', slot: 'PT06' })
+  assert.deepEqual(matchImageFile('IMG_4471.jpg', cols), { asin: null, slot: null })
+  assert.deepEqual(matchImageFile('lifestyle.jpg', [cols[0]]), { asin: 'G', slot: null })
 })
 
 test('keyword focus merges the family, adds own keywords and says where each search sits', () => {
