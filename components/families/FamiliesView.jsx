@@ -332,16 +332,17 @@ function MasterTab({ data, isMobile, op, lead, reload, onEdit }) {
             </div>
             <Note style={{ marginTop: 6 }}>Amazon names (e.g. material, age_range_description). Values that are lists or objects stay in Amazon's form. Save with the copy above.</Note>
           </Panel>
-          <Panel>
-            <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}><h2 style={{ margin: 0, font: `900 18px ${F}`, color: B.indigo }}>SEO score (UK){dirty ? ' · unsaved' : ''}</h2><span style={{ font: `900 32px ${F}` }}><Score v={live.score} /></span></div>
-            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '4px 24px', fontSize: 13, marginTop: 6 }}>
-              {P.map(([t, v, max]) => <div key={t} style={{ display: 'flex', justifyContent: 'space-between' }}><span>{t}</span><b style={{ color: v < max / 2 ? C.bad : C.ink }}>{v} / {max}</b></div>)}
-              <div style={{ display: 'flex', justifyContent: 'space-between', color: live.penalties.length ? C.bad : C.ink }}><span>Penalties</span><b>{live.penalties.length ? `−${live.penalties.reduce((a, [, v]) => a + v, 0)}` : 0}</b></div>
-            </div>
-            {live.penalties.map(([t, v]) => <div key={t} style={{ fontSize: 12.5, color: C.bad }}>• {t} (−{v})</div>)}
-            <Note style={{ marginTop: 8 }}>On words, out of 100: {live.basis}{live.lead ? `; lead phrase "${live.lead}"` : ''}. Updates as you type.</Note>
-          </Panel>
         </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14, minWidth: 0 }}>
+            <Panel>
+              <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}><h2 style={{ margin: 0, font: `900 18px ${F}`, color: B.indigo }}>SEO score (UK){dirty ? ' · unsaved' : ''}</h2><span style={{ font: `900 32px ${F}` }}><Score v={live.score} /></span></div>
+              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '4px 24px', fontSize: 13, marginTop: 6 }}>
+                {P.map(([t, v, max]) => <div key={t} style={{ display: 'flex', justifyContent: 'space-between' }}><span>{t}</span><b style={{ color: v < max / 2 ? C.bad : C.ink }}>{v} / {max}</b></div>)}
+                <div style={{ display: 'flex', justifyContent: 'space-between', color: live.penalties.length ? C.bad : C.ink }}><span>Penalties</span><b>{live.penalties.length ? `−${live.penalties.reduce((a, [, v]) => a + v, 0)}` : 0}</b></div>
+              </div>
+              {live.penalties.map(([t, v]) => <div key={t} style={{ fontSize: 12.5, color: C.bad }}>• {t} (−{v})</div>)}
+              <Note style={{ marginTop: 8 }}>On words, out of 100: {live.basis}{live.lead ? `; lead phrase "${live.lead}"` : ''}. Updates as you type.</Note>
+            </Panel>
         <Panel style={{ minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}><h2 style={{ margin: 0, font: `900 18px ${F}`, color: B.indigo, flex: 1 }}>Keyword focus (UK)</h2><Btn onClick={reload}>Refresh volumes</Btn></div>
           <Note>Brand Analytics, every colour in the family{k.period_from ? `, ${fmtDay(k.period_from)} – ${fmtDay(k.period_to)}` : ''}. Sent daily by the Hub; reopen this tab to see the latest.</Note>
@@ -411,6 +412,7 @@ function MasterTab({ data, isMobile, op, lead, reload, onEdit }) {
             <Btn primary type="submit">Add</Btn>
           </form>
         </Panel>
+        </div>
       </div>
     </div>
   )
