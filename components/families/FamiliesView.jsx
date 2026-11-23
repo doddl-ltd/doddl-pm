@@ -853,35 +853,81 @@ function CountriesTab({ data, isMobile, onOpen, onEdit }) {
   )
 }
 
+// Rank & reviews as a grid (Jon 2026-11-23): stores across the top, colour + ASIN down the side, a date picker that
+// opens on the last day read. Stars and reviews are kept per day; rank is the latest read only (no history kept yet).
 function RankTab({ data, isMobile }) {
   const sold = data.members.filter(m => m.role !== 'parent')
-  const byKey = (a, m) => data.reviews.filter(r => r.asin === a && r.marketplace === m)
+  const stores = STORE_ORDER.filter(s => sold.some(m => m.marketplace === s))
+  const nameOf = new Map(((data.family_master && data.family_master.colours) || []).filter(c => c.name).map(c => [c.asin, c.name]))
+  const asins = [...new Set(sold.map(m => m.asin))].sort((a, b) => {
+    const pa = sold.some(m => m.asin === a && m.is_pack), pb = sold.some(m => m.asin === b && m.is_pack)
+    return pa === pb ? 0 : pa ? 1 : -1
+  })
+  const label = (a) => {
+    if (nameOf.get(a)) return nameOf.get(a)
+    const here = sold.filter(m => m.asin === a)
+    const uk = here.find(m => m.marketplace === 'UK') || here[0]
+    return (here.find(m => m.colour) || {}).colour || uk.sku || a
+  }
+  const dates = [...new Set(data.reviews.map(r => r.date))].sort().reverse()
+  const [day, setDay] = useState(dates[0] || '')
+  const latest = dates[0]
+  const weekBefore = (d) => new Date(new Date(d).getTime() - 7 * 864e5).toISOString().slice(0, 10)
+  const cell = (a, s) => {
+    const m = sold.find(x => x.asin === a && x.marketplace === s)
+    if (!m) return null
+    const rv = data.reviews.filter(r => r.asin === a && r.marketplace === s)
+    const now = day ? rv.find(r => r.date === day) : rv[0]
+    const week = day ? rv.find(r => r.date <= weekBefore(day)) : null
+    const d = now && week && now.reviews != null && week.reviews != null ? now.reviews - week.reviews : null
+    const ranks = data.ranks.filter(r => r.asin === a && r.marketplace === s && r.sales_rank).sort((x, y) => x.sales_rank - y.sales_rank)
+    const showRank = !day || day === latest
+    return { m, now, d, rank: showRank ? ranks[0] : null }
+  }
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+      <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+        <label style={{ fontSize: 13, fontWeight: 800, display: 'flex', gap: 8, alignItems: 'center', color: B.indigo }}>Date
+          <select value={day} onChange={e => setDay(e.target.value)} disabled={!dates.length} style={{ ...inputStyle, minHeight: 38 }}>
+            {dates.length ? dates.map((d, i) => <option key={d} value={d}>{fmtDay(d)}{i === 0 ? ' (latest)' : ''}</option>) : <option value="">No reads yet</option>}
+          </select>
+        </label>
+        {day && day !== latest ? <button type="button" onClick={() => setDay(latest)} style={pill(false)}>Back to latest</button> : null}
+        <span style={{ fontSize: 12.5, color: C.muted }}>Change = reviews against 7 days before the date shown.</span>
+      </div>
       <Panel pad="0" style={{ overflowX: 'auto' }}>
-        <table style={{ borderCollapse: 'collapse', width: '100%', minWidth: 720, fontSize: 13 }}>
-          <thead><tr style={{ background: B.lilac }}>{['Colour / product', 'Store', 'Best category rank', 'Stars', 'Reviews', 'vs 7 days ago', 'Read'].map(h => <th key={h} scope="col" style={{ textAlign: 'left', padding: '10px 12px', font: `800 12.5px ${F}`, color: B.indigo }}>{h}</th>)}</tr></thead>
-          <tbody>{sold.sort((a, b) => STORE_ORDER.indexOf(a.marketplace) - STORE_ORDER.indexOf(b.marketplace)).map(m => {
-            const ranks = data.ranks.filter(r => r.asin === m.asin && r.marketplace === m.marketplace && r.sales_rank).sort((a, b) => a.sales_rank - b.sales_rank)
-            const rv = byKey(m.asin, m.marketplace)
-            const now = rv[0], week = rv.find(r => r.date <= new Date(Date.now() - 7 * 864e5).toISOString().slice(0, 10))
-            const d = now && week && now.reviews != null && week.reviews != null ? now.reviews - week.reviews : null
-            return (
-              <tr key={`${m.asin}|${m.marketplace}`} style={{ borderTop: `1px solid ${C.line2}` }}>
-                <td style={{ padding: '8px 12px' }}><b>{m.colour || m.sku}</b><div style={{ color: C.muted, fontSize: 11 }}>{m.asin}</div></td>
-                <td style={{ padding: '8px 12px' }}>{m.marketplace}</td>
-                <td style={{ padding: '8px 12px' }}>{ranks[0] ? `#${ranks[0].sales_rank.toLocaleString()} ${ranks[0].title}` : <span style={{ color: C.faint }}>–</span>}{ranks.length > 1 ? <div style={{ color: C.muted, fontSize: 11 }}>{ranks.slice(1, 3).map(r => `#${r.sales_rank.toLocaleString()} ${r.title}`).join(' · ')}</div> : null}</td>
-                <td style={{ padding: '8px 12px' }}>{now && now.rating != null ? `${Number(now.rating).toFixed(1)} ★` : '–'}</td>
-                <td style={{ padding: '8px 12px' }}>{now && now.reviews != null ? now.reviews.toLocaleString() : now ? <span style={{ color: C.warn }}>{now.status}</span> : '–'}</td>
-                <td style={{ padding: '8px 12px', fontWeight: 800, color: d == null ? C.faint : d < 0 ? C.bad : d > 0 ? C.ok : C.muted }}>{d == null ? '–' : d > 0 ? `+${d}` : d === 0 ? 'no change' : d}</td>
-                <td style={{ padding: '8px 12px', color: C.muted }}>{now ? fmtDay(now.date) : ranks[0] ? fmtDay(ranks[0].read_on) : '–'}</td>
-              </tr>
-            )
-          })}</tbody>
+        <table style={{ borderCollapse: 'collapse', width: '100%', minWidth: 160 + stores.length * 150, fontSize: 12.5 }}>
+          <thead><tr style={{ background: B.lilac }}>
+            <th scope="col" style={{ textAlign: 'left', padding: '10px 12px', font: `800 12.5px ${F}`, color: B.indigo, position: 'sticky', left: 0, background: B.lilac, zIndex: 1 }}>Colour / ASIN</th>
+            {stores.map(s => <th key={s} scope="col" style={{ textAlign: 'left', padding: '10px 12px', font: `800 12.5px ${F}`, color: B.indigo }}>{s}</th>)}
+          </tr></thead>
+          <tbody>{asins.map(a => (
+            <tr key={a} style={{ borderTop: `1px solid ${C.line2}` }}>
+              <th scope="row" style={{ textAlign: 'left', padding: '8px 12px', verticalAlign: 'top', position: 'sticky', left: 0, background: '#fff', zIndex: 1, minWidth: 150 }}>
+                <b>{label(a)}</b>{sold.some(m => m.asin === a && m.is_pack) ? <Chip style={{ marginLeft: 6 }}>pack</Chip> : null}
+                <div style={{ color: C.muted, fontSize: 11, fontWeight: 700 }}>{a}</div>
+              </th>
+              {stores.map(s => {
+                const c = cell(a, s)
+                if (!c) return <td key={s} style={{ padding: '8px 12px', background: '#fafafa' }} />
+                const { now, d, rank } = c
+                return (
+                  <td key={s} style={{ padding: '8px 12px', verticalAlign: 'top', minWidth: 140 }}>
+                    <div style={{ fontWeight: 800 }}>{now && now.rating != null ? `${Number(now.rating).toFixed(1)} ★` : <span style={{ color: C.faint }}>– ★</span>}
+                      <span style={{ marginLeft: 8 }}>{now && now.reviews != null ? now.reviews.toLocaleString() : now ? <span style={{ color: C.warn }}>{now.status}</span> : <span style={{ color: C.faint }}>not read</span>}</span>
+                      {d != null ? <span style={{ marginLeft: 6, color: d < 0 ? C.bad : d > 0 ? C.ok : C.muted }}>{d > 0 ? `+${d}` : d === 0 ? '±0' : d}</span> : null}
+                    </div>
+                    {rank ? <div style={{ marginTop: 2 }}>#{rank.sales_rank.toLocaleString()} <span style={{ color: C.muted }}>{rank.title}</span></div> : null}
+                  </td>
+                )
+              })}
+            </tr>
+          ))}</tbody>
         </table>
       </Panel>
-      {!data.reviews.length ? <Note>Stars and review counts: capture starts once the review source is switched on. Rank is read daily from Amazon's catalog.</Note> : null}
-      <Note>Alerts (once capture runs): review count falls, stars fall by 0.1 or more, a colour's count stops matching its family (the first sign of a split), rank halves within 3 days.</Note>
+      {!data.reviews.length ? <Note>No stars or review counts read yet. Rank is read daily from Amazon's catalog.</Note> : null}
+      <Note>Each cell: stars · reviews · change vs 7 days before · best category rank. Grey = not sold in that store. Rank shows on the latest date only, because only the latest rank is kept for now.</Note>
+      <Note>Alerts: review count falls, stars fall by 0.1 or more, a colour's count stops matching its family (the first sign of a split), rank halves within 3 days.</Note>
     </div>
   )
 }
