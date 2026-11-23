@@ -2,8 +2,9 @@ import { useEffect, useMemo, useState } from 'react'
 import { apiFetch } from '../../lib/supabase'
 import { C, Panel, H2, Lbl, Note, Chip, Btn, StateLine, PhoneFrame, inputStyle, fmtDay, fmtWhen } from '../approvals/renderers/reviewKit'
 import { Detail } from '../ListingsView'
-import { SLOTS } from '../../lib/pm/families'
+import { SLOTS, seoScore } from '../../lib/pm/families'
 import { ENGLISH, LANGUAGE } from '../../lib/pm/marketImages'
+import MediaView from '../hq/MediaView'
 
 // Studio › Amazon listings, by family (Jon 2026-11-19, from the agreed canvas): every family on one page, a family's
 // page (master, colours, images, A+, countries, rank + reviews, evidence) and the clean-up list across stores.
@@ -161,7 +162,7 @@ function CleanupPage({ isMobile, onBack, onOpen }) {
 }
 
 // ─── one family ───────────────────────────────────────────────────────────────────────────────────────────────────
-const TABS = [['master', 'Master'], ['colours', 'Colours'], ['images', 'Images'], ['aplus', 'A+ page'], ['countries', 'Countries'], ['rank', 'Rank & reviews'], ['evidence', 'Evidence']]
+const TABS = [['master', 'Master'], ['colours', 'Colours'], ['images', 'Images'], ['aplus', 'A+ page'], ['markets', 'Markets'], ['countries', 'Countries'], ['rank', 'Rank & reviews'], ['evidence', 'Evidence']]
 
 function FamilyPage({ code, isMobile, onBack, onOpenApproval, backLabel = 'Amazon listings' }) {
   const [data, error, reload] = useLoad(`/api/listings/families?code=${encodeURIComponent(code)}`)
@@ -174,7 +175,7 @@ function FamilyPage({ code, isMobile, onBack, onOpenApproval, backLabel = 'Amazo
   const ukLead = { asin: f.lead_asin, marketplace: sold.some(m => m.asin === f.lead_asin && m.marketplace === 'UK') ? 'UK' : (sold.find(m => m.asin === f.lead_asin) || {}).marketplace || 'UK' }
   const rowsFor = (asin) => sold.filter(m => m.asin === asin).map(m => ({ asin: m.asin, marketplace: m.marketplace, sku: m.sku }))
   const detail = (sel, startTab) => <Detail key={`${sel.asin}|${sel.marketplace}|${startTab}`} sel={{ ...sel, sku: (sold.find(m => m.asin === sel.asin && m.marketplace === sel.marketplace) || {}).sku }} rows={rowsFor(sel.asin)} isMobile={isMobile} onBack={() => setOpen(null)} onSelect={(r) => setOpen({ asin: r.asin, marketplace: r.marketplace, startTab: false })} onOpenApproval={onOpenApproval} startTab={startTab} />
-  const signed = f.signoff || {}
+  const signed = (data.family_master ? data.family_master.approvals : f.signoff) || {}
   const pad = isMobile ? '0 4px 16px' : '0 16px 40px'
   const soldIn = [...new Set(sold.map(m => m.marketplace))].sort((a, b) => STORE_ORDER.indexOf(a) - STORE_ORDER.indexOf(b))
   const homeStore = soldIn.includes('UK') ? 'UK' : soldIn[0]
@@ -197,14 +198,15 @@ function FamilyPage({ code, isMobile, onBack, onOpenApproval, backLabel = 'Amazo
         </nav>
       </div>
       <div style={{ background: signed.Jon && signed.Laura ? B.mint : B.cream, border: `1px solid ${signed.Jon && signed.Laura ? B.teal : B.yellow}`, borderRadius: 14, padding: '12px 18px', display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap' }}>
-        <b style={{ fontSize: 15, color: signed.Jon && signed.Laura ? C.ok : '#8a6400' }}>{signed.Jon && signed.Laura ? 'Master signed off' : 'Draft'}{data.master ? ` · master ${data.master.master_sku || data.master.asin} (${data.master.status})` : ' · no master yet'}</b>
-        <span style={{ flex: '1 1 240px', fontSize: 14, color: C.muted }}>Every colour and country is built from the signed-off master. Sign-off needs both names.</span>
+        <b style={{ fontSize: 15, color: signed.Jon && signed.Laura ? C.ok : '#8a6400' }}>{signed.Jon && signed.Laura ? 'English master approved' : 'Draft'}{data.family_master ? ` · family master (${data.family_master.status})` : data.master ? ` · master ${data.master.master_sku || data.master.asin} (${data.master.status})` : ' · no master yet'}</b>
+        <span style={{ flex: '1 1 240px', fontSize: 14, color: C.muted }}>Stage 1: copy, colours, attributes, images and A+ in English. Translations start only once the structure is right in every store (Markets). Approval needs both names; any edit returns it to draft.</span>
         <span style={{ fontSize: 13, fontWeight: 800 }}>Jon {signed.Jon ? `✓ ${fmtDay(signed.Jon)}` : '○'} · Laura {signed.Laura ? `✓ ${fmtDay(signed.Laura)}` : '○'}</span>
-        <Btn primary onClick={() => op({ op: 'signoff' })}>Sign off the master</Btn>
+        <Btn primary onClick={() => op({ op: 'signoff' })}>Approve the master</Btn>
       </div>
       {tab === 'master' ? <MasterTab data={data} isMobile={isMobile} op={op} lead={ukLead} reload={reload} onEdit={() => setOpen({ ...ukLead, startTab: 'master' })} /> : null}
-      {tab === 'colours' ? <ColoursTab data={data} isMobile={isMobile} onOpen={(m) => setOpen({ asin: m.asin, marketplace: m.marketplace, startTab: false })} /> : null}
+      {tab === 'colours' ? <ColoursTab data={data} isMobile={isMobile} op={op} onOpen={(m) => setOpen({ asin: m.asin, marketplace: m.marketplace, startTab: false })} /> : null}
       {tab === 'images' ? <ImagesTab data={data} isMobile={isMobile} op={op} onEdit={() => setOpen({ ...ukLead, startTab: 'master' })} /> : null}
+      {tab === 'markets' ? <MarketsTab data={data} isMobile={isMobile} /> : null}
       {tab === 'aplus' ? <AplusTab data={data} isMobile={isMobile} lead={ukLead} detail={detail} /> : null}
       {tab === 'countries' ? <CountriesTab data={data} isMobile={isMobile} onOpen={(m) => setOpen({ asin: m.asin, marketplace: m.marketplace, startTab: false })} onEdit={() => setOpen({ ...ukLead, startTab: 'master' })} /> : null}
       {tab === 'rank' ? <RankTab data={data} isMobile={isMobile} /> : null}
@@ -263,51 +265,81 @@ function MasterTab({ data, isMobile, op, lead, reload, onEdit }) {
     try { await op({ op: 'keyword_bulk', items }); setSel(new Set()) } finally { setBusy(false) }
   }
   const box = (q, label) => <input type="checkbox" checked={sel.has(q)} onChange={() => toggle(q)} aria-label={label || `Select ${q}`} style={{ width: 16, height: 16, accentColor: B.indigo, cursor: 'pointer' }} />
-  const P = [['Top searches in the title', s.parts.title, 30], ['In bullets or description', s.parts.bullets, 15], ['In the search terms', s.parts.terms, 10], ['Space used', s.parts.space, 10], ['Images', s.parts.images, 15], ['A+ page live', s.parts.aplus, 5], ['Family and attributes', s.parts.family, 5]]
-  const copy = data.copy || {}
-  const attrs = (data.master && data.master.attributes) || []
+  // ── the English master, edited in place (Stage 1): copy + attributes, live score, Write SEO copy (never auto-saved)
+  const [ed, setEd] = useState(() => ({ ...(data.copy || {}) }))
+  const [attrEd, setAttrEd] = useState(() => attrRows(data))
+  const [dirty, setDirty] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [wr, setWr] = useState(null)        // the writer's draft
+  const [writing, setWriting] = useState(false)
+  const [wErr, setWErr] = useState('')
+  useEffect(() => { if (!dirty) { setEd({ ...(data.copy || {}) }); setAttrEd(attrRows(data)) } }, [data]) // eslint-disable-line react-hooks/exhaustive-deps
+  const live = useMemo(() => seoScore({ copy: ed, keywords: k.focus, ...(data.score_inputs || {}) }), [ed, k.focus, data.score_inputs])
+  const setField = (key, v) => { setEd(prev => ({ ...prev, [key]: v })); setDirty(true) }
+  const save = async () => {
+    setSaving(true)
+    try {
+      await call('/api/listings/families', { family_code: data.family.family_code, op: 'master_save', copy: ed, attributes: attrEd.filter(a => a.name.trim()).map(a => ({ name: a.name.trim(), value: parseVal(a.value) })) })
+      setDirty(false); reload()
+    } catch (e) { alert(e.message) } finally { setSaving(false) }
+  }
+  const write = async () => {
+    setWriting(true); setWErr('')
+    try { setWr(await call('/api/listings/families', { family_code: data.family.family_code, op: 'write_seo' })) } catch (e) { setWErr(e.message) } finally { setWriting(false) }
+  }
+  const P = [['Title words', live.parts.title, 30], ['Lead phrase early in the title', live.parts.lead, 5], ['Searches findable', live.parts.findable, 20], ['Bullet words', live.parts.bullets, 10], ['Space used', live.parts.space, 10], ['Images (7 per colour)', live.parts.images, 15], ['A+ page live', live.parts.aplus, 5], ['Family and attributes', live.parts.family, 5]]
+  const fmx = data.family_master
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
       <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'minmax(0, 1fr) minmax(0, 1.1fr)', gap: 14, alignItems: 'start' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14, minWidth: 0 }}>
           <Panel>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-              <h2 style={{ margin: 0, font: `900 18px ${F}`, color: B.indigo, flex: 1 }}>Copy (UK English)</h2>
-              <Btn onClick={onEdit}>Write new copy from the keywords</Btn>
+              <h2 style={{ margin: 0, font: `900 18px ${F}`, color: B.indigo, flex: 1 }}>English master copy</h2>
+              <Btn onClick={write} disabled={writing}>{writing ? 'Writing…' : 'Write SEO copy'}</Btn>
+              <Btn primary onClick={save} disabled={!dirty || saving}>{saving ? 'Saving…' : dirty ? 'Save changes' : 'Saved'}</Btn>
             </div>
-            <Note>{data.copy_source === 'master' ? 'From the family master.' : 'From the live UK listing: no master copy yet.'} Edit opens the master editor (copy, attributes, images, translations, send per store).</Note>
-            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '84px minmax(0, 1fr) 44px' : '104px minmax(0, 1fr) 64px 40px', gap: '8px 10px', fontSize: 13.5, lineHeight: 1.45, marginTop: 8, alignItems: 'start' }}>
-              {COPY_ROWS.map(([k, label, max]) => {
-                const v = copy[k] || ''
-                const n = k === 'search_terms' ? bytesOf(v) : v.length
-                return [
-                  <b key={`${k}l`}>{label}</b>,
-                  <span key={`${k}v`} style={{ color: v ? C.ink : C.faint, overflowWrap: 'anywhere' }}>{v ? (v.length > 220 ? `${v.slice(0, 220)}…` : v) : 'Empty'}</span>,
-                  <span key={`${k}n`} style={{ fontSize: 12, fontWeight: 800, color: n > max ? C.bad : n ? C.ok : C.faint }}>{n}/{max}{k === 'search_terms' ? ' B' : ''}</span>,
-                  isMobile ? null : <button key={`${k}e`} type="button" onClick={onEdit} style={editLink}>Edit</button>,
-                ]
+            <Note>{data.copy_source === 'family' ? `The family master${fmx && fmx.updated_by ? ` · last saved by ${fmx.updated_by}` : ''}.` : 'From the existing master / live UK listing: saving makes it the family master.'} No colour name in the title: each colour adds its own. Saving returns an approved master to draft. Write SEO copy drafts from the weighted words (Claude Haiku, about 1–2p a run); nothing is saved until you take a field and press Save.</Note>
+            {wErr ? <div role="alert" style={{ color: C.bad, fontWeight: 800, fontSize: 13, marginTop: 6 }}>{wErr}</div> : null}
+            {wr ? <SeoDraft wr={wr} ed={ed} onTake={(key) => setField(key, wr.draft[key])} onTakeAll={() => { setEd(prev => ({ ...prev, ...wr.draft })); setDirty(true) }} onClose={() => setWr(null)} isMobile={isMobile} /> : null}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 10 }}>
+              {COPY_ROWS.map(([key, label, max]) => {
+                const v = ed[key] || ''
+                const n = key === 'search_terms' ? bytesOf(v) : v.length
+                return (
+                  <label key={key} style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: 13 }}>
+                    <span style={{ display: 'flex', justifyContent: 'space-between' }}><b>{label}</b><span style={{ fontSize: 12, fontWeight: 800, color: n > max ? C.bad : n ? C.ok : C.faint }}>{n}/{max}{key === 'search_terms' ? ' bytes' : ''}</span></span>
+                    <textarea value={v} onChange={e => setField(key, e.target.value)} rows={key === 'description' ? 6 : key === 'title' ? 2 : 3} style={{ ...inputStyle, width: '100%', boxSizing: 'border-box', font: `600 13.5px ${F}`, lineHeight: 1.45, resize: 'vertical', borderColor: n > max ? C.bad : undefined }} />
+                  </label>
+                )
               })}
             </div>
           </Panel>
           <Panel>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <h2 style={{ margin: 0, font: `900 18px ${F}`, color: B.indigo, flex: 1 }}>Attributes shared by every colour</h2>
-              <button type="button" onClick={onEdit} style={editLink}>+ Add attribute</button>
+              <button type="button" onClick={() => { setAttrEd([...attrEd, { name: '', value: '' }]); setDirty(true) }} style={editLink}>+ Add attribute</button>
             </div>
-            {attrs.length ? (
-              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(3, minmax(0, 1fr))', gap: 8, marginTop: 10, fontSize: 13 }}>
-                {attrs.map(([k, v]) => <div key={k} style={{ background: C.grey || '#f6f4fa', borderRadius: 10, padding: 10, display: 'flex', justifyContent: 'space-between', gap: 6 }}><span style={{ minWidth: 0, overflowWrap: 'anywhere' }}><b style={{ display: 'block' }}>{k}</b>{v}</span><button type="button" onClick={onEdit} style={editLink}>Edit</button></div>)}
-              </div>
-            ) : <Note style={{ marginTop: 6 }}>No attributes in the master yet: add them in the master editor.</Note>}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 10, fontSize: 13 }}>
+              {attrEd.map((a, i) => (
+                <div key={i} style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '200px minmax(0, 1fr) 34px', gap: 6, alignItems: 'center' }}>
+                  <input aria-label="Attribute name" value={a.name} onChange={e => { const n = [...attrEd]; n[i] = { ...a, name: e.target.value }; setAttrEd(n); setDirty(true) }} style={{ ...inputStyle, minHeight: 34 }} />
+                  <input aria-label={`Value of ${a.name || 'attribute'}`} value={a.value} onChange={e => { const n = [...attrEd]; n[i] = { ...a, value: e.target.value }; setAttrEd(n); setDirty(true) }} style={{ ...inputStyle, minHeight: 34 }} />
+                  <button type="button" aria-label={`Remove ${a.name || 'attribute'}`} onClick={() => { setAttrEd(attrEd.filter((_, j) => j !== i)); setDirty(true) }} style={{ minHeight: 34, border: `1px solid ${C.line2}`, borderRadius: 8, background: '#fff', color: C.bad, font: `900 14px ${F}`, cursor: 'pointer' }}>×</button>
+                </div>
+              ))}
+              {!attrEd.length ? <Note>No attributes yet: add them here.</Note> : null}
+            </div>
+            <Note style={{ marginTop: 6 }}>Amazon names (e.g. material, age_range_description). Values that are lists or objects stay in Amazon's form. Save with the copy above.</Note>
           </Panel>
           <Panel>
-            <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}><h2 style={{ margin: 0, font: `900 18px ${F}`, color: B.indigo }}>SEO score (UK)</h2><span style={{ font: `900 32px ${F}` }}><Score v={s.score} /></span></div>
+            <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}><h2 style={{ margin: 0, font: `900 18px ${F}`, color: B.indigo }}>SEO score (UK){dirty ? ' · unsaved' : ''}</h2><span style={{ font: `900 32px ${F}` }}><Score v={live.score} /></span></div>
             <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '4px 24px', fontSize: 13, marginTop: 6 }}>
               {P.map(([t, v, max]) => <div key={t} style={{ display: 'flex', justifyContent: 'space-between' }}><span>{t}</span><b style={{ color: v < max / 2 ? C.bad : C.ink }}>{v} / {max}</b></div>)}
-              <div style={{ display: 'flex', justifyContent: 'space-between', color: s.penalties.length ? C.bad : C.ink }}><span>Penalties</span><b>{s.penalties.length ? `−${s.penalties.reduce((a, [, v]) => a + v, 0)}` : 0}</b></div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', color: live.penalties.length ? C.bad : C.ink }}><span>Penalties</span><b>{live.penalties.length ? `−${live.penalties.reduce((a, [, v]) => a + v, 0)}` : 0}</b></div>
             </div>
-            {s.penalties.map(([t, v]) => <div key={t} style={{ fontSize: 12.5, color: C.bad }}>• {t} (−{v})</div>)}
-            <Note style={{ marginTop: 8 }}>Keywords weighted by search volume over the {s.basis}; parts add to 90 and are shown out of 100.</Note>
+            {live.penalties.map(([t, v]) => <div key={t} style={{ fontSize: 12.5, color: C.bad }}>• {t} (−{v})</div>)}
+            <Note style={{ marginTop: 8 }}>On words, out of 100: {live.basis}{live.lead ? `; lead phrase "${live.lead}"` : ''}. Updates as you type.</Note>
           </Panel>
         </div>
         <Panel style={{ minWidth: 0 }}>
@@ -353,6 +385,21 @@ function MasterTab({ data, isMobile, op, lead, reload, onEdit }) {
             </details>
           ) : null}
           <Note style={{ marginTop: 6 }}>Shown, clicks and buys are doddl's own on each search; Amazon's share of all impressions and clicks needs the Hub to send the search totals too.</Note>
+          <div style={{ marginTop: 12 }}>
+            <Lbl>The words that count (from the searches above)</Lbl>
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ borderCollapse: 'collapse', width: '100%', minWidth: 420, fontSize: 12.5, marginTop: 4 }}>
+                <thead><tr>{['Word', 'Weight', 'Searches', 'Title', 'Bullets', 'Terms'].map(h => <th key={h} scope="col" style={{ textAlign: 'left', padding: '4px 6px', color: C.muted, fontWeight: 800 }}>{h}</th>)}</tr></thead>
+                <tbody>{live.words.slice(0, 25).map(w => (
+                  <tr key={w.word} style={{ borderTop: `1px solid ${C.line2}` }}>
+                    <td style={{ padding: '4px 6px', fontWeight: 800 }}>{w.word}</td><td style={{ padding: '4px 6px' }}>{w.weight.toLocaleString()}</td><td style={{ padding: '4px 6px' }}>{w.phrases}</td>
+                    {[w.in_title, w.in_bullets, w.in_terms].map((on, i) => <td key={i} style={{ padding: '4px 6px', fontWeight: 900, color: on ? C.ok : C.faint }}>{on ? '✓' : '–'}</td>)}
+                  </tr>
+                ))}</tbody>
+              </table>
+            </div>
+            <Note style={{ marginTop: 4 }}>Weight = searches in 3 months for every counted search containing the word (plurals merged; for, with, and… and brand names left out). The title should carry the top words once each; search terms take only words not already in the title or bullets.</Note>
+          </div>
           {k.suggested.length ? (
             <div style={{ marginTop: 10 }}>
               <Lbl>Suggested searches not on the listing</Lbl>
@@ -365,20 +412,91 @@ function MasterTab({ data, isMobile, op, lead, reload, onEdit }) {
           </form>
         </Panel>
       </div>
-      <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
-        <Btn primary onClick={onEdit}>Open the master editor</Btn>
-        <Note style={{ margin: 0 }}>Copy, attributes, images, translations and the send per store. The family master is the master of {lead.asin}, shared by every colour.</Note>
-      </div>
     </div>
   )
 }
 
-function ColoursTab({ data, isMobile, onOpen }) {
+// Attribute rows for the editor: the family master's, else the existing master's. Values that are not text stay JSON.
+function attrRows(data) {
+  const src = (data.family_master && data.family_master.attributes) || data.attributes || []
+  return src.map(a => ({ name: a.name || '', value: typeof a.value === 'string' ? a.value : a.value == null ? '' : JSON.stringify(a.value) }))
+}
+function parseVal(v) { const t = String(v || '').trim(); if (/^[[{]/.test(t)) { try { return JSON.parse(t) } catch { return t } } return t }
+
+/** The writer's draft beside the current copy, score before and after; take a field or all of them (then Save). */
+function SeoDraft({ wr, ed, onTake, onTakeAll, onClose, isMobile }) {
+  return (
+    <div style={{ marginTop: 10, border: `2px solid ${B.teal}`, borderRadius: 12, padding: 12, background: B.mint, display: 'flex', flexDirection: 'column', gap: 10 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+        <b style={{ font: `900 15px ${F}`, color: B.indigo, flex: 1 }}>Draft from the weighted words · score {wr.before.score} → {wr.after.score}</b>
+        <span style={{ fontSize: 12, color: C.muted }}>{wr.model} · cost {wr.cost_gbp_pence}p</span>
+        <Btn onClick={onTakeAll}>Take all</Btn>
+        <Btn onClick={onClose}>Close</Btn>
+      </div>
+      {wr.notes ? <Note>{wr.notes}</Note> : null}
+      {COPY_ROWS.map(([key, label, max]) => (
+        <div key={key} style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '90px minmax(0, 1fr) minmax(0, 1fr) 70px', gap: 8, fontSize: 12.5, alignItems: 'start', borderTop: `1px solid ${C.line2}`, paddingTop: 8 }}>
+          <b>{label}</b>
+          <span style={{ color: C.muted, overflowWrap: 'anywhere' }}><b style={{ display: 'block', color: C.faint, fontSize: 11 }}>NOW</b>{ed[key] || '–'}</span>
+          <span style={{ overflowWrap: 'anywhere' }}><b style={{ display: 'block', color: C.ok, fontSize: 11 }}>DRAFT · {key === 'search_terms' ? `${bytesOf(wr.draft[key])} bytes` : `${(wr.draft[key] || '').length}/${max}`}</b>{wr.draft[key] || '–'}{wr.problems[key] ? <span style={{ display: 'block', color: C.bad, fontWeight: 800 }}>{wr.problems[key]}</span> : null}</span>
+          <Btn onClick={() => onTake(key)} disabled={!wr.draft[key] || wr.draft[key] === ed[key]}>Take</Btn>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function ColourEditor({ data, op }) {
+  const t = data.target
+  const fm = data.family_master
+  const names = new Map(((fm && fm.colours) || []).map(c => [c.asin, c.name]))
+  const [ed, setEd] = useState(() => Object.fromEntries((t.children || []).map(a => [a, names.get(a) || ''])))
+  const [busy, setBusy] = useState(false)
+  const product = (a) => (data.members.find(m => m.asin === a && m.marketplace === 'UK') || data.members.find(m => m.asin === a) || {})
+  const opts = (cur) => [...new Set([...(data.standard_colours || []), ...(cur ? [cur] : [])])]
+  const changed = (t.children || []).some(a => (ed[a] || '') !== (names.get(a) || ''))
+  const saveNames = async () => { setBusy(true); try { await op({ op: 'master_save', colours: (t.children || []).map(a => ({ asin: a, name: ed[a] || '' })) }) } finally { setBusy(false) } }
+  return (
+    <Panel>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+        <h2 style={{ margin: 0, font: `900 18px ${F}`, color: B.indigo, flex: 1 }}>Colours in the family (target)</h2>
+        <Btn primary onClick={saveNames} disabled={!changed || busy}>{busy ? 'Saving…' : changed ? 'Save colour names' : 'Saved'}</Btn>
+      </div>
+      <Note>Parent SKU <b>{t.parent_sku}</b> in every store · theme {String(t.theme || '').toLowerCase()}. English names from the standard list; other countries get the translated name at stage 4.</Note>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 10, fontSize: 13 }}>
+        {(t.children || []).map(a => (
+          <div key={a} style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 190px 150px', gap: 10, alignItems: 'center', borderTop: `1px solid ${C.line2}`, paddingTop: 8 }}>
+            <span><b style={{ fontFamily: 'monospace' }}>{a}</b> · {product(a).sku || ''}<div style={{ color: C.muted, fontSize: 12 }}>{String(product(a).product || '').slice(0, 70)}</div></span>
+            <label><span style={{ position: 'absolute', left: -9999 }}>Colour name for {a}</span>
+              <select value={ed[a] || ''} onChange={e => setEd({ ...ed, [a]: e.target.value })} style={{ ...inputStyle, minHeight: 36, width: '100%' }}>
+                <option value="">Choose a colour</option>
+                {opts(ed[a]).map(c => <option key={c} value={c}>{c}</option>)}
+              </select>
+            </label>
+            <label style={{ display: 'flex', gap: 6, alignItems: 'center', fontWeight: 700 }}><input type="checkbox" checked={false} onChange={() => op({ op: 'target_pack', asin: a, pack: true })} style={{ width: 16, height: 16, accentColor: B.indigo }} />It's a pack</label>
+          </div>
+        ))}
+        {(t.moved_out || []).map(m => (
+          <div key={m.asin} style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 190px 150px', gap: 10, alignItems: 'center', borderTop: `1px solid ${C.line2}`, paddingTop: 8, color: C.muted }}>
+            <span><b style={{ fontFamily: 'monospace' }}>{m.asin}</b> · {product(m.asin).sku || ''}<div style={{ fontSize: 12 }}>{String(product(m.asin).product || product(m.asin).colour || '').slice(0, 70)}</div></span>
+            <span style={{ fontWeight: 800, color: C.warn }}>Moves to {m.to_family}</span>
+            <label style={{ display: 'flex', gap: 6, alignItems: 'center', fontWeight: 700 }}><input type="checkbox" checked onChange={() => op({ op: 'target_pack', asin: m.asin, pack: false })} style={{ width: 16, height: 16, accentColor: B.indigo }} />It's a pack</label>
+          </div>
+        ))}
+      </div>
+    </Panel>
+  )
+}
+
+function ColoursTab({ data, isMobile, onOpen, op }) {
   const sold = data.members.filter(m => m.role !== 'parent')
   const asins = [...new Set(sold.map(m => m.asin))]
   const stores = STORE_ORDER.filter(s => sold.some(m => m.marketplace === s))
   return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+    {data.target ? <ColourEditor key={JSON.stringify(data.target) + JSON.stringify((data.family_master || {}).colours || [])} data={data} op={op} /> : null}
     <Panel pad="0" style={{ overflowX: 'auto' }}>
+      <div style={{ padding: '10px 12px 0' }}><Lbl>What each store shows today</Lbl></div>
       <table style={{ borderCollapse: 'collapse', width: '100%', minWidth: 640, fontSize: 13 }}>
         <thead><tr style={{ background: B.lilac }}>{['Colour / product', 'ASIN', ...stores].map(h => <th key={h} scope="col" style={{ textAlign: 'left', padding: '10px 12px', font: `800 12.5px ${F}`, color: B.indigo }}>{h}</th>)}</tr></thead>
         <tbody>{asins.map(a => {
@@ -388,13 +506,81 @@ function ColoursTab({ data, isMobile, onOpen }) {
             <tr key={a} style={{ borderTop: `1px solid ${C.line2}` }}>
               <td style={{ padding: '9px 12px' }}><b>{name || here[0].sku}</b>{here.some(m => m.is_pack) ? <Chip style={{ marginLeft: 6 }}>pack</Chip> : null}<div style={{ color: C.muted, fontSize: 12 }}>{(here[0].product || '').slice(0, 60)}</div></td>
               <td style={{ padding: '9px 12px', fontFamily: 'monospace' }}>{a}</td>
-              {stores.map(s => { const m = here.find(x => x.marketplace === s); return <td key={s} style={{ padding: '9px 12px' }}>{m ? <button type="button" onClick={() => onOpen(m)} title={`${m.sku} · ${m.role}`} style={{ background: 'none', border: 0, padding: 0, font: `800 12.5px ${F}`, color: m.role === 'standalone' ? C.warn : B.indigo, cursor: 'pointer', textAlign: 'left' }}>{m.colour || m.sku}{m.role === 'standalone' ? ' (alone)' : ''}</button> : <span style={{ color: C.faint }}>–</span>}</td> })}
+              {stores.map(s => { const m = here.find(x => x.marketplace === s); return <td key={s} style={{ padding: '9px 12px' }}>{m ? <button type="button" onClick={() => onOpen(m)} title={`SKU ${m.sku} · ${m.role}`} style={{ background: 'none', border: 0, padding: 0, font: `800 12.5px ${F}`, color: m.colour ? B.indigo : C.bad, cursor: 'pointer', textAlign: 'left' }}>{m.colour || 'no colour name'}<span style={{ display: 'block', fontWeight: 700, fontSize: 11.5, color: m.role === 'standalone' ? C.warn : C.muted }}>{m.role === 'standalone' ? 'alone (no family)' : 'in family'}</span></button> : <span style={{ color: C.faint }}>not sold</span>}</td> })}
             </tr>
           )
         })}</tbody>
       </table>
-      <div style={{ padding: '8px 12px' }}><Note>Each colour holds only what differs from the master (colour name, its own images). Click a store to open that listing.</Note></div>
+      <div style={{ padding: '8px 12px' }}><Note>The colour name each store shows today and whether the colour sits in a family there. The target above is what every store must end up with; the Markets tab lists each gap. Click a store to open that listing.</Note></div>
     </Panel>
+    </div>
+  )
+}
+
+// ─── Stage 2: the gap map (read-only) ─────────────────────────────────────────────────────────────────────────────
+const GAP_STYLE = { ok: [C.ok, B.mint, '✓'], bad: [C.bad, B.rose, '✗'], none: [C.faint, '#fff', ''], later: [C.muted, B.lilac, '…'], blocked: [C.warn, B.cream, '⏸'] }
+function MarketsTab({ data, isMobile }) {
+  const g = data.gaps
+  if (!g) return <Panel><Note>No target structure for this family yet: it is set up family by family (the 2-in-1 Bowl first).</Note></Panel>
+  const bad = g.rows.reduce((s, r) => s + Object.values(r.cells).filter(c => c.state === 'bad').length, 0)
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+      <Panel>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, flexWrap: 'wrap' }}>
+          <h2 style={{ margin: 0, font: `900 18px ${F}`, color: B.indigo, flex: 1 }}>Every market against the target and the English master</h2>
+          <Chip bg={g.structure_complete ? B.mint : B.rose} fg={g.structure_complete ? C.ok : C.bad}>{g.structure_complete ? 'Structure complete' : 'Structure not complete'}</Chip>
+          <Chip bg={B.cream} fg={C.warn}>{bad} gap{bad === 1 ? '' : 's'}</Chip>
+        </div>
+        <Note>Read-only. Structure first (parent SKU {data.target.parent_sku} in every store, both colours in the family, packs out, colour names); content follows: the UK against the English master, every other store after translation (stage 4), which starts only once the structure is complete everywhere.</Note>
+      </Panel>
+      <Panel pad="0" style={{ overflowX: 'auto' }}>
+        <table style={{ borderCollapse: 'collapse', width: '100%', minWidth: 1100, fontSize: 12 }}>
+          <thead><tr style={{ background: B.lilac }}><th scope="col" style={{ textAlign: 'left', padding: '10px 12px', font: `800 12.5px ${F}`, color: B.indigo, minWidth: 150 }}>Part</th>{g.stores.map(s => <th key={s} scope="col" style={{ textAlign: 'left', padding: '10px 8px', font: `800 12.5px ${F}`, color: B.indigo }}>{s}</th>)}</tr></thead>
+          <tbody>
+            {g.rows.map((r, i) => (
+              <tr key={r.key} style={{ borderTop: `${i === 5 ? 3 : 1}px solid ${i === 5 ? B.indigo : C.line2}` }}>
+                <th scope="row" style={{ textAlign: 'left', padding: '8px 12px', verticalAlign: 'top' }}>{r.label}<div style={{ fontWeight: 700, fontSize: 11, color: C.muted }}>{r.kind === 'structure' ? 'structure' : 'content'}</div></th>
+                {g.stores.map(s => { const c = r.cells[s]; const [fg, bg, mark] = GAP_STYLE[c.state] || GAP_STYLE.none; return <td key={s} style={{ padding: '6px 8px', verticalAlign: 'top', background: bg, color: fg, fontWeight: 700, minWidth: 84, overflowWrap: 'anywhere' }}>{mark ? <b style={{ marginRight: 4 }}>{mark}</b> : null}{c.text}</td> })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </Panel>
+      <Note>✓ matches · ✗ a gap to fix (with what the store has now) · … waits for a later stage · ⏸ blocked until the structure in that store is fixed · blank: not sold there.</Note>
+    </div>
+  )
+}
+
+/** Fill one slot of the master set (asin null) or of a colour's set: pick from the image library or upload. */
+function SlotFiller({ data, op, asin, slots }) {
+  const [slot, setSlot] = useState(slots[0] || 'MAIN')
+  const [picking, setPicking] = useState(false)
+  const [busy, setBusy] = useState('')
+  const im = data.images
+  const current = { master: im.master || {}, colours: Object.fromEntries((im.sets || []).map(s => [s.asin, s.images || {}])) }
+  const put = (url) => op({ op: 'image_set', slot, asin: asin || null, url, current })
+  const upload = async (file) => {
+    if (!file) return
+    setBusy('Uploading…')
+    try {
+      const r = await call('/api/listings/image-upload', { asin: asin || data.family.lead_asin, locale: 'MASTER', name: file.name, type: file.type, size: file.size })
+      const up = await fetch(r.upload_url, { method: 'PUT', headers: { 'Content-Type': file.type }, body: file })
+      if (!up.ok) throw new Error(`Upload failed (${up.status})`)
+      await put(r.public_url)
+    } catch (e) { alert(e.message) } finally { setBusy('') }
+  }
+  if (!slots.length) return <Note>No slots here: switch a slot heading above.</Note>
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+        <label style={{ fontSize: 13, fontWeight: 800, display: 'flex', gap: 6, alignItems: 'center' }}>Slot
+          <select value={slot} onChange={e => setSlot(e.target.value)} style={{ ...inputStyle, minHeight: 36 }}>{slots.map(s => <option key={s} value={s}>{s}</option>)}</select>
+        </label>
+        <label style={{ ...pill(false), display: 'inline-flex', alignItems: 'center', cursor: 'pointer' }}>{busy || 'Upload'}<input type="file" accept="image/jpeg,image/png,image/tiff,image/gif" onChange={e => upload(e.target.files && e.target.files[0])} style={{ position: 'absolute', left: -9999 }} /></label>
+        <button type="button" onClick={() => setPicking(!picking)} style={pill(picking)}>{picking ? 'Close the library' : 'Pick from library'}</button>
+      </div>
+      {picking ? <div style={{ border: `1px solid ${C.line2}`, borderRadius: 10, padding: 8, maxHeight: 520, overflow: 'auto' }}><MediaView compact defaultType="02 Product images" pickLabel={`Use for ${slot}`} onPick={async (x) => { await put(x.url); setPicking(false) }} /></div> : null}
+    </div>
   )
 }
 
@@ -436,19 +622,19 @@ function ImagesTab({ data, isMobile, op, onEdit }) {
         <Panel style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           <b style={{ fontSize: 16, color: B.indigo }}>Master set</b>
           <span style={{ fontSize: 13, color: C.muted }}>{SLOTS.filter(s => im.slot_map[s] !== 'colour').join(', ') || 'No slots'} · used by every colour</span>
-          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>{SLOTS.filter(s => im.slot_map[s] !== 'colour' && (im.master || {})[s]).map(s => <Thumb key={s} s={{ slot: s, url: im.master[s], from: 'master' }} size={48} />)}</div>
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}><Btn onClick={onEdit}>Upload</Btn><Btn onClick={onEdit}>Pick from library</Btn></div>
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>{SLOTS.filter(s => im.slot_map[s] !== 'colour').map(s => <Thumb key={s} s={{ slot: s, url: (im.master || {})[s], from: 'master', missing: !(im.master || {})[s] }} size={48} />)}</div>
+          <SlotFiller data={data} op={op} asin={null} slots={SLOTS.filter(s => im.slot_map[s] !== 'colour')} />
         </Panel>
         {im.colours.map((c, i) => (
           <Panel key={c.asin} style={{ display: 'flex', flexDirection: 'column', gap: 8, borderTop: `6px solid ${[B.pink, B.teal, B.yellow, B.indigo][i % 4]}` }}>
             <b style={{ fontSize: 16, color: B.indigo }}>{c.colour} set</b>
             <span style={{ fontSize: 13, color: C.muted }}>{SLOTS.filter(s => im.slot_map[s] === 'colour').join(', ') || 'No colour slots'}{c.slots.some(s => s.missing) ? ` · ${c.slots.filter(s => s.missing).length} missing` : ''}</span>
             <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>{c.slots.filter(s => s.from === 'colour').map(s => <Thumb key={s.slot} s={s} size={48} />)}</div>
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}><Btn onClick={onEdit}>Upload</Btn><Btn onClick={onEdit}>Pick from library</Btn></div>
+            <SlotFiller data={data} op={op} asin={c.asin} slots={SLOTS.filter(s => im.slot_map[s] === 'colour')} />
           </Panel>
         ))}
       </div>
-      <Note>Upload and Pick open the master's image editor (the image library picker is there). Other countries use the same sets; pictures with words get a translated copy (MAIN never has words), shown on Countries.</Note>
+      <Note>Upload or pick fills the chosen slot in the family master (the first change copies today's pictures in, so nothing is lost). Other countries use the same sets; pictures with words get a translated copy at stage 4 (MAIN never has words).</Note>
     </div>
   )
 }

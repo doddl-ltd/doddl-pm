@@ -1,6 +1,18 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { deriveFamilies, seoScore, composeImages, keywordFocus, slotsOf, isPack, covers, keywordKey, keywordBulk } from '../lib/pm/families.js'
+import { deriveFamilies, seoScore, composeImages, keywordFocus, slotsOf, isPack, covers, keywordKey, keywordBulk, wordsOf, stemWord, wordWeights, gapMap } from '../lib/pm/families.js'
+import { buildSeoRequest, seoDraftProblems, cleanCopy } from '../lib/pm/familyMaster.js'
+
+test('Write SEO copy request: weighted words + lead phrase + rules; draft checks', () => {
+  const req = buildSeoRequest({ name: '2-in-1 Bowl', copy: { title: 'x' }, attributes: [{ name: 'material', value: 'silicone' }], colours: [{ name: 'Fresh Green' }], keywords: [{ search_query: 'baby suction bowl', query_volume: 900 }, { search_query: 'toddler bowl', query_volume: 100 }] })
+  assert.equal(req.model, 'claude-haiku-5-5')
+  const u = req.messages[0].content
+  assert.match(u, /LEAD PHRASE: baby suction bowl/); assert.match(u, /bowl \| 1000 \| 2/); assert.match(u, /material: silicone/)
+  assert.match(req.system, /leftover|NOT already in the title/)
+  const p = seoDraftProblems({ title: 'Bowl ' + 'x'.repeat(200), search_terms: 'doddl bowl', bullet_1: 'munchkin style' })
+  assert.match(p.title, /over 200/); assert.match(p.search_terms, /Brand/); assert.match(p.notes, /Another brand/)
+  assert.deepEqual(Object.keys(cleanCopy({ title: 'a', evil: 'x' })), ['title'])
+})
 import { applyChoices } from '../lib/pm/keywords.js'
 
 test('keyword choices: out is hidden from scoring, focus becomes the scored set, watch never counts', () => {
@@ -87,16 +99,58 @@ test('packs and keyword coverage helpers', () => {
   assert.ok(!covers('Suction Bowl', 'suction plate'))
 })
 
-test('SEO score: 100-point formula, weighted by search volume, with penalties', () => {
-  const keywords = [{ search_query: 'suction plate', query_volume: 900 }, { search_query: 'toddler plate', query_volume: 100 }]
-  const full = seoScore({ copy: { title: 'x'.repeat(170) + ' suction plate toddler', bullet_1: 'suction plate '.repeat(12), bullet_2: 'toddler plate '.repeat(12), bullet_3: 'y'.repeat(160), bullet_4: 'y'.repeat(160), bullet_5: 'y'.repeat(160), description: 'z'.repeat(1000), search_terms: 'w'.repeat(220) }, keywords, images: 7, aplusLive: true })
-  assert.equal(full.parts.title, 30); assert.equal(full.parts.bullets, 15); assert.equal(full.parts.terms, 10)
-  assert.equal(full.parts.images, 15); assert.equal(full.parts.aplus, 5); assert.equal(full.parts.family, 5)
+test('words: phrases split into weighted words, plurals merged, filler and brands dropped', () => {
+  assert.deepEqual(wordsOf('Suction Plates for Babies with doddl'), ['suction', 'plate', 'baby'])
+  assert.equal(stemWord('bowls'), 'bowl'); assert.equal(stemWord('toddlers'), 'toddler'); assert.equal(stemWord('glass'), 'glass')
+  const { words, phrases } = wordWeights([
+    { search_query: 'baby suction plate', query_volume: 6000 }, { search_query: 'suction plates', query_volume: 2000 },
+    { search_query: 'toddler plate', query_volume: 1000 }, { search_query: 'munchkin plate', query_volume: 9000 },
+    { search_query: 'plate with lid', query_volume: 500, choice: 'watch' },
+  ])
+  assert.equal(phrases.length, 3, 'competitors and watch never count')
+  assert.deepEqual(words.map(w => [w.word, w.weight]), [['plate', 9000], ['suction', 8000], ['baby', 6000], ['toddler', 1000]])
+})
+
+test('SEO score on words: 100 points, lead phrase, findable searches, penalties', () => {
+  const keywords = [{ search_query: 'baby suction bowl', query_volume: 900 }, { search_query: 'toddler bowls', query_volume: 100 }]
+  const good = {
+    title: 'doddl Baby Suction Bowl for Toddlers, 2-in-1 Weaning Bowl with Strong Suction Base, Dishwasher Safe, 6 Months Plus, BPA Free Silicone Rim for Self Feeding',
+    bullet_1: 'EASY TO USE: a baby suction bowl that stays put for toddlers. ' + 'y'.repeat(150), bullet_2: 'y'.repeat(160), bullet_3: 'y'.repeat(160), bullet_4: 'y'.repeat(160), bullet_5: 'y'.repeat(160),
+    description: 'z'.repeat(1000), search_terms: 'w'.repeat(200),
+  }
+  const full = seoScore({ copy: good, keywords, images: 7, aplusLive: true })
+  assert.equal(full.parts.title, 30); assert.equal(full.parts.lead, 5); assert.equal(full.parts.findable, 20); assert.equal(full.parts.bullets, 10)
+  assert.equal(full.parts.images, 15); assert.equal(full.parts.aplus, 5); assert.equal(full.parts.family, 5); assert.equal(full.parts.space, 10)
   assert.equal(full.score, 100)
-  const weak = seoScore({ copy: { title: 'toddler plate', search_terms: 'doddl ' + 'a'.repeat(260) }, keywords, images: 3 })
-  assert.equal(weak.parts.title, 3) // 100 of 1000 volume → 3 of 30 (parts add to 90, shown out of 100)
-  assert.ok(weak.penalties.some(p => /249 bytes/.test(p[0])) && weak.penalties.some(p => /Brand/.test(p[0])))
-  assert.ok(weak.score < 20)
+  assert.ok(full.words.every(w => w.in_title))
+  const weak = seoScore({ copy: { title: 'toddler bowl bowl bowl', search_terms: 'doddl munchkin ' + 'a'.repeat(260) }, keywords, images: 3 })
+  assert.equal(weak.parts.lead, 0)
+  assert.equal(weak.parts.findable, 2) // only "toddler bowls" (100 of 1000) is findable
+  assert.ok(weak.penalties.some(p => /249 bytes/.test(p[0])) && weak.penalties.some(p => /Brand/.test(p[0])) && weak.penalties.some(p => /more than twice/.test(p[0])) && weak.penalties.some(p => /Another brand/.test(p[0])))
+  assert.ok(weak.score < 15)
+})
+
+test('gap map: structure against the target per store, content against the master, later stores wait', () => {
+  const target = { parent_sku: 'P-2IN1-BOWL', theme: 'COLOR', children: ['GREEN00001', 'ROSE000001'], moved_out: [{ asin: 'PACK000001', to_family: 'P-2IN1-BOWL-TWIN' }] }
+  const members = [
+    { asin: 'GREEN00001', marketplace: 'UK', role: 'child', colour: 'Fresh Green' }, { asin: 'ROSE000001', marketplace: 'UK', role: 'child', colour: 'Dusky Rose' },
+    { asin: 'PACK000001', marketplace: 'UK', role: 'child', colour: 'Fresh Gree - Twin Pack' },
+    { asin: 'GREEN00001', marketplace: 'US', role: 'child', colour: 'Fresh Green' }, { asin: 'ROSE000001', marketplace: 'US', role: 'child', colour: 'Dusky Rose' },
+    { asin: 'GREEN00001', marketplace: 'FR', role: 'standalone', colour: null }, { asin: 'ROSE000001', marketplace: 'FR', role: 'standalone', colour: null },
+  ]
+  const parents = [{ marketplace: 'UK', parent_asin: 'UKPARENT01', parent_sku: 'BOWL PARENT' }, { marketplace: 'US', parent_asin: 'USPARENT01', parent_sku: 'P-2IN1-BOWL' }]
+  const products = [{ asin: 'UKPARENT01', marketplace: 'UK', variations: { theme: 'COLOR' } }, { asin: 'USPARENT01', marketplace: 'US', variations: { theme: 'COLOR_NAME' } }]
+  const master = { copy: { title: 'doddl Baby Suction Bowl', bullet_1: 'b1', description: 'd', search_terms: 's' }, colours: [{ asin: 'GREEN00001', name: 'Fresh Green' }, { asin: 'ROSE000001', name: 'Dusky Rose' }], attributes: [{ name: 'material', value: 'silicone' }], images_missing: 2 }
+  const g = gapMap({ target, master, members, parents, products, ukFields: { title: 'doddl Baby Suction Bowl Fresh Green', bullet_1: 'b1', description: 'd', search_terms: 'other' }, stores: ['UK', 'US', 'FR', 'DE'] })
+  const cell = (key, s) => g.rows.find(r => r.key === key).cells[s]
+  assert.equal(cell('parent_sku', 'UK').state, 'bad'); assert.match(cell('parent_sku', 'UK').text, /BOWL PARENT → P-2IN1-BOWL/)
+  assert.equal(cell('parent_sku', 'US').state, 'ok')
+  assert.match(cell('children', 'UK').text, /1 pack to move out/)
+  assert.equal(cell('children', 'FR').state, 'bad'); assert.equal(cell('parent_sku', 'FR').text, 'no parent')
+  assert.equal(cell('parent_sku', 'DE').state, 'none')
+  assert.equal(cell('title', 'UK').state, 'ok'); assert.equal(cell('search_terms', 'UK').state, 'bad'); assert.match(cell('images', 'UK').text, /2 slots missing/)
+  assert.equal(cell('title', 'US').state, 'later'); assert.equal(cell('title', 'FR').state, 'blocked')
+  assert.equal(g.structure_complete, false)
 })
 
 test('images: each colour = master slots + its own colour slots; a missing colour picture is never borrowed', () => {
