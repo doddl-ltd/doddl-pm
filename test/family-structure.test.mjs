@@ -45,9 +45,10 @@ import { colourMaster } from '../lib/pm/familyMaster.js'
 test('colour master: colour in the title, identity + colour kept per ASIN, German value fixed, its own 7 pictures', () => {
   const fm = { copy: { title: 'doddl Baby Bowl', bullet_1: 'b1' }, attributes: [{ name: 'brand', value: 'doddl' }, { name: 'color', value: 'Green' }, { name: 'externally_assigned_product_identifier', value: 'EAN-G' }, { name: 'special_feature', value: 'Spülmaschinenfest' }] }
   const own = { attributes: [{ name: 'color', value: 'Pink', keep: true }, { name: 'externally_assigned_product_identifier', value: 'EAN-R', keep: true }, { name: 'old_thing', value: 'x', keep: true }], images: { UK: [] } }
-  const m = colourMaster({ fm, colour: { asin: 'R', name: 'Dusky Rose' }, own, imagesFor: () => [{ slot: 'MAIN', url: 'u' }] })
+  const fm2 = { ...fm, attributes: [...fm.attributes, { name: 'model_number', value: 'DODDLBOWL' }, { name: 'item_weight', value: '0.18 kilograms' }] }
+  const m = colourMaster({ fm: fm2, colour: { asin: 'R', name: 'Dusky Rose' }, own, live: [{ name: 'item_weight', value: '0.168 kilograms', source: 'ours' }], imagesFor: () => [{ slot: 'MAIN', url: 'u' }] })
   assert.equal(m.copy.title, 'doddl Baby Bowl, Dusky Rose')
   const a = Object.fromEntries(m.attributes.map(x => [x.name, x.value]))
-  assert.deepEqual(a, { special_feature: 'Dishwasher Safe', color: 'Dusky Rose', externally_assigned_product_identifier: 'EAN-R' })
+  assert.deepEqual(a, { special_feature: 'Dishwasher Safe', item_weight: '0.168 kilograms', externally_assigned_product_identifier: 'EAN-R', color: 'Dusky Rose' })
   assert.deepEqual(m.images.MASTER, [{ slot: 'MAIN', url: 'u' }])
 })
