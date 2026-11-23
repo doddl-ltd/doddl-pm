@@ -854,7 +854,7 @@ function CountriesTab({ data, isMobile, onOpen, onEdit }) {
 }
 
 // Rank & reviews as a grid (Jon 2026-11-23): stores across the top, colour + ASIN down the side, a date picker that
-// opens on the last day read. Stars and reviews are kept per day; rank is the latest read only (no history kept yet).
+// opens on the last day read. Stars, reviews and rank (migration 47) are kept per day.
 function RankTab({ data, isMobile }) {
   const sold = data.members.filter(m => m.role !== 'parent')
   const stores = STORE_ORDER.filter(s => sold.some(m => m.marketplace === s))
@@ -869,7 +869,8 @@ function RankTab({ data, isMobile }) {
     const uk = here.find(m => m.marketplace === 'UK') || here[0]
     return (here.find(m => m.colour) || {}).colour || uk.sku || a
   }
-  const dates = [...new Set(data.reviews.map(r => r.date))].sort().reverse()
+  const hist = data.rank_history || []
+  const dates = [...new Set([...data.reviews.map(r => r.date), ...hist.map(r => r.date)])].sort().reverse()
   const [day, setDay] = useState(dates[0] || '')
   const latest = dates[0]
   const weekBefore = (d) => new Date(new Date(d).getTime() - 7 * 864e5).toISOString().slice(0, 10)
@@ -880,9 +881,12 @@ function RankTab({ data, isMobile }) {
     const now = day ? rv.find(r => r.date === day) : rv[0]
     const week = day ? rv.find(r => r.date <= weekBefore(day)) : null
     const d = now && week && now.reviews != null && week.reviews != null ? now.reviews - week.reviews : null
-    const ranks = data.ranks.filter(r => r.asin === a && r.marketplace === s && r.sales_rank).sort((x, y) => x.sales_rank - y.sales_rank)
-    const showRank = !day || day === latest
-    return { m, now, d, rank: showRank ? ranks[0] : null }
+    // that day's best rank from the history; the latest read (listing_categories) when no history row exists for the latest date
+    const onDay = hist.filter(r => r.asin === a && r.marketplace === s && r.date === day && r.sales_rank).sort((x, y) => x.sales_rank - y.sales_rank)
+    const current = data.ranks.filter(r => r.asin === a && r.marketplace === s && r.sales_rank).sort((x, y) => x.sales_rank - y.sales_rank)
+    const rank = onDay[0] || ((!day || day === latest) ? current[0] : null)
+    const before = rank ? hist.filter(r => r.asin === a && r.marketplace === s && r.node === (rank.node || '') && r.date <= weekBefore(day || latest) && r.sales_rank)[0] : null
+    return { m, now, d, rank, rankWas: before ? before.sales_rank : null }
   }
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -910,14 +914,14 @@ function RankTab({ data, isMobile }) {
               {stores.map(s => {
                 const c = cell(a, s)
                 if (!c) return <td key={s} style={{ padding: '8px 12px', background: '#fafafa' }} />
-                const { now, d, rank } = c
+                const { now, d, rank, rankWas } = c
                 return (
                   <td key={s} style={{ padding: '8px 12px', verticalAlign: 'top', minWidth: 140 }}>
                     <div style={{ fontWeight: 800 }}>{now && now.rating != null ? `${Number(now.rating).toFixed(1)} ★` : <span style={{ color: C.faint }}>– ★</span>}
                       <span style={{ marginLeft: 8 }}>{now && now.reviews != null ? now.reviews.toLocaleString() : now ? <span style={{ color: C.warn }}>{now.status}</span> : <span style={{ color: C.faint }}>not read</span>}</span>
                       {d != null ? <span style={{ marginLeft: 6, color: d < 0 ? C.bad : d > 0 ? C.ok : C.muted }}>{d > 0 ? `+${d}` : d === 0 ? '±0' : d}</span> : null}
                     </div>
-                    {rank ? <div style={{ marginTop: 2 }}>#{rank.sales_rank.toLocaleString()} <span style={{ color: C.muted }}>{rank.title}</span></div> : null}
+                    {rank ? <div style={{ marginTop: 2 }}>#{rank.sales_rank.toLocaleString()} <span style={{ color: C.muted }}>{rank.title}</span>{rankWas ? <span style={{ marginLeft: 6, fontWeight: 800, color: rankWas > rank.sales_rank ? C.ok : rankWas < rank.sales_rank ? C.bad : C.muted }} title={'7 days before: #' + rankWas.toLocaleString()}>{rankWas > rank.sales_rank ? '▲' : rankWas < rank.sales_rank ? '▼' : '='}</span> : null}</div> : <div style={{ marginTop: 2, color: C.faint }}>no rank read</div>}
                   </td>
                 )
               })}
@@ -926,7 +930,7 @@ function RankTab({ data, isMobile }) {
         </table>
       </Panel>
       {!data.reviews.length ? <Note>No stars or review counts read yet. Rank is read daily from Amazon's catalog.</Note> : null}
-      <Note>Each cell: stars · reviews · change vs 7 days before · best category rank. Grey = not sold in that store. Rank shows on the latest date only, because only the latest rank is kept for now.</Note>
+      <Note>Each cell: stars · reviews · change vs 7 days before · best category rank that day (▲ better / ▼ worse than 7 days before, hover for the old rank). Grey = not sold in that store. Rank history starts 23 Nov 2026.</Note>
       <Note>Alerts: review count falls, stars fall by 0.1 or more, a colour's count stops matching its family (the first sign of a split), rank halves within 3 days.</Note>
     </div>
   )
