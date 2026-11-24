@@ -49,9 +49,11 @@ test('English market: copy, attributes, removals and image slots against the mas
   assert.ok(p.skipped.some(s => s.name === 'item_dimensions' && /Seller Central/.test(s.why)))
 })
 
-test('non-English market: neutral attributes go now; copy and words wait for an approved translation', () => {
+test('non-English market: measures are skipped; copy and words wait for an approved translation', () => {
   const p = planMarket({ master, market: 'DE', product: product([['color', 'Blau'], ['item_weight', '100 grams']]), fields: fields({ Title: 'doddl Besteck' }), held: [] })
-  assert.ok(p.changes.some(c => c.name === 'item_weight' && c.to === '120 grams'))
+  // a measure (value + unit) is never sent: Seller Central (2026-11-24)
+  assert.ok(!p.changes.some(c => c.name === 'item_weight'))
+  assert.ok(p.skipped.some(s => s.name === 'item_weight' && /measure/.test(s.why)))
   assert.ok(!p.changes.some(c => c.name === 'Title' || c.name === 'color'))
   assert.ok(p.skipped.some(s => s.name === 'Title' && /not translated/.test(s.why)))
   const m2 = { ...master, variants: { DE: { status: 'approved', approved_by: 'Jon', copy: { ...master.copy, title: 'doddl Kinderbesteck-Set' }, attributes: { color: 'Indigoblau' } } } }
