@@ -206,6 +206,7 @@ function FamilyPage({ code, isMobile, onBack, onOpenApproval, backLabel = 'Amazo
         {data.family_master && data.family_master.status === 'approved' ? <ConfirmBtn as={Btn} onConfirm={() => op({ op: 'master_apply' })} label="Apply to the colours" confirmLabel="Click again: write each colour's master" /> : null}
         {signed.Jon && !signed.Laura && !signed.solo ? <ConfirmBtn as={Btn} onConfirm={() => op({ op: 'signoff', solo: true })} label="Approve without Laura" confirmLabel="Click again: approve without Laura" /> : null}
       </div>
+      {data.target ? <CardsPanel data={data} reload={reload} /> : null}
       {tab === 'master' ? <MasterTab data={data} isMobile={isMobile} op={op} lead={ukLead} reload={reload} onEdit={() => setOpen({ ...ukLead, startTab: 'master' })} /> : null}
       {tab === 'colours' ? <ColoursTab data={data} isMobile={isMobile} op={op} onOpen={(m) => setOpen({ asin: m.asin, marketplace: m.marketplace, startTab: false })} /> : null}
       {tab === 'images' ? <ImagesTab data={data} isMobile={isMobile} reload={reload} /> : null}
@@ -524,6 +525,41 @@ function ColoursTab({ data, isMobile, onOpen, op }) {
 
 // ─── Stage 2: the gap map (read-only) ─────────────────────────────────────────────────────────────────────────────
 const GAP_STYLE = { ok: [C.ok, B.mint, '✓'], bad: [C.bad, B.rose, '✗'], none: [C.faint, '#fff', ''], later: [C.muted, B.lilac, '…'], blocked: [C.warn, B.cream, '⏸'] }
+const CARD_KIND = { content: 'Listing update', parent: 'New parent', move: 'Move under parent', aplus: 'A+ page send', store_review: 'Store review', aplus_review: 'A+ review' }
+/** Every card waiting for this family, with one press to approve them all (Jon only; two-person cards without Laura). */
+function CardsPanel({ data, reload }) {
+  const [cards, setCards] = useState(null)
+  const [busy, setBusy] = useState(false)
+  const [msg, setMsg] = useState('')
+  const load = () => call('/api/listings/families', { family_code: data.family.family_code, op: 'cards' }).then(r => setCards(r.cards)).catch(e => setMsg(e.message))
+  useEffect(() => { load() }, [data]) // eslint-disable-line react-hooks/exhaustive-deps
+  if (!cards) return null
+  const approveAll = async () => {
+    setBusy(true); setMsg('')
+    try {
+      const r = await call('/api/listings/families', { family_code: data.family.family_code, op: 'cards_approve', ids: cards.map(c => c.id) })
+      const bad = r.results.filter(x => x.error)
+      setMsg(`Approved ${r.approved} of ${r.results.length}.${bad.length ? ' Not done: ' + bad.map(x => `${x.title.slice(0, 50)} (${x.error})`).join('; ') : ''}`)
+      load(); reload()
+    } catch (e) { setMsg(e.message) } finally { setBusy(false) }
+  }
+  return (
+    <Panel>
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, flexWrap: 'wrap' }}>
+        <h2 style={{ margin: 0, font: `900 18px ${F}`, color: B.indigo, flex: 1 }}>Waiting for your approval</h2>
+        {cards.length ? <ConfirmBtn as={Btn} primary disabled={busy} onConfirm={approveAll} label={`Approve all ${cards.length}`} confirmLabel={`Click again: approve all ${cards.length} (without Laura)`} /> : <Chip bg={B.mint} fg={C.ok}>Nothing waiting</Chip>}
+      </div>
+      <Note>Store reviews, Doddl HQ's Amazon cards (each already passed Amazon's validation preview), new parents and moves for this family. Open any card to read it first; Approve all records you as the approver and decides the two-person cards without Laura (you said she is not needed on this family).</Note>
+      {msg ? <div role="status" style={{ marginTop: 6, fontSize: 13, fontWeight: 800, color: B.indigo }}>{msg}</div> : null}
+      {cards.length ? <div style={{ display: 'flex', flexDirection: 'column', gap: 2, marginTop: 8, fontSize: 13, maxHeight: 280, overflow: 'auto' }}>{cards.map(c => (
+        <a key={c.id} href={`/?view=approvals&task=${c.id}`} target="_blank" rel="noreferrer" style={{ display: 'flex', gap: 10, color: C.ink, textDecoration: 'none', padding: '4px 0', borderTop: `1px solid ${C.line2}` }}>
+          <span style={{ minWidth: 130, fontWeight: 800, color: B.indigo }}>{CARD_KIND[c.kind] || c.kind}</span><span style={{ flex: 1 }}>{c.title}</span>
+        </a>
+      ))}</div> : null}
+    </Panel>
+  )
+}
+
 const STEP = { live: ['On Amazon', C.ok, B.mint], sent: ['Sent, waiting for Amazon', C.ok, B.mint], in_approval: ['Waiting for approval', C.warn, B.cream], submitted: ['With HQ for checks', C.warn, B.cream], refused: ['Refused', C.bad, B.rose], todo: ['To do', C.muted, '#fff'] }
 function StepChip({ state }) { const [t, fg, bg] = STEP[state] || STEP.todo; return <Chip bg={bg} fg={fg}>{t}</Chip> }
 
