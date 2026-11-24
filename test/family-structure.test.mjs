@@ -20,12 +20,12 @@ test('structure: parent first, then children; packs under their own parent; EU p
   const [e] = nextEdits({ market: 'UK', group: plan.UK.groups[0], members, products, masterTitle: 'doddl Baby Bowl', who: 'Jon' })
   assert.equal(e.kind, 'parent'); assert.equal(e.name, 'P-2IN1-BOWL'); assert.equal(e.asin, 'G')
   const v = JSON.parse(e.value)
-  assert.deepEqual(v, { variation_theme: 'COLOR', item_name: 'doddl Baby Bowl', template_sku: 'BOWL PARENT', suggested_asin: 'OLDP', brand: 'doddl', manufacturer: 'Doddl Ltd' })
+  assert.deepEqual(v, { variation_theme: 'COLOR', item_name: 'doddl Baby Bowl', template_sku: 'BOWL PARENT', suggested_asin: 'OLDP', brand: 'doddl', manufacturer: 'Doddl Ltd', attributes: { country_of_origin: 'CN', supplier_declared_dg_hz_regulation: 'not_applicable', batteries_required: false, batteries_included: false } })
   assert.equal(e.language_reviewed_by, null)
   assert.match(nextEdits({ market: 'DE', group: plan.DE.groups[0], members, products, masterTitle: 'doddl Baby Bowl', who: 'Jon' }).missing, /approved DE translation/)
   const variants = { G: { DE: { status: 'approved', approved_by: 'Jon', copy: { title: 'doddl Babyschüssel, Frisches Grün' } } } }
   const [d] = nextEdits({ market: 'DE', group: plan.DE.groups[0], members, products, masterTitle: 'doddl Baby Bowl', who: 'Jon', variants })
-  assert.deepEqual(JSON.parse(d.value), { variation_theme: 'COLOR', item_name: 'doddl Babyschüssel', template_sku: 'DOD011_EU', suggested_asin: 'EUP', brand: 'doddl', manufacturer: 'Doddl Ltd' })
+  assert.deepEqual(JSON.parse(d.value), { variation_theme: 'COLOR', item_name: 'doddl Babyschüssel', template_sku: 'DOD011_EU', suggested_asin: 'EUP', brand: 'doddl', manufacturer: 'Doddl Ltd', attributes: { country_of_origin: 'CN', supplier_declared_dg_hz_regulation: 'not_applicable', batteries_required: false, batteries_included: false } })
   assert.equal(d.language_reviewed_by, 'Jon')
 })
 
