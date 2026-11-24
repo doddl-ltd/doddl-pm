@@ -560,6 +560,33 @@ function CardsPanel({ data, reload }) {
   )
 }
 
+/** One attribute on one colour in one store, sent to HQ like a hand edit (e.g. what one store alone requires). */
+function StoreEdit({ data, onMsg, reload }) {
+  const sold = data.members.filter(m => m.role !== 'parent')
+  const [market, setMarket] = useState('CA')
+  const [asin, setAsin] = useState((data.target && data.target.children[0]) || '')
+  const [name, setName] = useState('manufacturer_contact_information')
+  const [value, setValue] = useState('Doddl Ltd')
+  const [busy, setBusy] = useState(false)
+  const send = async () => {
+    setBusy(true)
+    try { const r = await call('/api/listings/families', { family_code: data.family.family_code, op: 'store_edit', market, asin, name, value }); onMsg(`${market} ${asin}: ${name} sent to Doddl HQ (${r.submitted} edit${r.submitted === 1 ? '' : 's'})`); reload() } catch (e) { onMsg(e.message) } finally { setBusy(false) }
+  }
+  const sel = { ...inputStyle, minHeight: 34, padding: '0 8px' }
+  return (
+    <details style={{ marginTop: 10, fontSize: 13 }}>
+      <summary style={{ cursor: 'pointer', fontWeight: 800, color: B.indigo }}>One store only: set an attribute on one colour</summary>
+      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center', marginTop: 8 }}>
+        <select aria-label="Store" value={market} onChange={e => setMarket(e.target.value)} style={sel}>{STORE_ORDER.filter(s => sold.some(m => m.marketplace === s)).map(s => <option key={s}>{s}</option>)}</select>
+        <select aria-label="Colour" value={asin} onChange={e => setAsin(e.target.value)} style={sel}>{[...new Set(sold.filter(m => m.marketplace === market).map(m => m.asin))].map(a => <option key={a} value={a}>{(sold.find(m => m.asin === a && m.colour) || {}).colour || a} · {a}</option>)}</select>
+        <input aria-label="Attribute" value={name} onChange={e => setName(e.target.value)} style={{ ...sel, width: 260 }} />
+        <input aria-label="Value" value={value} onChange={e => setValue(e.target.value)} style={{ ...sel, width: 200 }} />
+        <Btn disabled={busy} onClick={send}>{busy ? 'Sending…' : 'Send to HQ'}</Btn>
+      </div>
+    </details>
+  )
+}
+
 const STEP = { live: ['On Amazon', C.ok, B.mint], sent: ['Sent, waiting for Amazon', C.ok, B.mint], in_approval: ['Waiting for approval', C.warn, B.cream], submitted: ['With HQ for checks', C.warn, B.cream], refused: ['Refused', C.bad, B.rose], todo: ['To do', C.muted, '#fff'] }
 function StepChip({ state }) { const [t, fg, bg] = STEP[state] || STEP.todo; return <Chip bg={bg} fg={fg}>{t}</Chip> }
 
@@ -613,6 +640,7 @@ function StructurePanel({ data, reload }) {
           </tr>
         )))}</tbody>
       </table>
+      <StoreEdit data={data} onMsg={setMsg} reload={reload} />
     </Panel>
   )
 }
