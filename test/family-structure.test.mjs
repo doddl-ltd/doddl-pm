@@ -54,3 +54,11 @@ test('colour master: colour in the title, identity + colour kept per ASIN, Germa
   assert.deepEqual(a, { special_feature: 'Dishwasher Safe', item_weight: '0.168 kilograms', externally_assigned_product_identifier: 'EAN-R', color: 'Dusky Rose' })
   assert.deepEqual(m.images.MASTER, [{ slot: 'MAIN', url: 'u' }])
 })
+
+import { marketImages } from '../lib/pm/marketImages.js'
+test('english pictures: a non-English store takes the English pictures unless an approved translation exists', () => {
+  const master = { images: { MASTER: [{ url: 'm0' }, { url: 'm1' }, { url: 'm2' }] }, rollout: { english_images: true } }
+  const t = [{ locale: 'DE', source_url: 'm2', status: 'approved', url: 'de2' }, { locale: 'DE', source_url: 'm1', status: 'problem', url: 'bad' }]
+  assert.deepEqual(marketImages(master, 'DE', t).map(x => [x.url, x.ready]), [['m0', true], ['m1', true], ['de2', true]])
+  assert.deepEqual(marketImages({ ...master, rollout: {} }, 'DE', t).map(x => x.ready), [true, false, true])
+})
