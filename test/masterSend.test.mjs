@@ -82,3 +82,11 @@ test('translate request: structured JSON, low effort, words only; parse refuses 
   assert.equal(ok.attributes.color, 'Indigo')
   assert.equal(ok.cost_usd, 0.044)
 })
+
+test('english listing language: a non-English store on the list takes the English master, reviewer = master approver', () => {
+  const m = { ...master, status: 'approved', approved_by: 'Jon', rollout: { english_listing: ['DE'] } }
+  const p = planMarket({ master: m, market: 'DE', product: product([['color', 'Blau']]), fields: fields({ Title: 'doddl Besteck' }), held: [] })
+  const t = p.changes.find(c => c.name === 'Title')
+  assert.equal(t.to, master.copy.title)
+  assert.equal(t.reviewed_by, 'Jon')
+})
