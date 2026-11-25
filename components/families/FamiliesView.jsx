@@ -583,6 +583,11 @@ function StoreEdit({ data, onMsg, reload }) {
         <input aria-label="Value" value={value} onChange={e => setValue(e.target.value)} style={{ ...sel, width: 200 }} />
         <Btn disabled={busy} onClick={send}>{busy ? 'Sending…' : 'Send to HQ'}</Btn>
       </div>
+      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 6 }}>
+        <Btn disabled={busy} onClick={async () => { setBusy(true); try { const r = await call('/api/listings/families', { family_code: data.family.family_code, op: 'withdraw_submitted', market, asin }); onMsg(market + ' ' + asin + ': took back ' + r.withdrawn + ' unchecked change(s)'); reload() } catch (e) { onMsg(e.message) } finally { setBusy(false) } }}>Take back unchecked changes</Btn>
+        <Btn disabled={busy} onClick={async () => { setBusy(true); try { const r = await call('/api/listings/families', { family_code: data.family.family_code, op: 'english_listing_set', market, asin, on: false }); onMsg(asin + ': English copy only in ' + (r.english_listing.join(', ') || 'no store')) } catch (e) { onMsg(e.message) } finally { setBusy(false) } }}>Use the translation here</Btn>
+        <Btn disabled={busy} onClick={async () => { setBusy(true); try { const r = await call('/api/listings/families', { family_code: data.family.family_code, op: 'english_listing_set', market, asin, on: true }); onMsg(asin + ': English copy in ' + r.english_listing.join(', ')) } catch (e) { onMsg(e.message) } finally { setBusy(false) } }}>Use English here</Btn>
+      </div>
     </details>
   )
 }
