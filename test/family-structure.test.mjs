@@ -90,3 +90,17 @@ test('keep_existing: a store keeps our parent holding most colours; others use t
   assert.equal(titleWithoutColour('doddl Set (Magenta)', 'Magenta'), 'doddl Set')
   assert.equal(titleWithoutColour('doddl Set', 'Aqua'), 'doddl Set')
 })
+
+test('keep_existing: the account parent whose ASIN already holds colours in this store wins', async () => {
+  const { effectiveParent } = await import('../lib/pm/familyStructure.js')
+  const t = { parent_sku: 'P-3PC-CUTLERY', children: ['A', 'B'], keep_existing: true }
+  const mem = [
+    { asin: 'A', marketplace: 'DE', parent_asin: 'DEP' }, { asin: 'B', marketplace: 'DE', parent_asin: 'DEP' },
+    { asin: 'A', marketplace: 'FR', parent_asin: 'FRP' }, { asin: 'B', marketplace: 'FR', parent_asin: 'FRP' },
+    { asin: 'A', marketplace: 'BE', parent_asin: 'FRP' }, { asin: 'B', marketplace: 'BE', parent_asin: null },
+    { asin: 'A', marketplace: 'ES', parent_asin: 'ORPHAN' },
+  ]
+  const prod = [{ asin: 'DEP', marketplace: 'DE', sku: 'S2X' }, { asin: 'FRP', marketplace: 'FR', sku: 'SP-ARM' }]
+  assert.equal(effectiveParent({ target: t, market: 'BE', members: mem, products: prod }), 'SP-ARM')
+  assert.equal(effectiveParent({ target: t, market: 'ES', members: mem, products: prod }), 'S2X')
+})
