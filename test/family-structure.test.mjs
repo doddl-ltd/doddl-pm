@@ -130,3 +130,14 @@ test('keep_existing parent: wrong-theme parents skipped; brand first; bullets + 
   assert.equal(v.item_name, 'doddl Besteck 2-teilig')
   assert.deepEqual(v.attributes.bullet_point, ['b1', 'b2']); assert.equal(v.attributes.product_description, 'b1 b2')
 })
+
+test('keep_existing parent value stays under 2,000 characters', async () => {
+  const t = { parent_sku: 'P-K', theme: 'COLOR', children: ['A'], keep_existing: true }
+  const mem = [{ asin: 'A', marketplace: 'CA', parent_asin: null, colour: 'Fresh Green' }]
+  const plan = structurePlan({ target: t, members: mem, products: [], edits: [], stores: ['CA'] })
+  const long = 'word '.repeat(120)
+  const [p] = nextEdits({ market: 'CA', group: plan.CA.groups[0], members: mem, products: [], who: 'Jon', keepExisting: true, masterTitle: 'doddl Kit',
+    masterCopy: { bullet_1: long, bullet_2: long, bullet_3: long, bullet_4: long, bullet_5: long, description: long.repeat(3) } })
+  assert.ok(p.value.length <= 2000, String(p.value.length))
+  assert.ok(JSON.parse(p.value).attributes.bullet_point.length >= 3)
+})
