@@ -116,3 +116,17 @@ test('titleWithoutColour: colour in the middle of a long title', async () => {
   assert.equal(titleWithoutColour('doddl Kit | from 6 Months to 5+ Fresh Green | Gift Boxed', null), 'doddl Kit | from 6 Months to 5+ | Gift Boxed')
   assert.equal(titleWithoutColour('doddl Set (Dusky Rose), BPA free', 'Dusky Rose'), 'doddl Set, BPA free')
 })
+
+test('keep_existing parent: wrong-theme parents skipped; brand first; bullets + description from a live colour', async () => {
+  const { effectiveParent } = await import('../lib/pm/familyStructure.js')
+  const t = { parent_sku: 'P-2PC', theme: 'COLOR', children: ['A', 'B'], keep_existing: true }
+  const mem = [{ asin: 'A', marketplace: 'DE', parent_asin: 'SZ', colour: 'Aqua' }, { asin: 'B', marketplace: 'DE', parent_asin: null, colour: 'Dusky Rose' }]
+  const prod = [{ asin: 'SZ', marketplace: 'DE', sku: 'S2X', variations: { theme: 'COLOR_NAME/SIZE_NAME' } }]
+  assert.equal(effectiveParent({ target: t, market: 'DE', members: mem, products: prod }), 'P-2PC')
+  const plan = structurePlan({ target: t, members: mem, products: prod, edits: [], stores: ['DE'] })
+  const [p] = nextEdits({ market: 'DE', group: plan.DE.groups[0], members: mem, products: prod, who: 'Jon', keepExisting: true,
+    liveTitles: { 'A|DE': 'Doddl Besteck 2-teilig Aqua' }, liveCopy: { 'A|DE': { bullets: ['b1', 'b2'], description: null } } })
+  const v = JSON.parse(p.value)
+  assert.equal(v.item_name, 'doddl Besteck 2-teilig')
+  assert.deepEqual(v.attributes.bullet_point, ['b1', 'b2']); assert.equal(v.attributes.product_description, 'b1 b2')
+})
