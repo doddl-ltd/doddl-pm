@@ -62,3 +62,31 @@ test('english pictures: a non-English store takes the English pictures unless an
   assert.deepEqual(marketImages(master, 'DE', t).map(x => [x.url, x.ready]), [['m0', true], ['m1', true], ['de2', true]])
   assert.deepEqual(marketImages({ ...master, rollout: {} }, 'DE', t).map(x => x.ready), [true, false, true])
 })
+
+test('keep_existing: a store keeps our parent holding most colours; others use the account parent; new parent titled from the live title', async () => {
+  const { effectiveParent, titleWithoutColour } = await import('../lib/pm/familyStructure.js')
+  const t = { parent_sku: 'P-3PC-CUTLERY', children: ['A', 'B', 'C'], moved_out: [], keep_existing: true }
+  const mem = [
+    { asin: 'A', marketplace: 'DE', sku: 'A_EU', role: 'child', parent_asin: 'DEP', colour: 'Fresh Green' },
+    { asin: 'B', marketplace: 'DE', sku: 'B_EU', role: 'child', parent_asin: 'DEP', colour: 'Magenta' },
+    { asin: 'C', marketplace: 'DE', sku: 'C_EU', role: 'standalone', parent_asin: null, colour: 'Dusky Rose' },
+    { asin: 'A', marketplace: 'ES', sku: 'A_EU', role: 'child', parent_asin: 'ORPHAN', colour: 'Fresh Green' },
+    { asin: 'C', marketplace: 'ES', sku: 'C_EU', role: 'standalone', parent_asin: null, colour: 'Dusky Rose' },
+    { asin: 'A', marketplace: 'PL', sku: 'A_PL', role: 'child', parent_asin: null, colour: 'Fresh Green' },
+  ]
+  const prod = [{ asin: 'DEP', marketplace: 'DE', sku: 'S2X-PARENT' }]
+  assert.equal(effectiveParent({ target: t, market: 'DE', members: mem, products: prod }), 'S2X-PARENT')
+  assert.equal(effectiveParent({ target: t, market: 'ES', members: mem, products: prod }), 'S2X-PARENT')
+  assert.equal(effectiveParent({ target: t, market: 'UK', members: mem, products: prod }), 'P-3PC-CUTLERY')
+  assert.equal(effectiveParent({ target: { ...t, keep_existing: false }, market: 'DE', members: mem, products: prod }), 'P-3PC-CUTLERY')
+  const plan = structurePlan({ target: t, members: mem, products: prod, edits: [], stores: ['DE', 'ES'] })
+  assert.equal(plan.DE.groups[0].parent_sku, 'S2X-PARENT'); assert.equal(plan.DE.groups[0].next, 'children')
+  assert.deepEqual(nextEdits({ market: 'DE', group: plan.DE.groups[0], members: mem, products: prod, who: 'Jon' }).map(r => [r.asin, r.value]), [['C', 'S2X-PARENT']])
+  assert.equal(plan.ES.groups[0].next, 'parent')
+  const [p] = nextEdits({ market: 'ES', group: plan.ES.groups[0], members: mem, products: prod, who: 'Jon', keepExisting: true, liveTitles: { 'A|ES': 'doddl Juego de cubiertos, 3 piezas, Fresh Green' } })
+  const v = JSON.parse(p.value)
+  assert.equal(p.name, 'S2X-PARENT'); assert.equal(v.item_name, 'doddl Juego de cubiertos, 3 piezas'); assert.equal(v.suggested_asin, 'DEP'); assert.equal(p.language_reviewed_by, 'Jon')
+  assert.equal(titleWithoutColour('doddl Set – Dusky Rose', 'Dusky Rose'), 'doddl Set')
+  assert.equal(titleWithoutColour('doddl Set (Magenta)', 'Magenta'), 'doddl Set')
+  assert.equal(titleWithoutColour('doddl Set', 'Aqua'), 'doddl Set')
+})
