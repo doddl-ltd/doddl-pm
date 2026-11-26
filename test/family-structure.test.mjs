@@ -104,3 +104,9 @@ test('keep_existing: the account parent whose ASIN already holds colours in this
   assert.equal(effectiveParent({ target: t, market: 'BE', members: mem, products: prod }), 'SP-ARM')
   assert.equal(effectiveParent({ target: t, market: 'ES', members: mem, products: prod }), 'S2X')
 })
+
+test('titleWithoutColour: a colour not on file is still taken off (doddl colour names)', async () => {
+  const { titleWithoutColour } = await import('../lib/pm/familyStructure.js')
+  assert.equal(titleWithoutColour('doddl Set | Self-Feeding from 6 Months to 5+ Fresh Green', null), 'doddl Set | Self-Feeding from 6 Months to 5+')
+  assert.equal(titleWithoutColour('doddl Juego 3 piezas Dusky Rose', ''), 'doddl Juego 3 piezas')
+})
