@@ -110,3 +110,9 @@ test('titleWithoutColour: a colour not on file is still taken off (doddl colour 
   assert.equal(titleWithoutColour('doddl Set | Self-Feeding from 6 Months to 5+ Fresh Green', null), 'doddl Set | Self-Feeding from 6 Months to 5+')
   assert.equal(titleWithoutColour('doddl Juego 3 piezas Dusky Rose', ''), 'doddl Juego 3 piezas')
 })
+
+test('titleWithoutColour: colour in the middle of a long title', async () => {
+  const { titleWithoutColour } = await import('../lib/pm/familyStructure.js')
+  assert.equal(titleWithoutColour('doddl Kit | from 6 Months to 5+ Fresh Green | Gift Boxed', null), 'doddl Kit | from 6 Months to 5+ | Gift Boxed')
+  assert.equal(titleWithoutColour('doddl Set (Dusky Rose), BPA free', 'Dusky Rose'), 'doddl Set, BPA free')
+})
