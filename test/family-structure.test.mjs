@@ -141,3 +141,12 @@ test('keep_existing parent value stays under 2,000 characters', async () => {
   assert.ok(p.value.length <= 2000, String(p.value.length))
   assert.ok(JSON.parse(p.value).attributes.bullet_point.length >= 3)
 })
+
+test('force_parent: a keep_existing family always joins its P- parent (Jon 2026-11-27)', async () => {
+  const { effectiveParent } = await import('../lib/pm/familyStructure.js')
+  const target = { parent_sku: 'P-3PC-CUTLERY', keep_existing: true, force_parent: true, theme: 'COLOR', children: ['B01FI1XXC2'] }
+  const members = [{ asin: 'B01FI1XXC2', marketplace: 'US', parent_asin: 'B0FSS1DWN3' }]
+  const products = [{ asin: 'B0FSS1DWN3', marketplace: 'US', sku: '51-BOPO-CXYA', variations: { theme: 'COLOR' } }]
+  assert.equal(effectiveParent({ target, market: 'US', members, products }), 'P-3PC-CUTLERY')
+  assert.equal(effectiveParent({ target: { ...target, force_parent: false }, market: 'US', members, products }), '51-BOPO-CXYA')
+})
